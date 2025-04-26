@@ -8,6 +8,8 @@ import { CartProvider } from "./context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { useState, useEffect } from "react";
+import { Session } from "@supabase/supabase-js";
 
 // Pages
 import Index from "./pages/Index";
@@ -40,7 +42,29 @@ const queryClient = new QueryClient();
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const path = location.pathname;
-  const { data: session } = supabase.auth.getSession();
+  const [session, setSession] = useState<Session | null>(null);
+  
+  useEffect(() => {
+    // Fetch the session when component mounts
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+    
+    getSession();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_, currentSession) => {
+        setSession(currentSession);
+      }
+    );
+    
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   
   // Hide navbar and footer on authentication pages, dashboard and client panel
   // Also hide footer when user is authenticated
@@ -50,7 +74,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     path === "/admin" ||
     path.startsWith("/admin/");
   
-  const hideFooter = hideNavbarFooter || session?.session?.user;
+  const hideFooter = hideNavbarFooter || session;
   
   return (
     <>
