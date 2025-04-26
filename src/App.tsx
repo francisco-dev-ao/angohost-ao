@@ -21,6 +21,13 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
 import ClientPanel from "./pages/ClientPanel";
 
+// New Pages
+import HostingPage from "./pages/HostingPage";
+import DomainsPage from "./pages/DomainsPage";
+import DomainTransferPage from "./pages/DomainTransferPage";
+import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
+import Office365Page from "./pages/Office365Page";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,6 +51,17 @@ const App = () => (
                 <Route path="/email/profissional" element={<EmailProfessional />} />
                 <Route path="/email/configurar" element={<EmailConfig />} />
                 <Route path="/painel-cliente" element={<ClientPanel />} />
+                
+                {/* New Routes */}
+                <Route path="/hospedagem-de-sites" element={<HostingPage />} />
+                <Route path="/hospedagem/cpanel" element={<HostingPage />} />
+                <Route path="/hospedagem/wordpress" element={<HostingPage />} />
+                <Route path="/dominios" element={<DomainsPage />} />
+                <Route path="/transferencia_de_dominios" element={<DomainTransferPage />} />
+                <Route path="/dominios/transferir" element={<DomainTransferPage />} />
+                <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
+                <Route path="/email-office-365" element={<Office365Page />} />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

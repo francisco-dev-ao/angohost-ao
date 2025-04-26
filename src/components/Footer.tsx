@@ -87,8 +87,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/email/exchange" className="text-gray-600 hover:text-angohost-600">
-                  Exchange 365
+                <Link to="/email-office-365" className="text-gray-600 hover:text-angohost-600">
+                  Microsoft 365
                 </Link>
               </li>
               <li>

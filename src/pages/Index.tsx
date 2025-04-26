@@ -7,6 +7,8 @@ import { Check, Globe, Server, Shield, Mail } from 'lucide-react';
 import DomainSearchForm from '@/components/DomainSearchForm';
 import FeatureCard from '@/components/FeatureCard';
 import PricingCard from '@/components/PricingCard';
+import TestimonialsSection from '@/components/TestimonialsSection';
+import ClientLogosSection from '@/components/ClientLogosSection';
 
 const Index = () => {
   return (
@@ -130,6 +132,12 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection />
+
+      {/* Client Logos Section */}
+      <ClientLogosSection />
 
       {/* Hosting Plans Section */}
       <section className="py-20 px-4 bg-gray-50">
