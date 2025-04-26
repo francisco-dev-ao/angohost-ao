@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
@@ -17,6 +17,7 @@ const DomainConfig = () => {
   const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const registerButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -125,6 +126,7 @@ const DomainConfig = () => {
                 extension={domainExtension}
                 searchResult={searchResult}
                 onRegister={handleAddToCart}
+                registerButtonRef={registerButtonRef}
               />
             </div>
           )}

@@ -1,14 +1,20 @@
 
 import React from 'react';
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from '@/types/cart';
 
 interface OrderSummaryProps {
   items: CartItem[];
   getTotalPrice: () => number;
+  onCheckout?: () => void;
 }
 
-export const OrderSummary: React.FC<OrderSummaryProps> = ({ items, getTotalPrice }) => {
+export const OrderSummary: React.FC<OrderSummaryProps> = ({ 
+  items, 
+  getTotalPrice,
+  onCheckout 
+}) => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 sticky top-6">
       <h2 className="text-xl font-semibold mb-4">Resumo do Pedido</h2>
@@ -31,6 +37,15 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({ items, getTotalPrice
         <span>Total</span>
         <span>{getTotalPrice().toLocaleString('pt-AO')} Kz</span>
       </div>
+      
+      {onCheckout && (
+        <Button 
+          onClick={onCheckout}
+          className="w-full mt-6"
+        >
+          Finalizar Compra
+        </Button>
+      )}
       
       <div className="mt-6 bg-blue-50 p-4 rounded-md border border-blue-100">
         <h3 className="font-medium text-primary mb-2">Informações Importantes</h3>
