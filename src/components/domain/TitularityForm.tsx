@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,6 +9,8 @@ import * as z from "zod";
 import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCart } from '@/context/CartContext';
+import { useNifSearch } from '@/hooks/useNifSearch';
+import { toast } from 'sonner';
 
 export const formSchema = z.object({
   ownerName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -40,6 +41,14 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
 }) => {
   const { getContactProfiles } = useCart();
   const contactProfiles = getContactProfiles();
+  const { isLoading: isNifLoading, fetchNifData } = useNifSearch((data) => {
+    if (data) {
+      form.setValue('ownerName', data.nome);
+      form.setValue('ownerContact', data.numero_contacto || '');
+      form.setValue('organizationName', data.nome);
+      toast.success('Dados do NIF carregados com sucesso!');
+    }
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -68,6 +77,19 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
       }
     }
   }, [useExistingProfile, selectedProfileId, contactProfiles]);
+
+  const handleNifBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const nif = e.target.value;
+    if (nif.length >= 8) {
+      const success = await fetchNifData(nif);
+      if (!success) {
+        form.setError('ownerNif', { 
+          type: 'manual', 
+          message: 'NIF não encontrado ou inválido' 
+        });
+      }
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,38 +136,37 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
               />
             )}
 
-            {useExistingProfile && (
-              <FormField
-                control={form.control}
-                name="selectedProfileId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Selecione um Perfil</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um perfil" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {contactProfiles.map((profile) => (
-                          <SelectItem key={profile.id} value={profile.id}>
-                            {profile.name} ({profile.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {(!useExistingProfile || !selectedProfileId) && (
+            {(!form.watch('useExistingProfile') || !form.watch('selectedProfileId')) && (
               <>
+                <FormField
+                  control={form.control}
+                  name="ownerNif"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NIF/BI do Proprietário</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input 
+                            {...field} 
+                            placeholder="Digite o NIF ou BI"
+                            onBlur={handleNifBlur}
+                            disabled={isNifLoading}
+                          />
+                          {isNifLoading && (
+                            <div className="absolute right-3 top-3">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Ao informar o NIF, preencheremos alguns campos automaticamente.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="ownerName"
@@ -153,21 +174,7 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
                     <FormItem>
                       <FormLabel>Nome do Proprietário</FormLabel>
                       <FormControl>
-                        <Input placeholder="Nome completo" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="ownerNif"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>NIF</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Número de Identificação Fiscal" {...field} />
+                        <Input {...field} placeholder="Nome completo" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -232,7 +239,7 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isProcessing}>
+              <Button type="submit" disabled={isProcessing || isNifLoading}>
                 {isProcessing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

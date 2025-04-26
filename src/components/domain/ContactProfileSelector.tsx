@@ -9,7 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ClientDetailsForm } from './ClientDetailsForm';
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
-import { PlusCircle, UserCircle } from 'lucide-react';
+import { useNifSearch } from '@/hooks/useNifSearch';
+import { PlusCircle, UserCircle, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface ContactProfileSelectorProps {
   profiles: ContactProfile[];
@@ -22,10 +24,10 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
   profiles,
   selectedProfileId,
   onSelectProfile,
-  onCreateProfile
 }) => {
   const { addContactProfile } = useCart();
   const [isOpen, setIsOpen] = useState(false);
+  const [nif, setNif] = useState('');
   const [newProfile, setNewProfile] = useState<Omit<ContactProfile, 'id'>>({
     name: '',
     email: '',
@@ -35,6 +37,25 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
     city: '',
     country: 'Angola'
   });
+
+  const { isLoading: isNifLoading, fetchNifData } = useNifSearch((data) => {
+    if (data) {
+      setNewProfile(prev => ({
+        ...prev,
+        name: data.nome,
+        phone: data.numero_contacto || '',
+        nif: nif,
+        billingAddress: data.endereco || '',
+      }));
+      toast.success('Dados do NIF carregados com sucesso!');
+    }
+  });
+
+  const handleNifBlur = async () => {
+    if (nif.length >= 8) {
+      await fetchNifData(nif);
+    }
+  };
 
   const handleInputChange = (field: keyof Omit<ContactProfile, 'id'>, value: string) => {
     setNewProfile(prev => ({ ...prev, [field]: value }));
@@ -112,6 +133,28 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
           </DialogHeader>
           
           <div className="py-4">
+            <div className="mb-6">
+              <Label htmlFor="nif">NIF (Número de Identificação Fiscal) ou BI</Label>
+              <div className="relative">
+                <Input
+                  id="nif"
+                  value={nif}
+                  onChange={(e) => setNif(e.target.value)}
+                  onBlur={handleNifBlur}
+                  placeholder="Digite o NIF ou BI"
+                  className="pr-10"
+                />
+                {isNifLoading && (
+                  <div className="absolute right-3 top-3">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Ao informar o NIF, preencheremos alguns campos automaticamente.
+              </p>
+            </div>
+
             <ClientDetailsForm
               details={{
                 name: newProfile.name,
@@ -124,14 +167,7 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
                 email: newProfile.email,
                 phone: newProfile.phone
               }}
-              onInputChange={(field, value) => {
-                // Mapeamento dos campos
-                if (field === 'name') handleInputChange('name', value);
-                if (field === 'email') handleInputChange('email', value);
-                if (field === 'phone') handleInputChange('phone', value);
-                if (field === 'address') handleInputChange('billingAddress', value);
-                if (field === 'city') handleInputChange('city', value);
-              }}
+              onInputChange={handleInputChange}
             />
             
             <div className="mt-6 flex justify-end space-x-2">
