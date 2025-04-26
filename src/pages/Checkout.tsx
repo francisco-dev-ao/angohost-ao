@@ -53,14 +53,18 @@ const Checkout = () => {
       navigate('/carrinho');
       toast.error('Seu carrinho está vazio!');
     }
-  }, [items, navigate]);
+    
+    // If payment completed, redirect to success page
+    if (paymentInfo?.status === 'completed') {
+      navigate('/payment/success');
+    }
+  }, [items, navigate, paymentInfo]);
   
   const fetchNifData = async (nif: string) => {
     if (nif.length !== 9) return;
     
     setIsLoading(true);
     try {
-      // In a real implementation, this would call the actual API
       toast.info("Consultando dados do NIF...");
       
       try {
@@ -111,7 +115,7 @@ const Checkout = () => {
     });
     
     toast.success('Pagamento processado com sucesso!');
-    navigate('/cliente/faturas');
+    navigate('/payment/success');
   };
   
   const handlePaymentError = (error: string) => {
@@ -154,7 +158,7 @@ const Checkout = () => {
       });
       
       toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');
-      navigate('/cliente/faturas');
+      navigate('/payment/success');
     }
   };
 

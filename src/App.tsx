@@ -16,6 +16,7 @@ import RegisterDomain from "./pages/RegisterDomain";
 import DomainConfig from "./pages/DomainConfig";
 import EmailProfessional from "./pages/EmailProfessional";
 import Checkout from "./pages/Checkout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/carrinho" element={<ShoppingCart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/payment/success" element={<PaymentSuccess />} />
                 <Route path="/dominios/registrar" element={<RegisterDomain />} />
                 <Route path="/dominios/configurar" element={<DomainConfig />} />
                 <Route path="/email/profissional" element={<EmailProfessional />} />

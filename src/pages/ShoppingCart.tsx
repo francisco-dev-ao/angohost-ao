@@ -63,6 +63,9 @@ const ShoppingCart = () => {
                             <div className="mt-2 text-sm text-gray-600">
                               <p>Armazenamento: {item.details.storage}</p>
                               <p>Proteção anti-spam: {item.details.antispam}</p>
+                              {item.details.quantity && (
+                                <p>Quantidade: {item.details.quantity} contas</p>
+                              )}
                               <p className="mt-2 text-orange-600">Renovação: {item.price.toLocaleString('pt-AO')} Kz/mês</p>
                             </div>
                           )}

@@ -33,6 +33,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
   const { addItem } = useCart();
   
   const handleSelect = () => {
+    if (type === 'email') {
+      // For email plans, navigate to the email page to select quantity
+      navigate('/email/profissional');
+      return;
+    }
+    
     let newItem = null;
       
     if (type === 'hosting') {
@@ -76,47 +82,6 @@ const PricingCard: React.FC<PricingCardProps> = ({
             emailAccounts: 'Ilimitado',
             databases: 'Ilimitado',
             renewalPrice: 8500
-          }
-        };
-      }
-    } else if (type === 'email') {
-      if (id === 'email-start') {
-        newItem = {
-          id: `email-${id}-${Date.now()}`,
-          type: 'email',
-          name: 'Plano Start de Email',
-          price: 1500,
-          period: 'monthly',
-          details: {
-            storage: '5GB por caixa',
-            antispam: 'Básico',
-            renewalPrice: 1500
-          }
-        };
-      } else if (id === 'email-business') {
-        newItem = {
-          id: `email-${id}-${Date.now()}`,
-          type: 'email',
-          name: 'Plano Business de Email',
-          price: 3000,
-          period: 'monthly',
-          details: {
-            storage: '15GB por caixa',
-            antispam: 'Avançado',
-            renewalPrice: 3000
-          }
-        };
-      } else if (id === 'email-enterprise') {
-        newItem = {
-          id: `email-${id}-${Date.now()}`,
-          type: 'email',
-          name: 'Plano Enterprise de Email',
-          price: 6000,
-          period: 'monthly',
-          details: {
-            storage: '50GB por caixa',
-            antispam: 'Premium',
-            renewalPrice: 6000
           }
         };
       }
