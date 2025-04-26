@@ -29,24 +29,24 @@ export const ProfileList: React.FC<ProfileListProps> = ({
     <RadioGroup 
       value={selectedProfileId || ""} 
       onValueChange={onSelectProfile}
-      className="space-y-4"
+      className="space-y-2.5"
     >
       {profiles.map((profile) => (
         <div key={profile.id} className="flex items-start space-x-3">
           <RadioGroupItem value={profile.id} id={`profile-${profile.id}`} className="mt-1" />
           <Label 
             htmlFor={`profile-${profile.id}`} 
-            className="flex-1 p-3 bg-white rounded-md border cursor-pointer hover:bg-gray-50"
+            className="flex-1 p-2.5 bg-white rounded-md border cursor-pointer hover:bg-gray-50"
           >
-            <div className="font-medium mb-1">{profile.name}</div>
-            <div className="text-sm text-gray-500">
+            <div className="font-medium mb-0.5">{profile.profileName || profile.name}</div>
+            <div className="text-xs text-gray-500">
+              {profile.name} • {profile.nif}
+            </div>
+            <div className="text-xs text-gray-500">
               {profile.email} • {profile.phone}
             </div>
-            <div className="text-sm text-gray-500">
-              NIF: {profile.nif} • {profile.city}, {profile.country}
-            </div>
-            <div className="text-sm text-gray-500">
-              {profile.billingAddress}
+            <div className="text-xs text-gray-500">
+              {profile.city}, {profile.country || 'Angola'}
             </div>
           </Label>
         </div>

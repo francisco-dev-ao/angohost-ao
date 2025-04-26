@@ -4,6 +4,8 @@ import { ClientDetailsForm } from '../ClientDetailsForm';
 import { Button } from '@/components/ui/button';
 import { ContactProfile } from '@/types/cart';
 import { NifSearch } from '../NifSearch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ProfileFormProps {
   nif: string;
@@ -31,6 +33,20 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   return (
     <div className="py-4">
       <div className="mb-6">
+        <div className="mb-4">
+          <Label htmlFor="profileName" className="font-medium">Nome do Perfil</Label>
+          <Input
+            id="profileName"
+            value={newProfile.profileName || ''}
+            onChange={(e) => onInputChange('profileName', e.target.value)}
+            placeholder="Nome para identificar este perfil"
+            className="mt-1"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Um nome para identificar facilmente este perfil de contato
+          </p>
+        </div>
+        
         <NifSearch
           nif={nif}
           onNifChange={onNifChange}

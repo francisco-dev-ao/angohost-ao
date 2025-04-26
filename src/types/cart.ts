@@ -16,6 +16,7 @@ export interface CartItem {
 
 export interface ContactProfile {
   id: string;
+  profileName: string; // Nome do perfil de contato para fácil identificação
   name: string;
   email: string;
   phone: string;

@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { ContactProfile } from '@/types/cart';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
@@ -26,6 +25,7 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [nif, setNif] = useState('');
   const [newProfile, setNewProfile] = useState<Omit<ContactProfile, 'id'>>({
+    profileName: '',
     name: '',
     email: '',
     phone: '',
@@ -42,6 +42,7 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
     if (data) {
       setNewProfile(prev => ({
         ...prev,
+        profileName: `${data.nome.substring(0, 20)}...`,
         name: data.nome,
         phone: data.numero_contacto || '',
         nif: nif,
@@ -55,12 +56,19 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
   };
 
   const handleCreateProfile = () => {
-    const requiredFields = ['name', 'email', 'phone', 'nif', 'billingAddress', 'city'] as const;
+    const requiredFields = ['profileName', 'name', 'email', 'phone', 'nif', 'billingAddress', 'city'] as const;
     const missingFields = requiredFields.filter(field => !newProfile[field]);
     
     if (missingFields.length > 0) {
       toast.error(`Por favor, preencha todos os campos obrigatórios: ${missingFields.join(', ')}`);
       return;
+    }
+    
+    if (!newProfile.profileName) {
+      setNewProfile(prev => ({
+        ...prev,
+        profileName: prev.name.substring(0, 30)
+      }));
     }
     
     const profileId = addContactProfile(newProfile as ContactProfile);
@@ -70,7 +78,7 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <ProfileList 
         profiles={profiles}
         selectedProfileId={selectedProfileId}
@@ -79,7 +87,7 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full mt-2">
             <PlusCircle className="mr-2 h-4 w-4" />
             Criar Novo Perfil de Contato
           </Button>

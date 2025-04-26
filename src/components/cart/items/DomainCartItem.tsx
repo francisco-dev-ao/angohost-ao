@@ -8,12 +8,16 @@ interface DomainCartItemProps {
 }
 
 export const DomainCartItem: React.FC<DomainCartItemProps> = ({ item, getContactProfileById }) => {
+  const contactProfile = item.details.contactProfileId 
+    ? getContactProfileById(item.details.contactProfileId)
+    : null;
+    
   return (
     <div className="mt-2 text-sm text-gray-600">
       <p>Período: {item.details.registrationPeriod}</p>
       <p>Proteção de privacidade: Incluída</p>
-      {item.details.contactProfileId && (
-        <p>Perfil de contato: {getContactProfileById(item.details.contactProfileId)?.name || 'Perfil não encontrado'}</p>
+      {contactProfile && (
+        <p>Perfil de contato: {contactProfile.profileName || contactProfile.name || 'Perfil não encontrado'}</p>
       )}
       <p className="mt-2 text-orange-600">
         Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO') || 
