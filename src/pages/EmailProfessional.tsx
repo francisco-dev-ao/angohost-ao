@@ -1,15 +1,35 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Mail, Minus, Plus } from 'lucide-react';
+import { Check, Mail, Minus, Plus, Loader2 } from 'lucide-react';
 import DomainSearchForm from '@/components/DomainSearchForm';
-import PricingCard from '@/components/PricingCard';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface EmailPlan {
   id: string;
@@ -22,12 +42,28 @@ interface EmailPlan {
   maxQuantity: number;
 }
 
+interface DomainOption {
+  type: 'existing' | 'new';
+  domainName?: string;
+}
+
 const EmailProfessional = () => {
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, hasDomainInCart, getDomainNames } = useCart();
   
   const [selectedPlan, setSelectedPlan] = useState<EmailPlan | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [isQuantityDialogOpen, setIsQuantityDialogOpen] = useState(false);
+  const [isDomainDialogOpen, setIsDomainDialogOpen] = useState(false);
+  const [domainOption, setDomainOption] = useState<DomainOption>({ type: 'new' });
+  const [existingDomain, setExistingDomain] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [domainsInCart, setDomainsInCart] = useState<string[]>([]);
+  
+  // Get domains from cart
+  useEffect(() => {
+    setDomainsInCart(getDomainNames());
+  }, [getDomainNames]);
   
   const emailPlans: EmailPlan[] = [
     {
@@ -81,6 +117,7 @@ const EmailProfessional = () => {
   const handleSelectPlan = (plan: EmailPlan) => {
     setSelectedPlan(plan);
     setQuantity(plan.minQuantity);
+    setIsQuantityDialogOpen(true);
   };
 
   const handleQuantityChange = (newValue: number) => {
@@ -95,26 +132,76 @@ const EmailProfessional = () => {
     }
   };
   
+  const handleQuantityConfirm = () => {
+    setIsQuantityDialogOpen(false);
+    
+    // Check if we need to ask about domain
+    if (!hasDomainInCart() && domainsInCart.length === 0) {
+      setIsDomainDialogOpen(true);
+    } else if (domainsInCart.length > 0) {
+      // If there are domains in the cart, pre-select the first one
+      setDomainOption({ 
+        type: 'existing', 
+        domainName: domainsInCart[0] 
+      });
+      setExistingDomain(domainsInCart[0]);
+      setIsDomainDialogOpen(true);
+    } else {
+      // If there's already a domain in the cart, proceed to add to cart
+      handleAddToCart();
+    }
+  };
+  
+  const handleDomainOptionConfirm = () => {
+    setIsDomainDialogOpen(false);
+    
+    if (domainOption.type === 'new') {
+      // Navigate to domain registration
+      if (selectedPlan) {
+        // Store selected plan data in session storage
+        sessionStorage.setItem('pendingEmailPlan', JSON.stringify({
+          id: selectedPlan.id,
+          title: selectedPlan.title,
+          price: selectedPlan.price,
+          storage: selectedPlan.storage,
+          quantity: quantity
+        }));
+        
+        navigate('/dominios/registrar');
+      }
+    } else {
+      // Use existing domain
+      handleAddToCart();
+    }
+  };
+  
   const handleAddToCart = () => {
     if (!selectedPlan) return;
     
-    const newItem = {
-      id: `${selectedPlan.id}-${Date.now()}`,
-      type: 'email',
-      name: `${selectedPlan.title} (${quantity} contas)`,
-      price: selectedPlan.price * quantity,
-      period: 'monthly',
-      details: {
-        storage: selectedPlan.storage,
-        antispam: selectedPlan.id === 'email-start' ? 'Básico' : (selectedPlan.id === 'email-business' ? 'Avançado' : 'Premium'),
-        quantity: quantity,
-        renewalPrice: selectedPlan.price * quantity
-      }
-    };
+    setIsLoading(true);
     
-    addItem(newItem as any);
-    toast.success(`${newItem.name} adicionado ao carrinho!`);
-    navigate('/carrinho');
+    // Simulate some processing delay
+    setTimeout(() => {
+      const newItem = {
+        id: `${selectedPlan.id}-${Date.now()}`,
+        type: 'email',
+        name: `${selectedPlan.title} (${quantity} contas)`,
+        price: selectedPlan.price * quantity,
+        period: 'monthly',
+        details: {
+          storage: selectedPlan.storage,
+          antispam: selectedPlan.id === 'email-start' ? 'Básico' : (selectedPlan.id === 'email-business' ? 'Avançado' : 'Premium'),
+          quantity: quantity,
+          domainName: domainOption.type === 'existing' ? existingDomain : undefined,
+          renewalPrice: selectedPlan.price * quantity
+        }
+      };
+      
+      addItem(newItem as any);
+      toast.success(`${newItem.name} adicionado ao carrinho!`);
+      setIsLoading(false);
+      navigate('/carrinho');
+    }, 800);
   };
 
   return (
@@ -132,123 +219,43 @@ const EmailProfessional = () => {
           </TabsList>
           
           <TabsContent value="plans" className="mt-6">
-            {!selectedPlan ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {emailPlans.map(plan => (
-                  <div 
-                    key={plan.id} 
-                    className={`pricing-card relative rounded-xl border ${plan.isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all hover:border-primary hover:shadow-md cursor-pointer`}
-                    onClick={() => handleSelectPlan(plan)}
-                  >
-                    {plan.isPopular && (
-                      <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">Popular</span>
-                    )}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {emailPlans.map(plan => (
+                <div 
+                  key={plan.id} 
+                  className={`pricing-card relative rounded-xl border ${plan.isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all hover:border-primary hover:shadow-md cursor-pointer`}
+                  onClick={() => handleSelectPlan(plan)}
+                >
+                  {plan.isPopular && (
+                    <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">Popular</span>
+                  )}
 
-                    <h3 className="text-xl font-semibold text-gray-900">{plan.title}</h3>
-                    
-                    <div className="mt-4 flex items-baseline text-gray-900">
-                      <span className="text-3xl font-extrabold tracking-tight">{plan.price.toLocaleString('pt-AO')} Kz</span>
-                      <span className="ml-1 text-xl font-semibold">/conta/mês</span>
-                    </div>
-                    
-                    <ul className="mt-6 space-y-4">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <div className="flex-shrink-0">
-                            <Check className="h-5 w-5 text-green-500" />
-                          </div>
-                          <p className="ml-3 text-sm text-gray-700">{feature}</p>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button 
-                      className={`mt-8 w-full ${plan.isPopular ? 'bg-primary hover:bg-primary/90' : ''}`}
-                    >
-                      Selecionar Plano
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setSelectedPlan(null)}
-                  >
-                    Voltar aos Planos
-                  </Button>
-                  <h2 className="text-xl font-semibold">{selectedPlan.title}</h2>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-lg font-medium mb-4">Características do Plano</h3>
-                    <ul className="space-y-3">
-                      {selectedPlan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <div className="flex-shrink-0">
-                            <Check className="h-5 w-5 text-green-500" />
-                          </div>
-                          <p className="ml-3 text-gray-700">{feature}</p>
-                        </li>
-                      ))}
-                    </ul>
+                  <h3 className="text-xl font-semibold text-gray-900">{plan.title}</h3>
+                  
+                  <div className="mt-4 flex items-baseline text-gray-900">
+                    <span className="text-3xl font-extrabold tracking-tight">{plan.price.toLocaleString('pt-AO')} Kz</span>
+                    <span className="ml-1 text-xl font-semibold">/conta/mês</span>
                   </div>
                   
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-medium mb-6">Configurar seu Plano</h3>
-                    
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Quantidade de Contas de Email
-                      </label>
-                      <div className="flex items-center">
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => handleQuantityChange(quantity - 1)}
-                          disabled={quantity <= selectedPlan.minQuantity}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="mx-6 text-xl font-medium">{quantity}</span>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          onClick={() => handleQuantityChange(quantity + 1)}
-                          disabled={quantity >= selectedPlan.maxQuantity}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Min: {selectedPlan.minQuantity} / Max: {selectedPlan.maxQuantity} contas
-                      </p>
-                    </div>
-                    
-                    <div className="mb-6 border-t border-gray-200 pt-6">
-                      <div className="flex justify-between mb-2">
-                        <span className="text-gray-600">Preço por conta:</span>
-                        <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz/mês</span>
-                      </div>
-                      <div className="flex justify-between font-medium text-lg">
-                        <span>Total:</span>
-                        <span>{(selectedPlan.price * quantity).toLocaleString('pt-AO')} Kz/mês</span>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      className="w-full bg-primary hover:bg-primary/90"
-                      onClick={handleAddToCart}
-                    >
-                      Adicionar ao Carrinho
-                    </Button>
-                  </div>
+                  <ul className="mt-6 space-y-4">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <Check className="h-5 w-5 text-green-500" />
+                        </div>
+                        <p className="ml-3 text-sm text-gray-700">{feature}</p>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button 
+                    className={`mt-8 w-full ${plan.isPopular ? 'bg-primary hover:bg-primary/90' : ''}`}
+                  >
+                    Selecionar Plano
+                  </Button>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
             
             <Card className="mt-12">
               <CardHeader>
@@ -404,6 +411,156 @@ const EmailProfessional = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Quantity Selection Dialog */}
+      <Dialog open={isQuantityDialogOpen} onOpenChange={setIsQuantityDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Selecione a Quantidade</DialogTitle>
+            <DialogDescription>
+              {selectedPlan && `Configure o número de contas para o ${selectedPlan.title}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="text-center">
+                <p className="mb-2 text-sm">Quantidade de contas de email:</p>
+                <div className="flex items-center justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={!selectedPlan || quantity <= selectedPlan.minQuantity}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="mx-6 text-xl font-medium">{quantity}</span>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={!selectedPlan || quantity >= selectedPlan.maxQuantity}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {selectedPlan && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Min: {selectedPlan.minQuantity} / Max: {selectedPlan.maxQuantity} contas
+                  </p>
+                )}
+              </div>
+              
+              {selectedPlan && (
+                <div className="w-full border-t border-gray-200 pt-4">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">Preço por conta:</span>
+                    <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz/mês</span>
+                  </div>
+                  <div className="flex justify-between font-medium text-lg">
+                    <span>Total:</span>
+                    <span>{(selectedPlan.price * quantity).toLocaleString('pt-AO')} Kz/mês</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-between">
+            <Button variant="outline" onClick={() => setIsQuantityDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleQuantityConfirm}>
+              Continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Domain Selection Dialog */}
+      <Dialog open={isDomainDialogOpen} onOpenChange={setIsDomainDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Escolha um Domínio</DialogTitle>
+            <DialogDescription>
+              Seu email profissional precisa estar associado a um domínio.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <RadioGroup 
+              defaultValue={domainOption.type} 
+              className="space-y-4"
+              onValueChange={(value) => setDomainOption({ type: value as 'existing' | 'new' })}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="new" id="new-domain" />
+                <Label htmlFor="new-domain">Quero registrar um novo domínio</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="existing" id="existing-domain" />
+                <Label htmlFor="existing-domain">Já tenho um domínio</Label>
+              </div>
+            </RadioGroup>
+            
+            {domainOption.type === 'existing' && (
+              <div className="mt-4">
+                {domainsInCart.length > 0 ? (
+                  <div className="space-y-3">
+                    <Label>Selecione um domínio do seu carrinho:</Label>
+                    <RadioGroup 
+                      value={existingDomain}
+                      onValueChange={setExistingDomain}
+                      className="space-y-2"
+                    >
+                      {domainsInCart.map(domain => (
+                        <div key={domain} className="flex items-center space-x-2">
+                          <RadioGroupItem value={domain} id={domain} />
+                          <Label htmlFor={domain}>{domain}</Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Label htmlFor="domain-name">Nome do domínio:</Label>
+                    <Input 
+                      id="domain-name" 
+                      placeholder="exemplo.co.ao" 
+                      value={existingDomain} 
+                      onChange={(e) => setExistingDomain(e.target.value)} 
+                    />
+                    <p className="text-sm text-gray-500">
+                      Você precisará configurar os registros DNS deste domínio para usar nosso serviço de email.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="sm:justify-between">
+            <Button variant="outline" onClick={() => setIsDomainDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              onClick={handleDomainOptionConfirm}
+              disabled={domainOption.type === 'existing' && !existingDomain}
+            >
+              Continuar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-lg font-medium">Processando...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

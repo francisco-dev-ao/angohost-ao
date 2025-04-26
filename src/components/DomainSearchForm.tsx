@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -13,19 +13,60 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { Search, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 interface DomainSearchFormProps {
   variant?: 'default' | 'hero' | 'sidebar';
 }
+
+const formSchema = z.object({
+  ownerName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  ownerNif: z.string().min(9, "NIF inválido").max(14, "NIF inválido"),
+  ownerContact: z.string().min(9, "Telefone inválido"),
+  ownerEmail: z.string().email("Email inválido"),
+  organizationName: z.string().optional(),
+});
 
 const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default' }) => {
   const [domainName, setDomainName] = useState('');
   const [extension, setExtension] = useState('.co.ao');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
+  const [showTitularityForm, setShowTitularityForm] = useState(false);
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   
   const navigate = useNavigate();
   const { addItem } = useCart();
+  
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      ownerName: "",
+      ownerNif: "",
+      ownerContact: "",
+      ownerEmail: "",
+      organizationName: "",
+    },
+  });
 
   const extensionOptions = [
     { value: '.co.ao', label: '.co.ao', price: 35000 },
@@ -34,6 +75,14 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     { value: '.edu.ao', label: '.edu.ao', price: 35000 },
     { value: '.com', label: '.com', price: 15000 },
   ];
+
+  // Check sessionStorage for any pending email plan
+  useEffect(() => {
+    const pendingEmailPlan = sessionStorage.getItem('pendingEmailPlan');
+    if (pendingEmailPlan) {
+      toast.info('Selecione um domínio para o seu plano de email');
+    }
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,26 +118,71 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     }, 1500);
   };
 
-  const addToCart = () => {
-    // Add domain to cart
-    const price = getPrice();
-    
-    addItem({
-      id: `domain-${domainName}${extension}-${Date.now()}`,
-      type: 'domain',
-      name: `${domainName}${extension}`,
-      price: price,
-      period: 'yearly',
-      details: {
-        domain: `${domainName}${extension}`,
-        period: '1 ano',
-        renewalPrice: price,
-        privacyProtection: 'Incluída'
+  const handleOpenTitularityForm = () => {
+    setShowTitularityForm(true);
+  };
+
+  const onTitularitySubmit = (values: z.infer<typeof formSchema>) => {
+    setIsProcessingOrder(true);
+
+    // Simulate processing delay
+    setTimeout(() => {
+      const price = getPrice();
+
+      addItem({
+        id: `domain-${domainName}${extension}-${Date.now()}`,
+        type: 'domain',
+        name: `${domainName}${extension}`,
+        price: price,
+        period: 'yearly',
+        details: {
+          domain: `${domainName}${extension}`,
+          period: '1 ano',
+          renewalPrice: price,
+          privacyProtection: 'Incluída',
+          domainName: `${domainName}${extension}`,
+          ownerName: values.ownerName,
+          ownerNif: values.ownerNif,
+          ownerContact: values.ownerContact,
+          ownerEmail: values.ownerEmail,
+          organizationName: values.organizationName || ""
+        }
+      });
+
+      toast.success(`Domínio ${domainName}${extension} adicionado ao carrinho!`);
+      setIsProcessingOrder(false);
+      setShowTitularityForm(false);
+
+      const pendingEmailPlan = sessionStorage.getItem('pendingEmailPlan');
+      
+      if (pendingEmailPlan) {
+        try {
+          const emailPlan = JSON.parse(pendingEmailPlan);
+          
+          addItem({
+            id: `${emailPlan.id}-${Date.now()}`,
+            type: 'email',
+            name: `${emailPlan.title} (${emailPlan.quantity} contas)`,
+            price: emailPlan.price * emailPlan.quantity,
+            period: 'monthly',
+            details: {
+              storage: emailPlan.storage,
+              antispam: emailPlan.id === 'email-start' ? 'Básico' : (emailPlan.id === 'email-business' ? 'Avançado' : 'Premium'),
+              quantity: emailPlan.quantity,
+              domainName: `${domainName}${extension}`,
+              renewalPrice: emailPlan.price * emailPlan.quantity
+            }
+          });
+          
+          sessionStorage.removeItem('pendingEmailPlan');
+          toast.success(`Plano de email adicionado ao carrinho!`);
+        } catch (e) {
+          console.error('Failed to parse pending email plan', e);
+        }
       }
-    });
-    
-    toast.success(`Domínio ${domainName}${extension} adicionado ao carrinho!`);
-    navigate('/carrinho'); // Navigate to cart immediately after adding
+      
+      navigate('/carrinho');
+    }, 1500);
   };
 
   const getPrice = () => {
@@ -164,10 +258,10 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
                 Renovação: {getPrice().toLocaleString('pt-AO')} Kz por ano
               </p>
               <Button 
-                onClick={addToCart} 
+                onClick={handleOpenTitularityForm} 
                 className="mt-4 bg-primary hover:bg-primary/90"
               >
-                Adicionar ao Carrinho
+                Registrar Domínio
               </Button>
             </div>
           ) : (
@@ -182,6 +276,116 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
           )}
         </div>
       )}
+
+      {/* Domain Ownership Form Dialog */}
+      <Dialog open={showTitularityForm} onOpenChange={setShowTitularityForm}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Dados de Titularidade do Domínio</DialogTitle>
+            <DialogDescription>
+              Preencha os dados do proprietário do domínio {domainName}{extension}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onTitularitySubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="ownerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Proprietário</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome completo" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="ownerNif"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NIF</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Número de Identificação Fiscal" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="ownerContact"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex: 923456789" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="ownerEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="exemplo@email.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="organizationName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome da Organização (opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome da empresa ou organização" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Para registros empresariais ou institucionais.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setShowTitularityForm(false)}
+                  disabled={isProcessingOrder}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isProcessingOrder}>
+                  {isProcessingOrder ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : 'Adicionar ao Carrinho'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

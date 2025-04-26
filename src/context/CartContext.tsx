@@ -10,6 +10,8 @@ export interface CartItem {
   details: {
     [key: string]: any;
     renewalPrice?: number;
+    quantity?: number;
+    domainName?: string;
   };
 }
 
@@ -23,6 +25,14 @@ export interface Customer {
   postalCode?: string;
   country?: string;
   idNumber?: string; // Número de Bilhete de Identidade
+  // Domain ownership information
+  domainOwnership?: {
+    ownerName: string;
+    ownerNif: string;
+    ownerContact: string;
+    ownerEmail: string;
+    organizationName?: string;
+  };
 }
 
 export interface PaymentInfo {
@@ -30,6 +40,8 @@ export interface PaymentInfo {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   transactionId?: string;
   reference?: string;
+  hasDomain?: boolean;
+  hasEmail?: boolean;
 }
 
 interface CartContextType {
@@ -46,6 +58,9 @@ interface CartContextType {
   getItemCount: () => number;
   getRenewalTotal: () => number;
   generateOrderReference: () => string;
+  hasDomainInCart: () => boolean;
+  hasEmailInCart: () => boolean;
+  getDomainNames: () => string[];
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -167,12 +182,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return items.length;
   };
   
+  const hasDomainInCart = (): boolean => {
+    return items.some(item => item.type === 'domain');
+  };
+  
+  const hasEmailInCart = (): boolean => {
+    return items.some(item => item.type === 'email');
+  };
+  
+  const getDomainNames = (): string[] => {
+    return items
+      .filter(item => item.type === 'domain' && item.details.domainName)
+      .map(item => item.details.domainName as string);
+  };
+  
   const updateCustomer = (customerData: Customer) => {
     setCustomer(customerData);
   };
   
   const updatePaymentInfo = (info: PaymentInfo) => {
-    setPaymentInfo(info);
+    // Automatically add domain and email flags
+    const updatedInfo = {
+      ...info,
+      hasDomain: hasDomainInCart(),
+      hasEmail: hasEmailInCart()
+    };
+    setPaymentInfo(updatedInfo);
   };
   
   // Generate a unique order reference
@@ -198,7 +233,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getTotalPrice,
     getItemCount,
     getRenewalTotal,
-    generateOrderReference
+    generateOrderReference,
+    hasDomainInCart,
+    hasEmailInCart,
+    getDomainNames
   };
   
   return (

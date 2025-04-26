@@ -15,8 +15,11 @@ import ShoppingCart from "./pages/ShoppingCart";
 import RegisterDomain from "./pages/RegisterDomain";
 import DomainConfig from "./pages/DomainConfig";
 import EmailProfessional from "./pages/EmailProfessional";
+import EmailConfig from "./pages/EmailConfig";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCallback from "./pages/PaymentCallback";
+import ClientPanel from "./pages/ClientPanel";
 
 const queryClient = new QueryClient();
 
@@ -35,9 +38,12 @@ const App = () => (
                 <Route path="/carrinho" element={<ShoppingCart />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/payment/success" element={<PaymentSuccess />} />
+                <Route path="/payment/callback" element={<PaymentCallback />} />
                 <Route path="/dominios/registrar" element={<RegisterDomain />} />
                 <Route path="/dominios/configurar" element={<DomainConfig />} />
                 <Route path="/email/profissional" element={<EmailProfessional />} />
+                <Route path="/email/configurar" element={<EmailConfig />} />
+                <Route path="/painel-cliente" element={<ClientPanel />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

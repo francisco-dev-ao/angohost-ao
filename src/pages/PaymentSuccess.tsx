@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { Card, CardContent } from '@/components/ui/card';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -19,6 +20,11 @@ const PaymentSuccess = () => {
   const handleContinueShopping = () => {
     clearCart();
     navigate('/');
+  };
+  
+  const handleAccessPanel = () => {
+    clearCart();
+    navigate('/painel-cliente');
   };
   
   if (!paymentInfo) {
@@ -53,6 +59,33 @@ const PaymentSuccess = () => {
           </div>
         </div>
         
+        {paymentInfo.hasDomain && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold mb-2">Informações DNS</h3>
+              <div className="text-sm text-gray-600 text-left space-y-1">
+                <p>Nameserver 1: <span className="font-mono">ns1.angohost.co.ao</span></p>
+                <p>Nameserver 2: <span className="font-mono">ns2.angohost.co.ao</span></p>
+                <p>Nameserver 3: <span className="font-mono">ns3.angohost.co.ao</span></p>
+                <p>Nameserver 4: <span className="font-mono">ns4.angohost.co.ao</span></p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {paymentInfo.hasEmail && (
+          <Card className="mb-6">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold mb-2">Configuração de Email</h3>
+              <div className="text-sm text-gray-600 text-left space-y-1">
+                <p>Servidor SMTP: <span className="font-mono">smtp.angohost.co.ao</span></p>
+                <p>Servidor POP3: <span className="font-mono">pop3.angohost.co.ao</span></p>
+                <p>Servidor IMAP: <span className="font-mono">imap.angohost.co.ao</span></p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         <p className="text-sm text-gray-600 mb-8">
           Você receberá um email com os detalhes da sua compra e instruções de acesso.
         </p>
@@ -68,7 +101,7 @@ const PaymentSuccess = () => {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => navigate('/painel-cliente')}
+            onClick={handleAccessPanel}
           >
             Acessar Painel do Cliente
           </Button>
