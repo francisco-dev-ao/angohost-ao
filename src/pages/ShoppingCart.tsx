@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
@@ -36,7 +35,6 @@ const ShoppingCart = () => {
   const hasEmailPlan = items.some(item => item.type === 'email');
   const hasOnlyHostingWithoutDomain = items.length === 1 && items[0].type === 'hosting' && items[0].details.existingDomain === true;
   
-  // Verificar se o usuário está logado
   useEffect(() => {
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
@@ -55,7 +53,6 @@ const ShoppingCart = () => {
     return () => subscription.unsubscribe();
   }, []);
   
-  // Verifica se pelo menos um perfil foi selecionado para cada domínio
   useEffect(() => {
     if (!hasDomain || hasOnlyHostingWithoutDomain) {
       setProfileAssigned(true);
@@ -76,7 +73,6 @@ const ShoppingCart = () => {
       return;
     }
     
-    // Se não estiver logado, redirecionar para página de autenticação
     if (!user) {
       toast.error('É necessário fazer login ou criar conta para finalizar a compra!');
       sessionStorage.setItem('redirect_after_login', '/carrinho');
@@ -84,13 +80,11 @@ const ShoppingCart = () => {
       return;
     }
     
-    // Verificar se há algum domínio no carrinho e se um perfil de contato foi selecionado
     if (hasDomain && !hasOnlyHostingWithoutDomain && !profileAssigned) {
       toast.error('É necessário selecionar um perfil de contato para cada domínio!');
       return;
     }
     
-    // Tudo ok, redirecionar para checkout
     navigate('/checkout');
   };
 
@@ -116,7 +110,6 @@ const ShoppingCart = () => {
                 getContactProfileById={getContactProfileById}
               />
               
-              {/* Requisito de autenticação */}
               {!user && (
                 <Card className="mt-8 border-2 border-blue-200">
                   <CardHeader className="bg-blue-50">
@@ -160,7 +153,6 @@ const ShoppingCart = () => {
                 </Card>
               )}
               
-              {/* Seleção de perfil de contato para domínios */}
               {user && hasDomain && !hasOnlyHostingWithoutDomain && (
                 <Card className="mt-8 border-2 border-green-200">
                   <CardHeader className="bg-green-50">
