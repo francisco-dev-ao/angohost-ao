@@ -84,6 +84,54 @@ const PricingCard: React.FC<PricingCardProps> = ({
             renewalPrice: 8500
           }
         };
+      } else if (id === 'dedicated-basic') {
+        newItem = {
+          id: `dedicated-${id}-${Date.now()}`,
+          type: 'hosting',
+          name: 'Servidor Dedicado Básico',
+          price: 45000,
+          period: 'monthly',
+          details: {
+            cpu: '4 Cores',
+            ram: '8GB',
+            storage: '1TB HDD',
+            bandwidth: 'Ilimitado',
+            ips: '1 IP Dedicado',
+            renewalPrice: 45000
+          }
+        };
+      } else if (id === 'dedicated-pro') {
+        newItem = {
+          id: `dedicated-${id}-${Date.now()}`,
+          type: 'hosting',
+          name: 'Servidor Dedicado Pro',
+          price: 75000,
+          period: 'monthly',
+          details: {
+            cpu: '8 Cores',
+            ram: '16GB',
+            storage: '2TB HDD',
+            bandwidth: 'Ilimitado',
+            ips: '2 IPs Dedicados',
+            renewalPrice: 75000
+          }
+        };
+      } else if (id === 'dedicated-enterprise') {
+        newItem = {
+          id: `dedicated-${id}-${Date.now()}`,
+          type: 'hosting',
+          name: 'Servidor Dedicado Enterprise',
+          price: 120000,
+          period: 'monthly',
+          details: {
+            cpu: '16 Cores',
+            ram: '32GB',
+            storage: '4TB HDD',
+            bandwidth: 'Ilimitado',
+            ips: '4 IPs Dedicados',
+            renewalPrice: 120000
+          }
+        };
       }
     }
     
@@ -136,7 +184,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   };
 
   return (
-    <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300`}>
+    <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300 hover:shadow-md`}>
       {isPopular && (
         <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">Popular</span>
       )}

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ const Navbar = () => {
           <img 
             src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
             alt="ANGOHOST" 
-            className="h-12 w-auto" 
+            className="h-16 w-auto" 
           />
         </Link>
 
@@ -160,6 +161,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div ref={menuRef} className="lg:hidden absolute w-full bg-background z-50 border-b pb-4">
           <nav className="container mt-4 flex flex-col gap-4">
