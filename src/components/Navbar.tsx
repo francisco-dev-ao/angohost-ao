@@ -71,10 +71,10 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="py-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-50">
+    <header className="py-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-[100]">
       <div className="container flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 z-30">
           <img 
             src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
             alt="ANGOHOST" 

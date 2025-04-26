@@ -40,9 +40,9 @@ export const NavbarDesktopMenu = ({
           </NavigationMenuItem>
           
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Alojamento Web</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="cursor-pointer">Alojamento Web</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className="grid w-[220px] gap-3 p-4">
+              <ul className="grid w-[220px] gap-1 p-3">
                 {hostingMenuItems.map((item) => (
                   <li key={item.title}>
                     <NavigationMenuLink asChild>
@@ -60,9 +60,9 @@ export const NavbarDesktopMenu = ({
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Domínios</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="cursor-pointer">Domínios</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className="grid w-[220px] gap-3 p-4">
+              <ul className="grid w-[220px] gap-1 p-3">
                 {domainMenuItems.map((item) => (
                   <li key={item.title}>
                     <NavigationMenuLink asChild>
@@ -80,9 +80,9 @@ export const NavbarDesktopMenu = ({
           </NavigationMenuItem>
           
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Email Corporativo</NavigationMenuTrigger>
+            <NavigationMenuTrigger className="cursor-pointer">Email Corporativo</NavigationMenuTrigger>
             <NavigationMenuContent>
-              <ul className="grid w-[220px] gap-3 p-4">
+              <ul className="grid w-[220px] gap-1 p-3">
                 {emailMenuItems.map((item) => (
                   <li key={item.title}>
                     <NavigationMenuLink asChild>
