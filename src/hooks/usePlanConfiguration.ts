@@ -10,7 +10,7 @@ export const usePlanConfiguration = () => {
 
   const createHostingItem = (
     id: string,
-    type: string,
+    type: CartItem['type'],
     title: string,
     totalPrice: number,
     years: number,
@@ -32,7 +32,7 @@ export const usePlanConfiguration = () => {
   };
 
   const handlePlanSelection = (
-    type: string,
+    type: CartItem['type'],
     id: string,
     title: string,
     totalPrice: number,
