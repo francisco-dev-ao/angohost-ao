@@ -56,11 +56,10 @@ const Navbar = () => {
           <img 
             src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
             alt="ANGOHOST" 
-            className="h-8"
+            className="h-12 w-auto" 
           />
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden lg:block">
           <NavigationMenu>
             <NavigationMenuList className="gap-6">
@@ -149,7 +148,6 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile menu button */}
         <div className="lg:hidden">
           <Button 
             variant="ghost" 
