@@ -22,6 +22,7 @@ import PaymentCallback from "./pages/PaymentCallback";
 import ClientPanel from "./pages/ClientPanel";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // New Pages
 import HostingPage from "./pages/HostingPage";
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/painel-cliente" element={<ClientPanel />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 
                 <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                 <Route path="/hospedagem/cpanel" element={<HostingPage />} />

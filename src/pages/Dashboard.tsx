@@ -8,10 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from 'sonner';
 import { User } from '@supabase/supabase-js';
+import { useCustomerServices } from '@/hooks/useCustomerServices';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Globe, Server, Mail, AlertCircle, CheckCircle, Calendar, 
+  RefreshCcw, ExternalLink, Clock, FileText, CreditCard
+} from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { services, loading: loadingServices } = useCustomerServices();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,10 +59,44 @@ const Dashboard = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return <Badge className="bg-green-500 ml-2">Ativo</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-500 ml-2">Pendente</Badge>;
+      case 'suspended':
+        return <Badge className="bg-red-500 ml-2">Suspenso</Badge>;
+      case 'expired':
+        return <Badge className="bg-gray-500 ml-2">Expirado</Badge>;
+      default:
+        return <Badge className="bg-blue-500 ml-2">{status || 'N/A'}</Badge>;
+    }
+  };
+
+  const getServiceIcon = (type: string) => {
+    switch (type) {
+      case 'domain':
+        return <Globe className="h-5 w-5 text-blue-500" />;
+      case 'hosting':
+        return <Server className="h-5 w-5 text-purple-500" />;
+      case 'email':
+        return <Mail className="h-5 w-5 text-orange-500" />;
+      default:
+        return <Server className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('pt-AO');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Carregando...</p>
+        <RefreshCcw className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Carregando painel do cliente...</p>
       </div>
     );
   }
@@ -69,9 +110,16 @@ const Dashboard = () => {
             Bem-vindo, {user?.user_metadata?.full_name || user?.email}
           </p>
         </div>
-        <Button variant="outline" onClick={handleSignOut} className="mt-4 md:mt-0">
-          Sair
-        </Button>
+        <div className="mt-4 md:mt-0 flex gap-2">
+          {user?.app_metadata?.is_admin && (
+            <Button variant="outline" onClick={() => navigate('/admin')}>
+              Painel Admin
+            </Button>
+          )}
+          <Button variant="outline" onClick={handleSignOut}>
+            Sair
+          </Button>
+        </div>
       </div>
       
       <Separator className="my-6" />
@@ -85,37 +133,170 @@ const Dashboard = () => {
         </TabsList>
         
         <TabsContent value="servicos">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-3">
             <Card>
               <CardHeader>
-                <CardTitle>Domínios</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Globe className="mr-2 h-5 w-5 text-blue-500" />
+                  Domínios
+                </CardTitle>
                 <CardDescription>Gerencie seus domínios</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center py-8 text-gray-500">Nenhum domínio registrado.</p>
-                <Button className="w-full">Registrar Domínio</Button>
+                {loadingServices ? (
+                  <div className="py-8 flex justify-center">
+                    <RefreshCcw className="animate-spin h-5 w-5" />
+                  </div>
+                ) : services.filter(s => s.type === 'domain').length > 0 ? (
+                  <div className="space-y-4">
+                    {services
+                      .filter(service => service.type === 'domain')
+                      .map(domain => (
+                        <div 
+                          key={domain.id} 
+                          className="p-4 border rounded-md flex flex-col"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium">{domain.name}</div>
+                            {getStatusBadge(domain.status)}
+                          </div>
+                          <div className="mt-2 flex items-center text-sm text-muted-foreground">
+                            <Calendar className="mr-1 h-3.5 w-3.5" />
+                            <span>Expira em: {formatDate(domain.expiryDate)}</span>
+                          </div>
+                          <div className="mt-4 flex justify-end">
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Gerenciar
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    }
+                    <div className="flex justify-end mt-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate('/dominios')}>
+                        Ver todos
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Nenhum domínio registrado.</p>
+                    <Button onClick={() => navigate('/dominios/registrar')}>
+                      Registrar Domínio
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle>Hospedagem</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Server className="mr-2 h-5 w-5 text-purple-500" />
+                  Hospedagem
+                </CardTitle>
                 <CardDescription>Gerencie seus planos de hospedagem</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center py-8 text-gray-500">Nenhum plano de hospedagem ativo.</p>
-                <Button className="w-full">Contratar Hospedagem</Button>
+                {loadingServices ? (
+                  <div className="py-8 flex justify-center">
+                    <RefreshCcw className="animate-spin h-5 w-5" />
+                  </div>
+                ) : services.filter(s => s.type === 'hosting').length > 0 ? (
+                  <div className="space-y-4">
+                    {services
+                      .filter(service => service.type === 'hosting')
+                      .map(hosting => (
+                        <div 
+                          key={hosting.id} 
+                          className="p-4 border rounded-md flex flex-col"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium">{hosting.name}</div>
+                            {getStatusBadge(hosting.status)}
+                          </div>
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            <div>
+                              <span className="font-medium">Tipo: </span>
+                              {hosting.details.planType || 'Padrão'}
+                            </div>
+                            <div className="mt-1">
+                              <span className="font-medium">Espaço: </span>
+                              {hosting.details.disk_space || 'N/A'} GB
+                            </div>
+                          </div>
+                          <div className="mt-4 flex justify-end">
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Acessar cPanel
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Nenhum plano de hospedagem ativo.</p>
+                    <Button onClick={() => navigate('/hospedagem-de-sites')}>
+                      Contratar Hospedagem
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle>Email Profissional</CardTitle>
+                <CardTitle className="flex items-center">
+                  <Mail className="mr-2 h-5 w-5 text-orange-500" />
+                  Email Profissional
+                </CardTitle>
                 <CardDescription>Gerencie suas contas de email</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center py-8 text-gray-500">Nenhuma conta de email.</p>
-                <Button className="w-full">Adicionar Email</Button>
+                {loadingServices ? (
+                  <div className="py-8 flex justify-center">
+                    <RefreshCcw className="animate-spin h-5 w-5" />
+                  </div>
+                ) : services.filter(s => s.type === 'email').length > 0 ? (
+                  <div className="space-y-4">
+                    {services
+                      .filter(service => service.type === 'email')
+                      .map(email => (
+                        <div 
+                          key={email.id} 
+                          className="p-4 border rounded-md flex flex-col"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="font-medium truncate">{email.name}</div>
+                            {getStatusBadge(email.status)}
+                          </div>
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            <div>
+                              <span className="font-medium">Quota: </span>
+                              {email.details.quota ? `${email.details.quota} MB` : 'N/A'}
+                            </div>
+                          </div>
+                          <div className="mt-4 flex justify-end">
+                            <Button variant="ghost" size="sm">
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Acessar Webmail
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Nenhuma conta de email.</p>
+                    <Button onClick={() => navigate('/email/profissional')}>
+                      Adicionar Email
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -123,49 +304,176 @@ const Dashboard = () => {
         
         <TabsContent value="faturas">
           <Card>
-            <CardHeader>
-              <CardTitle>Minhas Faturas</CardTitle>
-              <CardDescription>Histórico de pagamentos</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Minhas Faturas</CardTitle>
+                <CardDescription>Histórico de pagamentos</CardDescription>
+              </div>
+              <Button variant="outline" size="sm">
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Atualizar
+              </Button>
             </CardHeader>
             <CardContent>
-              <p className="text-center py-12 text-gray-500">Nenhuma fatura encontrada.</p>
+              <div className="rounded-md border">
+                <div className="grid grid-cols-5 p-4 font-medium border-b">
+                  <div>Nº Fatura</div>
+                  <div>Data</div>
+                  <div>Valor</div>
+                  <div>Status</div>
+                  <div className="text-right">Ações</div>
+                </div>
+                <div className="p-8 text-center text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+                  <p>Nenhuma fatura encontrada</p>
+                </div>
+                {/* Quando houver faturas:
+                <div className="grid grid-cols-5 p-4 items-center border-b">
+                  <div>INV-001</div>
+                  <div>21/04/2023</div>
+                  <div>15.000 Kz</div>
+                  <div>
+                    <Badge className="bg-green-500">Pago</Badge>
+                  </div>
+                  <div className="text-right">
+                    <Button variant="ghost" size="sm">
+                      <FileText className="h-4 w-4 mr-1" />
+                      PDF
+                    </Button>
+                  </div>
+                </div>
+                */}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="tickets">
           <Card>
-            <CardHeader>
-              <CardTitle>Tickets de Suporte</CardTitle>
-              <CardDescription>Histórico de atendimentos</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Tickets de Suporte</CardTitle>
+                <CardDescription>Histórico de atendimentos</CardDescription>
+              </div>
+              <div className="space-x-2">
+                <Button variant="outline" size="sm">
+                  <RefreshCcw className="h-4 w-4 mr-2" />
+                  Atualizar
+                </Button>
+                <Button size="sm">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Abrir Ticket
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-center py-12 text-gray-500">Nenhum ticket de suporte.</p>
-              <Button className="w-full">Abrir Novo Ticket</Button>
+              <div className="rounded-md border">
+                <div className="grid grid-cols-5 p-4 font-medium border-b">
+                  <div>Assunto</div>
+                  <div>Data</div>
+                  <div>Status</div>
+                  <div>Prioridade</div>
+                  <div className="text-right">Ações</div>
+                </div>
+                <div className="p-8 text-center text-muted-foreground">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+                  <p>Nenhum ticket de suporte aberto</p>
+                </div>
+                {/* Quando houver tickets:
+                <div className="grid grid-cols-5 p-4 items-center border-b">
+                  <div>Problema com email</div>
+                  <div>21/04/2023</div>
+                  <div>
+                    <Badge>Aberto</Badge>
+                  </div>
+                  <div>
+                    <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-300">
+                      Média
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <Button variant="ghost" size="sm">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Ver
+                    </Button>
+                  </div>
+                </div>
+                */}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
         
         <TabsContent value="perfil">
-          <Card>
-            <CardHeader>
-              <CardTitle>Meus Dados</CardTitle>
-              <CardDescription>Gerencie suas informações pessoais</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium">Email</p>
-                  <p className="text-gray-600">{user?.email}</p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Meus Dados</CardTitle>
+                <CardDescription>Gerencie suas informações pessoais</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium">Email</p>
+                    <p className="text-gray-600">{user?.email}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Nome</p>
+                    <p className="text-gray-600">{user?.user_metadata?.full_name || 'Não informado'}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Telefone</p>
+                    <p className="text-gray-600">{user?.user_metadata?.phone || 'Não informado'}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-medium">Nome</p>
-                  <p className="text-gray-600">{user?.user_metadata?.full_name || 'Não informado'}</p>
+                <Button className="mt-6 w-full">Atualizar Meus Dados</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="mr-2 h-5 w-5 text-blue-500" />
+                  Formas de Pagamento
+                </CardTitle>
+                <CardDescription>Gerencie suas formas de pagamento</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center p-4 border rounded-md">
+                    <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium">Multicaixa Express</p>
+                      <p className="text-sm text-gray-500">Pagamentos instantâneos</p>
+                    </div>
+                    <Badge className="ml-auto">Ativo</Badge>
+                  </div>
+                  <div className="flex items-center p-4 border rounded-md">
+                    <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium">Transferência Bancária</p>
+                      <p className="text-sm text-gray-500">Processamento em até 24h</p>
+                    </div>
+                    <Badge variant="outline" className="ml-auto">Disponível</Badge>
+                  </div>
+                  <div className="flex items-center p-4 border rounded-md">
+                    <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium">Cartão de Crédito</p>
+                      <p className="text-sm text-gray-500">Pagamentos internacionais</p>
+                    </div>
+                    <Badge variant="outline" className="ml-auto">Disponível</Badge>
+                  </div>
                 </div>
-              </div>
-              <Button className="mt-6 w-full">Atualizar Meus Dados</Button>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
