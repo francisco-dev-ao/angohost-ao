@@ -30,15 +30,19 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
     
     setIsLoading(true);
     try {
-      const response = await fetch(`https://consulta.edgarsingui.ao/public/consultar-por-nif/${nif}`);
+      // URL corrigida com base no exemplo fornecido
+      const response = await fetch(`https://consulta.edgarsingui.ao/consultar-por-nif/${nif}`);
       
       if (!response.ok) {
         throw new Error('Falha ao consultar o NIF');
       }
       
-      const data = await response.json();
+      const result = await response.json();
       
-      if (data && data.nome) {
+      // Verificar se a resposta possui o campo "data" com "success" igual a true
+      if (result && result.data && result.data.success === true) {
+        const data = result.data;
+        
         // Find profile with matching NIF or create new one
         const profileWithNif = profiles.find(p => p.nif === nif);
         
@@ -47,7 +51,7 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
           toast.success("Perfil de contato selecionado automaticamente.");
         } else {
           // In a real implementation, you would create a new profile here
-          toast.info("Dados encontrados! Crie um novo perfil com estes dados.");
+          toast.info(`Dados encontrados para ${data.nome}! Crie um novo perfil com estes dados.`);
         }
       } else {
         toast.error("NIF não encontrado ou sem dados associados.");
