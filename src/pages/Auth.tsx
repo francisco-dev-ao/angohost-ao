@@ -14,7 +14,9 @@ const Auth = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
         const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+        console.log('Redirecionando após login para:', redirectUrl);
         sessionStorage.removeItem('redirect_after_login');
         navigate(redirectUrl);
       }
@@ -25,7 +27,9 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
+          // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
           const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+          console.log('Redirecionamento após mudança de auth state para:', redirectUrl);
           sessionStorage.removeItem('redirect_after_login');
           navigate(redirectUrl);
         }

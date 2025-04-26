@@ -58,6 +58,7 @@ export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisP
     console.log('Iniciando requisição para EMIS com parâmetros:', params);
 
     try {
+      // URL corrigida para o endpoint correto do EMIS
       const response = await fetch('https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken', {
         method: 'POST',
         headers: {
@@ -104,7 +105,7 @@ export function generateOrderReference(orderId: string): string {
 }
 
 export function getEmisFrameUrl(token: string): string {
-  // URL de iframe real do EMIS
+  // URL para o iframe do EMIS
   const realUrl = `https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frame?token=${token}`;
   
   // URL para desenvolvimento quando o token começa com 'sim-' (simulado)

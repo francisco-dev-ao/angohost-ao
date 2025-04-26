@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -8,9 +8,12 @@ import { LogIn, User, AlertCircle } from 'lucide-react';
 
 export const AuthenticationCard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const handleRedirect = (mode?: string) => {
-    sessionStorage.setItem('redirect_after_login', '/carrinho');
+    // Guarda o caminho atual completo, incluindo a rota e query params
+    sessionStorage.setItem('redirect_after_login', location.pathname + location.search);
+    console.log('Salvando redirecionamento após login:', location.pathname + location.search);
     navigate(`/auth${mode ? `?mode=${mode}` : ''}`);
   };
   
