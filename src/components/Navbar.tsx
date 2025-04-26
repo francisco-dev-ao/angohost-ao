@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,29 +10,12 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const hostingMenuItems = [
-    { title: 'Hospedagem cPanel', href: '/hospedagem/cpanel' },
-    { title: 'Hospedagem WordPress', href: '/hospedagem/wordpress' },
-  ];
-
-  const domainMenuItems = [
-    { title: 'Registrar Domínio', href: '/dominios/registrar' },
-    { title: 'Transferir Domínio', href: '/dominios/transferir' },
-  ];
-
-  const emailMenuItems = [
-    { title: 'Email Profissional', href: '/email/profissional' },
-    { title: 'Exchange 365', href: '/email-office-365' },
-    { title: 'Google Workspace', href: '/email/google-workspace' },
-  ];
-
-  // Close menu when clicking outside
   const menuRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -49,33 +31,39 @@ const Navbar = () => {
     };
   }, []);
 
-  // Handle submenu on mobile
-  const toggleMobileSubmenu = (menuName: string) => {
-    if (activeMenu === menuName) {
-      setActiveMenu(null);
-    } else {
-      setActiveMenu(menuName);
-    }
-  };
+  const hostingMenuItems = [
+    { title: 'Hospedagem cPanel', href: '/hospedagem/cpanel' },
+    { title: 'Hospedagem WordPress', href: '/hospedagem/wordpress' },
+    { title: 'Servidores Dedicados', href: '/servidores-dedicados' },
+    { title: 'Servidores VPS', href: '/servidores-vps' },
+  ];
 
-  const handleMenuItemClick = () => {
-    setMobileMenuOpen(false);
-    setActiveMenu(null);
-  };
+  const domainMenuItems = [
+    { title: 'Registrar Domínio', href: '/dominios/registrar' },
+    { title: 'Transferir Domínio', href: '/dominios/transferir' },
+  ];
+
+  const emailMenuItems = [
+    { title: 'Email Profissional', href: '/email/profissional' },
+    { title: 'Exchange 365', href: '/email-office-365' },
+    { title: 'Google Workspace', href: '/email/google-workspace' },
+  ];
 
   return (
     <header className="py-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-50">
       <div className="container flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-poppins font-bold text-2xl text-angohost-700">
-            ANGO<span className="text-orange-500">HOST</span>
-          </span>
+          <img 
+            src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
+            alt="ANGOHOST" 
+            className="h-8"
+          />
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden lg:block">
           <NavigationMenu>
-            <NavigationMenuList>
+            <NavigationMenuList className="gap-6">
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link 
@@ -105,30 +93,10 @@ const Navbar = () => {
                         </NavigationMenuLink>
                       </li>
                     ))}
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link 
-                          to="/servidores-dedicados"
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium leading-none">Servidores Dedicados</div>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
-                    <li>
-                      <NavigationMenuLink asChild>
-                        <Link 
-                          to="/servidores-vps"
-                          className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          <div className="text-sm font-medium leading-none">Servidores VPS</div>
-                        </Link>
-                      </NavigationMenuLink>
-                    </li>
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
-              
+
               <NavigationMenuItem>
                 <NavigationMenuTrigger>Domínios</NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -183,88 +151,77 @@ const Navbar = () => {
 
         {/* Mobile menu button */}
         <div className="lg:hidden">
-          <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X /> : <Menu />}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="relative z-50"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       {mobileMenuOpen && (
         <div ref={menuRef} className="lg:hidden absolute w-full bg-background z-50 border-b pb-4">
           <nav className="container mt-4 flex flex-col gap-4">
-            <Link to="/" className="px-4 py-2 hover:bg-accent rounded-md" onClick={handleMenuItemClick}>
+            <Link to="/" className="px-4 py-2 hover:bg-accent rounded-md" onClick={() => setMobileMenuOpen(false)}>
               Início
             </Link>
             
-            <div className="px-4 py-2 font-medium flex justify-between items-center cursor-pointer" onClick={() => toggleMobileSubmenu('hosting')}>
-              <span>Alojamento Web</span>
-              <ChevronRight className={`w-4 h-4 transition-transform ${activeMenu === 'hosting' ? 'rotate-90' : ''}`} />
-            </div>
-            {activeMenu === 'hosting' && (
+            <div className="px-4 py-2 font-medium">
+              Alojamento Web
               <div className="ml-4">
                 {hostingMenuItems.map((item) => (
                   <Link 
                     key={item.title}
                     to={item.href} 
                     className="px-4 py-2 hover:bg-accent rounded-md block"
-                    onClick={handleMenuItemClick}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.title}
                   </Link>
                 ))}
-                <Link to="/servidores-dedicados" className="px-4 py-2 hover:bg-accent rounded-md block" onClick={handleMenuItemClick}>
-                  Servidores Dedicados
-                </Link>
-                <Link to="/servidores-vps" className="px-4 py-2 hover:bg-accent rounded-md block" onClick={handleMenuItemClick}>
-                  Servidores VPS
-                </Link>
               </div>
-            )}
-            
-            <div className="px-4 py-2 font-medium flex justify-between items-center cursor-pointer" onClick={() => toggleMobileSubmenu('domains')}>
-              <span>Domínios</span>
-              <ChevronRight className={`w-4 h-4 transition-transform ${activeMenu === 'domains' ? 'rotate-90' : ''}`} />
             </div>
-            {activeMenu === 'domains' && (
+            
+            <div className="px-4 py-2 font-medium">
+              Domínios
               <div className="ml-4">
                 {domainMenuItems.map((item) => (
                   <Link 
                     key={item.title}
                     to={item.href} 
                     className="px-4 py-2 hover:bg-accent rounded-md block"
-                    onClick={handleMenuItemClick}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.title}
                   </Link>
                 ))}
               </div>
-            )}
-            
-            <div className="px-4 py-2 font-medium flex justify-between items-center cursor-pointer" onClick={() => toggleMobileSubmenu('email')}>
-              <span>Email Corporativo</span>
-              <ChevronRight className={`w-4 h-4 transition-transform ${activeMenu === 'email' ? 'rotate-90' : ''}`} />
             </div>
-            {activeMenu === 'email' && (
+            
+            <div className="px-4 py-2 font-medium">
+              Email Corporativo
               <div className="ml-4">
                 {emailMenuItems.map((item) => (
                   <Link 
                     key={item.title}
                     to={item.href} 
                     className="px-4 py-2 hover:bg-accent rounded-md block"
-                    onClick={handleMenuItemClick}
+                    onClick={() => setMobileMenuOpen(false)}
                   >
                     {item.title}
                   </Link>
                 ))}
               </div>
-            )}
+            </div>
             
             <div className="mt-4 flex flex-col gap-2">
-              <Link to="/carrinho" onClick={handleMenuItemClick}>
+              <Link to="/carrinho" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">Carrinho</Button>
               </Link>
-              <Link to="/login" onClick={handleMenuItemClick}>
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                 <Button className="w-full">Área do Cliente</Button>
               </Link>
             </div>

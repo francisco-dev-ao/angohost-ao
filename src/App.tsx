@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +26,7 @@ import DomainsPage from "./pages/DomainsPage";
 import DomainTransferPage from "./pages/DomainTransferPage";
 import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
+import DedicatedServersPage from "./pages/DedicatedServersPage";
 
 const queryClient = new QueryClient();
 
@@ -52,7 +52,6 @@ const App = () => (
                 <Route path="/email/configurar" element={<EmailConfig />} />
                 <Route path="/painel-cliente" element={<ClientPanel />} />
                 
-                {/* New Routes */}
                 <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                 <Route path="/hospedagem/cpanel" element={<HostingPage />} />
                 <Route path="/hospedagem/wordpress" element={<HostingPage />} />
@@ -61,6 +60,7 @@ const App = () => (
                 <Route path="/dominios/transferir" element={<DomainTransferPage />} />
                 <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
                 <Route path="/email-office-365" element={<Office365Page />} />
+                <Route path="/servidores-dedicados" element={<DedicatedServersPage />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
