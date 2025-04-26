@@ -3,15 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
-const textVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, delay: 0.2 }
-  }
-};
+import { textVariants } from '@/lib/animations';
 
 const HeroContent = () => {
   return (

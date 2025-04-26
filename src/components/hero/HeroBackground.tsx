@@ -1,15 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-
-const imageRevealVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { 
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.8 }
-  }
-};
+import { imageRevealVariants } from '@/lib/animations';
 
 const HeroBackground = () => {
   return (

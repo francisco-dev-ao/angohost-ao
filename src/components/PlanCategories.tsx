@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Package2, Globe, Mail, Grid2X2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { containerVariants, itemVariants } from '@/lib/animations';
 
 const categories = [
   {
@@ -35,27 +35,6 @@ const categories = [
     bgColor: "bg-gradient-to-br from-purple-50 to-purple-100"
   }
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      duration: 0.5
-    }
-  }
-};
 
 const PlanCategories = () => {
   return (
