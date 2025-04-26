@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -34,45 +34,68 @@ import DedicatedServersPage from "./pages/DedicatedServersPage";
 
 const queryClient = new QueryClient();
 
+// Layout component que decide se mostra ou não o navbar/footer
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const path = location.pathname;
+  
+  // Esconder navbar e footer na página de autenticação, dashboard e painel do cliente
+  const hideNavbarFooter = 
+    path === "/auth" || 
+    path.startsWith("/dashboard") ||
+    path === "/admin" ||
+    path.startsWith("/admin/");
+  
+  return (
+    <>
+      {!hideNavbarFooter && <Navbar />}
+      <main className="flex-grow">{children}</main>
+      {!hideNavbarFooter && <Footer />}
+    </>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
       <BrowserRouter>
         <TooltipProvider>
           <div className="flex flex-col min-h-screen">
-            <Navbar />
             <Toaster />
             <Sonner />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/carrinho" element={<ShoppingCart />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/payment/success" element={<PaymentSuccess />} />
-                <Route path="/payment/callback" element={<PaymentCallback />} />
-                <Route path="/dominios/registrar" element={<RegisterDomain />} />
-                <Route path="/dominios/configurar" element={<DomainConfig />} />
-                <Route path="/email/profissional" element={<EmailProfessional />} />
-                <Route path="/email/configurar" element={<EmailConfig />} />
-                <Route path="/painel-cliente" element={<ClientPanel />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                
-                <Route path="/hospedagem-de-sites" element={<HostingPage />} />
-                <Route path="/hospedagem/cpanel" element={<HostingPage />} />
-                <Route path="/hospedagem/wordpress" element={<HostingPage />} />
-                <Route path="/dominios" element={<DomainsPage />} />
-                <Route path="/transferencia_de_dominios" element={<DomainTransferPage />} />
-                <Route path="/dominios/transferir" element={<DomainTransferPage />} />
-                <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
-                <Route path="/email-office-365" element={<Office365Page />} />
-                <Route path="/servidores-dedicados" element={<DedicatedServersPage />} />
-                
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
+            <Routes>
+              <Route path="/*" element={
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/carrinho" element={<ShoppingCart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/payment/success" element={<PaymentSuccess />} />
+                    <Route path="/payment/callback" element={<PaymentCallback />} />
+                    <Route path="/dominios/registrar" element={<RegisterDomain />} />
+                    <Route path="/dominios/configurar" element={<DomainConfig />} />
+                    <Route path="/email/profissional" element={<EmailProfessional />} />
+                    <Route path="/email/configurar" element={<EmailConfig />} />
+                    <Route path="/painel-cliente" element={<ClientPanel />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    
+                    <Route path="/hospedagem-de-sites" element={<HostingPage />} />
+                    <Route path="/hospedagem/cpanel" element={<HostingPage />} />
+                    <Route path="/hospedagem/wordpress" element={<HostingPage />} />
+                    <Route path="/dominios" element={<DomainsPage />} />
+                    <Route path="/transferencia_de_dominios" element={<DomainTransferPage />} />
+                    <Route path="/dominios/transferir" element={<DomainTransferPage />} />
+                    <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
+                    <Route path="/email-office-365" element={<Office365Page />} />
+                    <Route path="/servidores-dedicados" element={<DedicatedServersPage />} />
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Layout>
+              } />
+            </Routes>
           </div>
         </TooltipProvider>
       </BrowserRouter>

@@ -3,17 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { 
   Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+  CardContent
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Key, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Key, Lock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -22,6 +18,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const defaultMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
@@ -100,22 +97,43 @@ const Auth = () => {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Área do Cliente</CardTitle>
-          <CardDescription>
-            Acesse sua conta ou crie uma nova
-          </CardDescription>
-        </CardHeader>
-        <Tabs defaultValue={defaultMode} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Cadastro</TabsTrigger>
-          </TabsList>
-          <TabsContent value="login">
-            <form onSubmit={handleLogin}>
-              <CardContent className="space-y-4 pt-5">
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+      {/* Lado esquerdo - Imagem */}
+      <div className="hidden md:block bg-primary/5 relative">
+        <img 
+          src="/lovable-uploads/26bd684c-fd6e-4bb5-acbf-36c2eeaa8ee0.png" 
+          alt="Atendente" 
+          className="object-cover w-full h-full"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent flex flex-col justify-end p-12">
+          <div className="max-w-md text-white">
+            <h2 className="text-2xl font-bold mb-2">Sua Parceria de Confiança</h2>
+            <p>Hospedagem de qualidade e suporte técnico 24/7 para o seu negócio online.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Lado direito - Formulário */}
+      <div className="flex items-center justify-center p-6 bg-white">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <img 
+              src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
+              alt="ANGOHOST" 
+              className="h-16 mx-auto mb-6" 
+            />
+            <h1 className="text-3xl font-bold mb-2">Acesse a sua conta</h1>
+            <p className="text-gray-500">Bem-vindo de volta! Por favor, insira seus detalhes</p>
+          </div>
+          
+          <Tabs defaultValue={defaultMode} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="login">Entrar</TabsTrigger>
+              <TabsTrigger value="register">Criar Conta</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <div className="relative">
@@ -131,6 +149,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
+                
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="login-password">Senha</Label>
@@ -143,30 +162,34 @@ const Auth = () => {
                     <Input
                       id="login-password"
                       placeholder="********"
-                      type="password"
-                      className="pl-10"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-3 text-gray-400"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter>
+                
                 <Button
                   type="submit"
-                  className="w-full bg-primary"
+                  className="w-full bg-primary hover:bg-primary/90 h-12"
                   disabled={loading}
                 >
-                  {loading ? 'Entrando...' : 'Entrar'}
+                  {loading ? 'Entrando...' : 'Entrar na minha conta'}
                 </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="register">
-            <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4 pt-5">
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="register">
+              <form onSubmit={handleSignUp} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Nome Completo</Label>
                   <div className="relative">
@@ -181,6 +204,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="register-email">Email</Label>
                   <div className="relative">
@@ -196,6 +220,7 @@ const Auth = () => {
                     />
                   </div>
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="register-password">Senha</Label>
                   <div className="relative">
@@ -203,29 +228,35 @@ const Auth = () => {
                     <Input
                       id="register-password"
                       placeholder="********"
-                      type="password"
-                      className="pl-10"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
                     />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-3 text-gray-400"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
-              </CardContent>
-              <CardFooter>
+                
                 <Button
                   type="submit"
-                  className="w-full bg-primary"
+                  className="w-full bg-primary hover:bg-primary/90 h-12"
                   disabled={loading}
                 >
-                  {loading ? 'Criando conta...' : 'Criar Conta'}
+                  {loading ? 'Criando conta...' : 'Criar nova conta'}
                 </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-        </Tabs>
-      </Card>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 };
