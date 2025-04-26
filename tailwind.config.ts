@@ -26,8 +26,8 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: '#345990',
+					foreground: '#ffffff'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -54,17 +54,17 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				angohost: {
-					50: '#f0f9ff',
-					100: '#e0f2fe',
-					200: '#bae6fd',
-					300: '#7dd3fc',
-					400: '#38bdf8',
-					500: '#0ea5e9',
-					600: '#0284c7',
-					700: '#0369a1',
-					800: '#075985',
-					900: '#0c4a6e',
-					950: '#082f49',
+					50: '#f0f5fa',
+					100: '#e1ebf5',
+					200: '#c3d7eb',
+					300: '#94b7db',
+					400: '#6393c7',
+					500: '#345990', // Cor principal solicitada
+					600: '#2a4773',
+					700: '#233b5e',
+					800: '#1f334f',
+					900: '#1c2e45',
+					950: '#111c2b',
 				},
 				orange: {
 					500: '#FF7F11',

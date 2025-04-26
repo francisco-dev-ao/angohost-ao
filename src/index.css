@@ -16,8 +16,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 205 100% 45%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 215 64% 38%; /* #345990 */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -33,7 +33,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 205 100% 45%;
+    --ring: 215 64% 38%;
 
     --radius: 0.5rem;
   }
@@ -48,8 +48,8 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 205 100% 50%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 215 64% 45%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -65,7 +65,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 205 100% 50%;
+    --ring: 215 64% 45%;
   }
 }
 
@@ -94,15 +94,35 @@
 }
 
 .domain-search-container {
-  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #345990 0%, #4a76b8 100%);
 }
 
 .pricing-card:hover {
-  border-color: hsl(var(--primary));
+  border-color: #345990;
   transform: translateY(-5px);
   transition: all 0.3s ease;
 }
 
 .plan-badge {
   @apply absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-3 py-1 transform translate-x-2 -translate-y-2 rounded;
+}
+
+/* Form styling enhancements */
+.form-floating-label {
+  position: relative;
+}
+
+.form-floating-label label {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  @apply text-muted-foreground;
+}
+
+.form-floating-label input:focus ~ label,
+.form-floating-label input:not(:placeholder-shown) ~ label {
+  transform: translateY(-20px) scale(0.85);
+  @apply bg-white px-1 text-primary;
 }

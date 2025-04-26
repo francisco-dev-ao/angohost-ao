@@ -9,32 +9,68 @@ export interface CartItem {
   period: 'monthly' | 'yearly';
   details: {
     [key: string]: any;
+    renewalPrice?: number;
   };
+}
+
+export interface Customer {
+  name: string;
+  email: string;
+  phone: string;
+  nif: string;
+  billingAddress: string;
+  city: string;
+  postalCode?: string;
+  country?: string;
+  idNumber?: string; // Número de Bilhete de Identidade
 }
 
 interface CartContextType {
   items: CartItem[];
+  customer: Customer | null;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateItem: (id: string, item: Partial<CartItem>) => void;
   clearCart: () => void;
+  setCustomer: (customer: Customer) => void;
   getTotalPrice: () => number;
   getItemCount: () => number;
+  getRenewalTotal: () => number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const defaultCustomer: Customer = {
+  name: '',
+  email: '',
+  phone: '',
+  nif: '',
+  billingAddress: '',
+  city: '',
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   
   // Load cart from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('angohost_cart');
+    const savedCustomer = localStorage.getItem('angohost_customer');
+    
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
       } catch (err) {
         console.error('Failed to parse cart from localStorage', err);
+      }
+    }
+    
+    if (savedCustomer) {
+      try {
+        setCustomer(JSON.parse(savedCustomer));
+      } catch (err) {
+        console.error('Failed to parse customer from localStorage', err);
       }
     }
   }, []);
@@ -43,6 +79,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     localStorage.setItem('angohost_cart', JSON.stringify(items));
   }, [items]);
+  
+  // Save customer to localStorage when it changes
+  useEffect(() => {
+    if (customer) {
+      localStorage.setItem('angohost_customer', JSON.stringify(customer));
+    }
+  }, [customer]);
   
   const addItem = (newItem: CartItem) => {
     // Check if the item already exists in the cart
@@ -83,18 +126,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return items.reduce((total, item) => total + item.price, 0);
   };
   
+  const getRenewalTotal = (): number => {
+    return items.reduce((total, item) => {
+      // Use renewal price if available, otherwise use the item price
+      const renewalPrice = item.details.renewalPrice || item.price;
+      return total + renewalPrice;
+    }, 0);
+  };
+  
   const getItemCount = (): number => {
     return items.length;
   };
   
+  const updateCustomer = (customerData: Customer) => {
+    setCustomer(customerData);
+  };
+  
   const value = {
     items,
+    customer,
     addItem,
     removeItem,
     updateItem,
     clearCart,
+    setCustomer: updateCustomer,
     getTotalPrice,
-    getItemCount
+    getItemCount,
+    getRenewalTotal
   };
   
   return (

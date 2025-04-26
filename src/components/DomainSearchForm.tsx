@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
+import { Search, Loader2 } from 'lucide-react';
 
 interface DomainSearchFormProps {
   variant?: 'default' | 'hero' | 'sidebar';
@@ -70,7 +71,6 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
 
   const addToCart = () => {
     // Add domain to cart
-    const selectedExt = extensionOptions.find(ext => ext.value === extension);
     const price = getPrice();
     
     addItem({
@@ -82,6 +82,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       details: {
         domain: `${domainName}${extension}`,
         period: '1 ano',
+        renewalPrice: price,
         privacyProtection: 'Incluída'
       }
     });
@@ -112,13 +113,16 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     <div className={variant === 'hero' ? 'w-full' : ''}>
       <form onSubmit={handleSearch} className={formClasses[variant]}>
         <div className={`flex flex-1 ${variant === 'hero' ? 'flex-col md:flex-row w-full' : ''}`}>
-          <Input
-            type="text"
-            placeholder="Digite o nome do domínio"
-            value={domainName}
-            onChange={(e) => setDomainName(e.target.value)}
-            className={`${variant === 'hero' ? 'md:rounded-r-none flex-1 text-base md:text-lg' : 'text-base'} bg-white`}
-          />
+          <div className="relative flex-grow">
+            <Input
+              type="text"
+              placeholder="Digite o nome do domínio"
+              value={domainName}
+              onChange={(e) => setDomainName(e.target.value)}
+              className={`${variant === 'hero' ? 'md:rounded-r-none text-base md:text-lg' : 'text-base'} bg-white pl-10`}
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          </div>
           
           <Select value={extension} onValueChange={setExtension}>
             <SelectTrigger className={`${variant === 'hero' ? 'md:w-32 md:rounded-l-none' : 'w-full'} bg-white text-base md:text-lg`}>
@@ -135,9 +139,14 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
         <Button 
           type="submit" 
           disabled={isSearching}
-          className={`${variant === 'hero' ? 'w-full md:w-auto' : ''} bg-orange-500 hover:bg-orange-600`}
+          className={`${variant === 'hero' ? 'w-full md:w-auto' : ''} bg-primary hover:bg-primary/90`}
         >
-          {isSearching ? 'Verificando...' : 'Verificar Disponibilidade'}
+          {isSearching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              A verificar...
+            </>
+          ) : 'Verificar Disponibilidade'}
         </Button>
       </form>
       
@@ -151,9 +160,12 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
               <p className="text-gray-600 mt-2">
                 Preço: {getPrice().toLocaleString('pt-AO')} Kz por ano
               </p>
+              <p className="text-gray-600 text-sm">
+                Renovação: {getPrice().toLocaleString('pt-AO')} Kz por ano
+              </p>
               <Button 
                 onClick={addToCart} 
-                className="mt-4 bg-orange-500 hover:bg-orange-600"
+                className="mt-4 bg-primary hover:bg-primary/90"
               >
                 Adicionar ao Carrinho
               </Button>

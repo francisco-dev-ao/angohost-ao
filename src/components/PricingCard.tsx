@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 interface PricingCardProps {
   title: string;
   price: number;
+  renewalPrice?: number;
   period?: string;
   features: string[];
   isPopular?: boolean;
@@ -20,6 +21,7 @@ interface PricingCardProps {
 const PricingCard: React.FC<PricingCardProps> = ({
   title,
   price,
+  renewalPrice,
   period = '/mês',
   features,
   isPopular = false,
@@ -44,7 +46,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           details: {
             diskSpace: '5GB',
             emailAccounts: '10',
-            databases: 'Ilimitado'
+            databases: 'Ilimitado',
+            renewalPrice: 2500
           }
         };
       } else if (id === 'professional') {
@@ -57,7 +60,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           details: {
             diskSpace: '20GB',
             emailAccounts: '30',
-            databases: 'Ilimitado'
+            databases: 'Ilimitado',
+            renewalPrice: 4500
           }
         };
       } else if (id === 'enterprise') {
@@ -70,7 +74,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           details: {
             diskSpace: '50GB',
             emailAccounts: 'Ilimitado',
-            databases: 'Ilimitado'
+            databases: 'Ilimitado',
+            renewalPrice: 8500
           }
         };
       }
@@ -84,7 +89,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           period: 'monthly',
           details: {
             storage: '5GB por caixa',
-            antispam: 'Básico'
+            antispam: 'Básico',
+            renewalPrice: 1500
           }
         };
       } else if (id === 'email-business') {
@@ -96,7 +102,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           period: 'monthly',
           details: {
             storage: '15GB por caixa',
-            antispam: 'Avançado'
+            antispam: 'Avançado',
+            renewalPrice: 3000
           }
         };
       } else if (id === 'email-enterprise') {
@@ -108,7 +115,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
           period: 'monthly',
           details: {
             storage: '50GB por caixa',
-            antispam: 'Premium'
+            antispam: 'Premium',
+            renewalPrice: 6000
           }
         };
       }
@@ -122,7 +130,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   };
 
   return (
-    <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-angohost-500 shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300`}>
+    <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300`}>
       {isPopular && (
         <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">Popular</span>
       )}
@@ -133,6 +141,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
         <span className="text-3xl font-extrabold tracking-tight">{price.toLocaleString('pt-AO')} Kz</span>
         <span className="ml-1 text-xl font-semibold">{period}</span>
       </div>
+      
+      {renewalPrice && renewalPrice !== price && (
+        <div className="mt-1 text-sm text-gray-500">
+          Renovação: {renewalPrice.toLocaleString('pt-AO')} Kz{period}
+        </div>
+      )}
 
       <ul className="mt-6 space-y-4">
         {features.map((feature, index) => (
@@ -146,7 +160,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
       </ul>
 
       <Button 
-        className={`mt-8 w-full ${isPopular ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+        className={`mt-8 w-full ${isPopular ? 'bg-primary hover:bg-primary/90' : ''}`}
         onClick={handleSelect}
       >
         {buttonText}
