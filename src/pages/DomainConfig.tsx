@@ -166,12 +166,8 @@ const DomainConfig = () => {
         idNumber: clientDetails.idNumber
       };
       
-      const newProfileId = addContactProfile(newProfile);
-      if (newProfileId) {
-        profileId = newProfileId;
-      } else {
-        profileId = newProfile.id;
-      }
+      addContactProfile(newProfile);
+      profileId = newProfile.id;
     }
     
     addItem({
