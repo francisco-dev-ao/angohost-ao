@@ -7,13 +7,20 @@ export const useNifSearch = (
   setRegisterData: React.Dispatch<React.SetStateAction<Customer & { password: string }>>
 ) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchNifData = async (nif: string) => {
+    if (!nif || nif.trim().length < 8) {
+      setError("NIF ou BI inválido");
+      return;
+    }
+
     setIsLoading(true);
+    setError(null);
+    
     try {
       toast.info("Consultando dados do NIF...");
       
-      // URL corrigida com base no exemplo fornecido (sem o "public/" no caminho)
       const response = await fetch(`https://consulta.edgarsingui.ao/consultar-por-nif/${nif}`);
       
       if (!response.ok) {
@@ -33,16 +40,21 @@ export const useNifSearch = (
           billingAddress: data.endereco || prev.billingAddress
         }));
         toast.success("Dados do contribuinte carregados com sucesso!");
+        return true;
       } else {
+        setError("NIF não encontrado ou sem dados associados.");
         toast.error("NIF não encontrado ou sem dados associados.");
+        return false;
       }
     } catch (error) {
       console.error("Error fetching NIF data:", error);
+      setError("Erro ao consultar o NIF. Tente novamente.");
       toast.error("Erro ao consultar o NIF. Tente novamente.");
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { isLoading, fetchNifData };
+  return { isLoading, error, fetchNifData };
 };

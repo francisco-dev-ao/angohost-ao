@@ -21,16 +21,21 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
 }) => {
   const [nif, setNif] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const handleNifSearch = async () => {
-    if (!nif || nif.length < 9) {
+    if (!nif || nif.length < 8) {
+      setError("Por favor, digite um NIF válido.");
       toast.error("Por favor, digite um NIF válido.");
       return;
     }
     
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // URL corrigida com base no exemplo fornecido
+      toast.info("Consultando dados do NIF...");
+      
       const response = await fetch(`https://consulta.edgarsingui.ao/consultar-por-nif/${nif}`);
       
       if (!response.ok) {
@@ -53,11 +58,14 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
           // In a real implementation, you would create a new profile here
           toast.info(`Dados encontrados para ${data.nome}! Crie um novo perfil com estes dados.`);
         }
+        setError(null);
       } else {
+        setError("NIF não encontrado ou sem dados associados.");
         toast.error("NIF não encontrado ou sem dados associados.");
       }
     } catch (error) {
       console.error("Error fetching NIF data:", error);
+      setError("Erro ao consultar o NIF. Tente novamente.");
       toast.error("Erro ao consultar o NIF. Tente novamente.");
     } finally {
       setIsLoading(false);
@@ -78,6 +86,7 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
           onNifChange={setNif}
           onSearch={handleNifSearch}
           isLoading={isLoading}
+          error={error}
         />
         
         <ContactProfileSelector 

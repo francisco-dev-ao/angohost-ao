@@ -10,13 +10,15 @@ interface NifSearchProps {
   onNifChange: (nif: string) => void;
   onSearch: () => void;
   isLoading: boolean;
+  error?: string | null;
 }
 
 export const NifSearch: React.FC<NifSearchProps> = ({
   nif,
   onNifChange,
   onSearch,
-  isLoading
+  isLoading,
+  error
 }) => {
   // Função para lidar com a tecla Enter no input
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -28,23 +30,24 @@ export const NifSearch: React.FC<NifSearchProps> = ({
 
   return (
     <div className="mb-6">
-      <Label htmlFor="nif">NIF (Número de Identificação Fiscal)</Label>
+      <Label htmlFor="nif">NIF (Número de Identificação Fiscal) ou BI</Label>
       <div className="flex gap-2">
         <Input
           id="nif"
           value={nif}
           onChange={(e) => onNifChange(e.target.value)}
+          onBlur={() => nif.length >= 8 && onSearch()}
           onKeyPress={handleKeyPress}
-          placeholder="Digite o NIF"
-          className="flex-1"
+          placeholder="Digite o NIF ou BI"
+          className={`flex-1 ${error ? 'border-red-500' : ''}`}
           maxLength={9}
-          minLength={9}
+          minLength={8}
         />
         <Button
           type="button"
           variant="outline"
           onClick={onSearch}
-          disabled={isLoading || nif.length < 9}
+          disabled={isLoading || nif.length < 8}
           className="flex items-center gap-1"
         >
           {isLoading ? (
@@ -61,8 +64,17 @@ export const NifSearch: React.FC<NifSearchProps> = ({
         </Button>
       </div>
       <p className="text-xs text-gray-500 mt-1">
-        Digite o NIF para preencher automaticamente os dados da empresa.
+        Ao informar o NIF, preencheremos alguns campos automaticamente.
       </p>
+      {isLoading && (
+        <div className="flex items-center gap-2 mt-2">
+          <Loader2 size={16} className="animate-spin text-primary" />
+          <span className="text-sm text-gray-500">Consultando seus dados...</span>
+        </div>
+      )}
+      {error && (
+        <p className="text-sm text-red-500 mt-1">{error}</p>
+      )}
     </div>
   );
 };
