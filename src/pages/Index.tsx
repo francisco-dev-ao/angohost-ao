@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,18 +8,12 @@ import FeatureCard from '@/components/FeatureCard';
 import PricingCard from '@/components/PricingCard';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import ClientLogosSection from '@/components/ClientLogosSection';
-
 const Index = () => {
-  return (
-    <div className="flex flex-col min-h-screen">
+  return <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="domain-search-container py-20 px-4 text-white relative">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-0"></div>
-        <img 
-          src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
-          alt="Equipe AngoHost" 
-          className="absolute inset-0 w-full h-full object-cover -z-10"
-        />
+        <img src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" alt="Equipe AngoHost" className="absolute inset-0 w-full h-full object-cover -z-10" />
         <div className="container max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">Registre Seu Domínio .AO</h1>
@@ -62,21 +55,9 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              title="Hospedagem Web"
-              description="Planos de hospedagem cPanel e WordPress otimizados para alto desempenho e segurança."
-              icon={<Globe className="h-6 w-6" />}
-            />
-            <FeatureCard
-              title="Servidores Dedicados"
-              description="Servidores dedicados e VPS com recursos exclusivos para seu negócio."
-              icon={<Server className="h-6 w-6" />}
-            />
-            <FeatureCard
-              title="Email Corporativo"
-              description="Soluções de e-mail profissional para empresas de todos os tamanhos."
-              icon={<Mail className="h-6 w-6" />}
-            />
+            <FeatureCard title="Hospedagem Web" description="Planos de hospedagem cPanel e WordPress otimizados para alto desempenho e segurança." icon={<Globe className="h-6 w-6" />} />
+            <FeatureCard title="Servidores Dedicados" description="Servidores dedicados e VPS com recursos exclusivos para seu negócio." icon={<Server className="h-6 w-6" />} />
+            <FeatureCard title="Email Corporativo" description="Soluções de e-mail profissional para empresas de todos os tamanhos." icon={<Mail className="h-6 w-6" />} />
           </div>
         </div>
       </section>
@@ -125,10 +106,7 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="bg-gray-50 rounded-xl p-8 shadow-sm">
-              <h3 className="text-xl font-semibold mb-6">Verifique a disponibilidade do seu domínio</h3>
-              <DomainSearchForm variant="default" />
-            </div>
+            
           </div>
         </div>
       </section>
@@ -140,7 +118,7 @@ const Index = () => {
       <ClientLogosSection />
 
       {/* Hosting Plans Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="px-4 bg-gray-50 py-[75px] rounded-none">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Planos de Hospedagem</h2>
@@ -150,49 +128,9 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <PricingCard
-              id="basic"
-              type="hosting"
-              title="Plano Básico"
-              price={2500}
-              features={[
-                "5GB de Espaço em Disco",
-                "10 Contas de Email",
-                "Banco de Dados MySQL",
-                "Certificado SSL Gratuito",
-                "Painel cPanel"
-              ]}
-            />
-            <PricingCard
-              id="professional"
-              type="hosting"
-              title="Plano Profissional"
-              price={4500}
-              features={[
-                "20GB de Espaço em Disco",
-                "30 Contas de Email",
-                "Banco de Dados MySQL Ilimitados",
-                "Certificado SSL Gratuito",
-                "Painel cPanel",
-                "Backup Diário"
-              ]}
-              isPopular
-            />
-            <PricingCard
-              id="enterprise"
-              type="hosting"
-              title="Plano Empresarial"
-              price={8500}
-              features={[
-                "50GB de Espaço em Disco",
-                "Email Ilimitado",
-                "Banco de Dados MySQL Ilimitados",
-                "Certificado SSL Gratuito",
-                "Painel cPanel",
-                "Backup Diário",
-                "CDN Premium"
-              ]}
-            />
+            <PricingCard id="basic" type="hosting" title="Plano Básico" price={2500} features={["5GB de Espaço em Disco", "10 Contas de Email", "Banco de Dados MySQL", "Certificado SSL Gratuito", "Painel cPanel"]} />
+            <PricingCard id="professional" type="hosting" title="Plano Profissional" price={4500} features={["20GB de Espaço em Disco", "30 Contas de Email", "Banco de Dados MySQL Ilimitados", "Certificado SSL Gratuito", "Painel cPanel", "Backup Diário"]} isPopular />
+            <PricingCard id="enterprise" type="hosting" title="Plano Empresarial" price={8500} features={["50GB de Espaço em Disco", "Email Ilimitado", "Banco de Dados MySQL Ilimitados", "Certificado SSL Gratuito", "Painel cPanel", "Backup Diário", "CDN Premium"]} />
           </div>
         </div>
       </section>
@@ -208,46 +146,9 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <PricingCard
-              id="email-start"
-              type="email"
-              title="Plano Start"
-              price={1500}
-              features={[
-                "5GB por Caixa Postal",
-                "Webmail Responsivo",
-                "Proteção Anti-spam",
-                "Suporte 24/7"
-              ]}
-            />
-            <PricingCard
-              id="email-business"
-              type="email"
-              title="Plano Business"
-              price={3000}
-              features={[
-                "15GB por Caixa Postal",
-                "Webmail Responsivo",
-                "Proteção Anti-spam e Antivírus",
-                "Calendário Compartilhado",
-                "Suporte Prioritário 24/7"
-              ]}
-              isPopular
-            />
-            <PricingCard
-              id="email-enterprise"
-              type="email"
-              title="Plano Enterprise"
-              price={6000}
-              features={[
-                "50GB por Caixa Postal",
-                "Webmail Responsivo",
-                "Proteção Anti-spam e Antivírus",
-                "Calendário e Contatos Compartilhados",
-                "Arquivamento de Email",
-                "Suporte Prioritário 24/7"
-              ]}
-            />
+            <PricingCard id="email-start" type="email" title="Plano Start" price={1500} features={["5GB por Caixa Postal", "Webmail Responsivo", "Proteção Anti-spam", "Suporte 24/7"]} />
+            <PricingCard id="email-business" type="email" title="Plano Business" price={3000} features={["15GB por Caixa Postal", "Webmail Responsivo", "Proteção Anti-spam e Antivírus", "Calendário Compartilhado", "Suporte Prioritário 24/7"]} isPopular />
+            <PricingCard id="email-enterprise" type="email" title="Plano Enterprise" price={6000} features={["50GB por Caixa Postal", "Webmail Responsivo", "Proteção Anti-spam e Antivírus", "Calendário e Contatos Compartilhados", "Arquivamento de Email", "Suporte Prioritário 24/7"]} />
           </div>
         </div>
       </section>
@@ -263,21 +164,9 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              title="Serviço Angolano"
-              description="Empresa 100% angolana, focada nas necessidades do mercado local."
-              icon={<Globe className="h-6 w-6" />}
-            />
-            <FeatureCard
-              title="Suporte Local"
-              description="Atendimento em português por especialistas localizados em Angola."
-              icon={<Mail className="h-6 w-6" />}
-            />
-            <FeatureCard
-              title="Segurança Garantida"
-              description="Proteção avançada contra ameaças e backup diário dos seus dados."
-              icon={<Shield className="h-6 w-6" />}
-            />
+            <FeatureCard title="Serviço Angolano" description="Empresa 100% angolana, focada nas necessidades do mercado local." icon={<Globe className="h-6 w-6" />} />
+            <FeatureCard title="Suporte Local" description="Atendimento em português por especialistas localizados em Angola." icon={<Mail className="h-6 w-6" />} />
+            <FeatureCard title="Segurança Garantida" description="Proteção avançada contra ameaças e backup diário dos seus dados." icon={<Shield className="h-6 w-6" />} />
           </div>
         </div>
       </section>
@@ -285,11 +174,7 @@ const Index = () => {
       {/* CTA Section */}
       <section className="py-16 px-4 domain-search-container relative">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-0"></div>
-        <img 
-          src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
-          alt="Equipe AngoHost" 
-          className="absolute inset-0 w-full h-full object-cover -z-10 opacity-80"
-        />
+        <img src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" alt="Equipe AngoHost" className="absolute inset-0 w-full h-full object-cover -z-10 opacity-80" />
         <div className="container max-w-6xl mx-auto text-center relative z-10">
           <h2 className="text-3xl font-bold mb-6 text-white">
             Comece Hoje Mesmo
@@ -307,8 +192,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
