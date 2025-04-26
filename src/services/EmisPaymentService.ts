@@ -14,15 +14,15 @@ interface EmisTokenResponse {
   errorMessage?: string;
 }
 
-// This would normally be stored in a secure environment variable
-const EMIS_FRAME_TOKEN = "YOUR_FRAME_TOKEN_HERE"; 
+const EMIS_CONFIG = {
+  FRAME_TOKEN: 'a53787fd-b49e-4469-a6ab-fa6acf19db48',
+  API_URL: 'https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken',
+  CSS_URL: 'https://pagamentonline.emis.co.ao/gpoconfig/qr_code_mobile_v2.css'
+};
 
 export async function getEmisPaymentToken(options: EmisPaymentOptions): Promise<string | null> {
   try {
-    // In a real implementation, this request would be made server-side for security
-    // This is a client-side simulation for demonstration purposes
-    
-    const response = await fetch("https://gpo.emis.co.ao/gpoportal/frameToken", {
+    const response = await fetch(EMIS_CONFIG.API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,21 +30,51 @@ export async function getEmisPaymentToken(options: EmisPaymentOptions): Promise<
       body: JSON.stringify({
         reference: options.reference,
         amount: options.amount, // Amount in cents
-        token: EMIS_FRAME_TOKEN,
+        token: EMIS_CONFIG.FRAME_TOKEN,
         mobile: "PAYMENT",
         card: "AUTHORIZATION",
-        cssUrl: "https://pagamentonline.emis.co.ao/gpoconfig/qr_code_mobile_v2.css",
+        cssUrl: EMIS_CONFIG.CSS_URL,
         callbackUrl: options.callbackUrl,
       }),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("EMIS payment API error:", errorText);
+      toast.error("Erro ao conectar com o serviço de pagamento. Por favor tente novamente.");
+      return null;
+    }
 
     const data: EmisTokenResponse = await response.json();
 
     if (data.success) {
       return data.token;
     } else {
-      console.error("EMIS payment token error:", data.errorMessage);
-      toast.error(`Erro ao gerar token de pagamento: ${data.errorMessage || "Erro desconhecido"}`);
+      // Map error codes to user-friendly messages
+      let errorMessage = data.errorMessage || "Erro desconhecido";
+      switch(data.errorCode) {
+        case "100":
+          errorMessage = "Referência do pagamento é obrigatória";
+          break;
+        case "101":
+          errorMessage = "Referência duplicada. Por favor, tente novamente";
+          break;
+        case "102":
+          errorMessage = "Valor do pagamento inválido";
+          break;
+        case "104":
+          errorMessage = "Token de autenticação inválido";
+          break;
+        case "105":
+          errorMessage = "URL de CSS inválida";
+          break;
+        case "107":
+          errorMessage = "Métodos de pagamento não disponíveis";
+          break;
+      }
+      
+      console.error("EMIS payment token error:", errorMessage);
+      toast.error(`Erro ao gerar token de pagamento: ${errorMessage}`);
       return null;
     }
   } catch (error) {
@@ -57,7 +87,8 @@ export async function getEmisPaymentToken(options: EmisPaymentOptions): Promise<
 // Setup event listener for EMIS postMessage
 export function setupEmisMessageListener(onSuccess: (transactionId: string) => void): () => void {
   const listener = (event: MessageEvent) => {
-    if (event.origin !== 'https://gpo.emis.co.ao') return;
+    // Verify message origin for security
+    if (event.origin !== 'https://pagamentonline.emis.co.ao') return;
     
     console.log('Payment message received:', event.data);
     
@@ -73,3 +104,4 @@ export function setupEmisMessageListener(onSuccess: (transactionId: string) => v
     window.removeEventListener('message', listener);
   };
 }
+
