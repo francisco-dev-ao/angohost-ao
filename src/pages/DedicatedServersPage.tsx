@@ -1,11 +1,46 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Shield, Server, Wifi, Clock, Database, HardDrive } from 'lucide-react';
+import { Shield, Server, Wifi, Clock, Database, HardDrive, Loader2 } from 'lucide-react';
 import PricingCard from '@/components/PricingCard';
 import FeatureCard from '@/components/FeatureCard';
+import { supabase } from "@/integrations/supabase/client";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tables } from '@/types/supabase';
+
+type HostingPlan = Tables<'hosting_plans'>;
 
 const DedicatedServersPage = () => {
+  const [plans, setPlans] = useState<HostingPlan[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('hosting_plans')
+          .select('*')
+          .eq('type', 'dedicated')
+          .order('price', { ascending: true });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        setPlans(data || []);
+      } catch (err) {
+        console.error('Error fetching dedicated server plans:', err);
+        setError('Não foi possível carregar os planos de servidores dedicados.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
   const features = [
     {
       title: 'Hardware Dedicado',
@@ -57,54 +92,47 @@ const DedicatedServersPage = () => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-        <PricingCard
-          title="Servidor Básico"
-          price={45000}
-          period="/mês"
-          features={[
-            '4 Cores CPU',
-            '8GB RAM',
-            '1TB HDD',
-            'Tráfego Ilimitado',
-            'IP Dedicado',
-            '24/7 Suporte'
-          ]}
-          type="hosting"
-          id="dedicated-basic"
-        />
-        <PricingCard
-          title="Servidor Pro"
-          price={75000}
-          period="/mês"
-          features={[
-            '8 Cores CPU',
-            '16GB RAM',
-            '2TB HDD',
-            'Tráfego Ilimitado',
-            '2 IPs Dedicados',
-            '24/7 Suporte Premium'
-          ]}
-          type="hosting"
-          id="dedicated-pro"
-          isPopular={true}
-        />
-        <PricingCard
-          title="Servidor Enterprise"
-          price={120000}
-          period="/mês"
-          features={[
-            '16 Cores CPU',
-            '32GB RAM',
-            '4TB HDD',
-            'Tráfego Ilimitado',
-            '4 IPs Dedicados',
-            'Suporte Prioritário'
-          ]}
-          type="hosting"
-          id="dedicated-enterprise"
-        />
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-lg">Carregando planos...</span>
+        </div>
+      ) : error ? (
+        <div className="text-center p-8 bg-red-50 rounded-lg">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">Tentar novamente</Button>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {plans.map((plan) => {
+            const features = [];
+            const planFeatures = plan.features as Record<string, string> || {};
+            
+            if (planFeatures.cpu) features.push(planFeatures.cpu + ' CPU');
+            if (planFeatures.ram) features.push(planFeatures.ram + ' RAM');
+            if (planFeatures.storage) features.push(planFeatures.storage);
+            if (planFeatures.bandwidth) features.push('Tráfego ' + planFeatures.bandwidth);
+            if (planFeatures.ips) features.push(planFeatures.ips);
+            features.push('24/7 Suporte');
+            
+            const isPopular = plan.name.includes('Pro');
+            const planId = plan.id.replace(/-/g, '_');
+            
+            return (
+              <PricingCard
+                key={plan.id}
+                title={plan.name}
+                price={plan.price}
+                period="/mês"
+                features={features}
+                type="hosting"
+                id={`dedicated-${planId}`}
+                isPopular={isPopular}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <div className="bg-gray-50 rounded-xl p-8 mb-16">
         <h2 className="text-2xl font-bold mb-8 text-center">Características dos Nossos Servidores Dedicados</h2>
@@ -119,6 +147,79 @@ const DedicatedServersPage = () => {
           ))}
         </div>
       </div>
+      
+      {plans.length > 0 && (
+        <div className="mb-16">
+          <h2 className="text-2xl font-bold mb-8 text-center">Compare Nossos Servidores</h2>
+          <div className="overflow-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[180px]">Especificação</TableHead>
+                  {plans.map(plan => (
+                    <TableHead key={plan.id} className="text-center">
+                      {plan.name.replace('Servidor Dedicado ', '')}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">Processador</TableCell>
+                  {plans.map(plan => {
+                    const features = plan.features as Record<string, string> || {};
+                    return (
+                      <TableCell key={plan.id} className="text-center">{features.cpu || '-'}</TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Memória RAM</TableCell>
+                  {plans.map(plan => {
+                    const features = plan.features as Record<string, string> || {};
+                    return (
+                      <TableCell key={plan.id} className="text-center">{features.ram || '-'}</TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Armazenamento</TableCell>
+                  {plans.map(plan => {
+                    const features = plan.features as Record<string, string> || {};
+                    return (
+                      <TableCell key={plan.id} className="text-center">{features.storage || '-'}</TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Largura de Banda</TableCell>
+                  {plans.map(plan => {
+                    const features = plan.features as Record<string, string> || {};
+                    return (
+                      <TableCell key={plan.id} className="text-center">{features.bandwidth || 'Ilimitado'}</TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Endereços IP</TableCell>
+                  {plans.map(plan => {
+                    const features = plan.features as Record<string, string> || {};
+                    return (
+                      <TableCell key={plan.id} className="text-center">{features.ips || '1 IP'}</TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">Preço Mensal</TableCell>
+                  {plans.map(plan => (
+                    <TableCell key={plan.id} className="text-center font-bold">{plan.price.toLocaleString('pt-AO')} Kz</TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
       
       <div className="bg-primary/5 rounded-xl p-8 mb-16">
         <div className="max-w-3xl mx-auto text-center">
