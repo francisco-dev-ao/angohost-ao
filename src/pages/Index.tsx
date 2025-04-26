@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Check, Globe, Server, Shield, Mail, Star, Users, Award, Zap, Search, ArrowRight } from 'lucide-react';
+import Phone from '@/components/ui/phone-icon'; // Import Phone icon from our custom component
 import { motion } from 'framer-motion';
 import DomainSearchForm from '@/components/DomainSearchForm';
 import FeatureCard from '@/components/FeatureCard';
