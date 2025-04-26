@@ -8,6 +8,8 @@ import FeatureCard from '@/components/FeatureCard';
 import PricingCard from '@/components/PricingCard';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import ClientLogosSection from '@/components/ClientLogosSection';
+import PlanCategories from '@/components/PlanCategories';
+
 const Index = () => {
   return <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -54,7 +56,10 @@ const Index = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Plan Categories Section */}
+          <PlanCategories />
+          
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <FeatureCard title="Hospedagem Web" description="Planos de hospedagem cPanel e WordPress otimizados para alto desempenho e segurança." icon={<Globe className="h-6 w-6" />} />
             <FeatureCard title="Servidores Dedicados" description="Servidores dedicados e VPS com recursos exclusivos para seu negócio." icon={<Server className="h-6 w-6" />} />
             <FeatureCard title="Email Corporativo" description="Soluções de e-mail profissional para empresas de todos os tamanhos." icon={<Mail className="h-6 w-6" />} />
@@ -194,4 +199,5 @@ const Index = () => {
       </section>
     </div>;
 };
+
 export default Index;
