@@ -33,7 +33,7 @@ const HeroContent = () => {
             asChild 
             size="lg" 
             variant="outline" 
-            className="border-white text-white hover:bg-white/10"
+            className="border-white text-white hover:bg-white/20 hover:border-orange-500 transition-colors duration-300"
           >
             <Link to="/dominios/registrar">Registrar Domínio</Link>
           </Button>
