@@ -12,8 +12,14 @@ const Index = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="domain-search-container py-20 px-4 text-white">
-        <div className="container max-w-6xl mx-auto">
+      <section className="domain-search-container py-20 px-4 text-white relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-0"></div>
+        <img 
+          src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
+          alt="Equipe AngoHost" 
+          className="absolute inset-0 w-full h-full object-cover -z-10"
+        />
+        <div className="container max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-10">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">Registre Seu Domínio .AO</h1>
             <p className="text-xl md:text-2xl mb-6 max-w-3xl mx-auto">
@@ -269,8 +275,14 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 domain-search-container">
-        <div className="container max-w-6xl mx-auto text-center">
+      <section className="py-16 px-4 domain-search-container relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 z-0"></div>
+        <img 
+          src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
+          alt="Equipe AngoHost" 
+          className="absolute inset-0 w-full h-full object-cover -z-10 opacity-80"
+        />
+        <div className="container max-w-6xl mx-auto text-center relative z-10">
           <h2 className="text-3xl font-bold mb-6 text-white">
             Comece Hoje Mesmo
           </h2>

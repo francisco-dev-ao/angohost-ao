@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '@/context/CartContext';
 
 interface DomainSearchFormProps {
   variant?: 'default' | 'hero' | 'sidebar';
@@ -23,6 +24,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
   
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   const extensionOptions = [
     { value: '.co.ao', label: '.co.ao', price: 35000 },
@@ -67,8 +69,23 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   };
 
   const addToCart = () => {
-    // In a real application, you would add the domain to the cart
-    // For now, let's just navigate to the cart page
+    // Add domain to cart
+    const selectedExt = extensionOptions.find(ext => ext.value === extension);
+    const price = getPrice();
+    
+    addItem({
+      id: `domain-${domainName}${extension}-${Date.now()}`,
+      type: 'domain',
+      name: `${domainName}${extension}`,
+      price: price,
+      period: 'yearly',
+      details: {
+        domain: `${domainName}${extension}`,
+        period: '1 ano',
+        privacyProtection: 'Incluída'
+      }
+    });
+    
     toast.success(`Domínio ${domainName}${extension} adicionado ao carrinho!`);
     navigate('/carrinho');
   };
@@ -100,11 +117,11 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
             placeholder="Digite o nome do domínio"
             value={domainName}
             onChange={(e) => setDomainName(e.target.value)}
-            className={`${variant === 'hero' ? 'rounded-r-none md:rounded-r-none flex-1' : ''}`}
+            className={`${variant === 'hero' ? 'md:rounded-r-none flex-1 text-base md:text-lg' : 'text-base'} bg-white`}
           />
           
           <Select value={extension} onValueChange={setExtension}>
-            <SelectTrigger className={`${variant === 'hero' ? 'md:w-40 rounded-l-none md:rounded-l-none' : 'w-full'}`}>
+            <SelectTrigger className={`${variant === 'hero' ? 'md:w-32 md:rounded-l-none' : 'w-full'} bg-white text-base md:text-lg`}>
               <SelectValue placeholder=".co.ao" />
             </SelectTrigger>
             <SelectContent>

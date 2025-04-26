@@ -46,7 +46,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const addItem = (newItem: CartItem) => {
     // Check if the item already exists in the cart
-    const existingItemIndex = items.findIndex(item => item.id === newItem.id);
+    const existingItemIndex = items.findIndex(item => 
+      item.type === newItem.type && 
+      item.name === newItem.name
+    );
     
     if (existingItemIndex >= 0) {
       // Update the existing item
