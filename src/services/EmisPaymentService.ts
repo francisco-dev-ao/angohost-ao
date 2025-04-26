@@ -58,7 +58,7 @@ export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisP
     console.log('Iniciando requisição para EMIS com parâmetros:', params);
 
     try {
-      // URL corrigida para o endpoint correto do EMIS
+      // URL do endpoint EMIS corrigida
       const response = await fetch('https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken', {
         method: 'POST',
         headers: {
