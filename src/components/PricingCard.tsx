@@ -56,8 +56,8 @@ const PricingCard: React.FC<PricingCardProps> = ({
   };
   
   const handleSelect = () => {
+    // For email plans, navigate to the email page to select quantity
     if (type === 'email') {
-      // For email plans, navigate to the email page to select quantity
       navigate('/email/profissional');
       return;
     }
@@ -67,8 +67,10 @@ const PricingCard: React.FC<PricingCardProps> = ({
     const totalPrice = calculateTotalPrice(price, selectedPeriod);
     const yearlyRenewalPrice = renewalPrice || price;
     
+    // Create item based on type and ID
     if (type === 'hosting') {
-      if (id === 'basic') {
+      // Handle different hosting plans
+      if (id.includes('basic') || id === 'starter') {
         newItem = {
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
@@ -83,7 +85,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             contractYears: years
           }
         };
-      } else if (id === 'professional') {
+      } else if (id.includes('professional') || id === 'business') {
         newItem = {
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
@@ -98,7 +100,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             contractYears: years
           }
         };
-      } else if (id === 'enterprise') {
+      } else if (id.includes('enterprise')) {
         newItem = {
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
@@ -113,7 +115,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             contractYears: years
           }
         };
-      } else if (id === 'dedicated-basic') {
+      } else if (id.includes('dedicated-basic')) {
         newItem = {
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
@@ -130,7 +132,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             contractYears: years
           }
         };
-      } else if (id === 'dedicated-pro') {
+      } else if (id.includes('dedicated-pro')) {
         newItem = {
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
@@ -147,7 +149,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
             contractYears: years
           }
         };
-      } else if (id === 'dedicated-enterprise') {
+      } else if (id.includes('dedicated-enterprise')) {
         newItem = {
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
@@ -162,6 +164,36 @@ const PricingCard: React.FC<PricingCardProps> = ({
             ips: '4 IPs Dedicados',
             renewalPrice: yearlyRenewalPrice,
             contractYears: years
+          }
+        };
+      } else if (id.includes('wp-')) {
+        // WordPress specific plans
+        const wpPlanNames = {
+          'wp-basic': 'WordPress Básico',
+          'wp-pro': 'WordPress Pro',
+          'wp-agency': 'WordPress Agency'
+        };
+        
+        const wpPlanDetails = {
+          'wp-basic': { diskSpace: '10GB', emailAccounts: '15' },
+          'wp-pro': { diskSpace: '25GB', emailAccounts: '30' },
+          'wp-agency': { diskSpace: '50GB', emailAccounts: 'Ilimitado' }
+        };
+        
+        const planKey = id as keyof typeof wpPlanNames;
+        
+        newItem = {
+          id: `hosting-${id}-${Date.now()}`,
+          type: 'hosting',
+          name: wpPlanNames[planKey] || title,
+          price: totalPrice,
+          period: 'yearly',
+          details: {
+            ...wpPlanDetails[planKey as keyof typeof wpPlanDetails],
+            databases: 'Ilimitado',
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years,
+            isWordPress: true
           }
         };
       }
@@ -212,9 +244,17 @@ const PricingCard: React.FC<PricingCardProps> = ({
     }
     
     if (newItem) {
+      // Add item to cart and redirect
       addItem(newItem);
       toast.success(`${newItem.name} adicionado ao carrinho!`);
-      navigate('/carrinho');
+      
+      // For hosting plans from cPanel or WordPress pages, redirect to domain config
+      const currentPath = window.location.pathname;
+      if ((currentPath.includes('/hospedagem/cpanel') || currentPath.includes('/hospedagem/wordpress')) && type === 'hosting') {
+        navigate('/dominios/registrar?fromHosting=true');
+      } else {
+        navigate('/carrinho');
+      }
     }
   };
 

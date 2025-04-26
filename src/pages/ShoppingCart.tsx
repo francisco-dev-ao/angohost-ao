@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { CartItemsList } from '@/components/cart/CartItemsList';
 import { EmailPlansSection } from '@/components/cart/EmailPlansSection';
@@ -9,8 +10,10 @@ import { CartHeader } from '@/components/cart/CartHeader';
 import { AuthenticationCard } from '@/components/cart/AuthenticationCard';
 import { ContactProfileCard } from '@/components/cart/ContactProfileCard';
 import { useShoppingCart } from '@/hooks/useShoppingCart';
+import { toast } from 'sonner';
 
 const ShoppingCart = () => {
+  const navigate = useNavigate();
   const { 
     items, 
     removeItem, 
@@ -35,6 +38,31 @@ const ShoppingCart = () => {
   const getContactProfileById = (id: string) => {
     return contactProfiles.find(profile => profile.id === id);
   };
+
+  // Check if hosting plans need domain configuration
+  useEffect(() => {
+    // If we have hosting plans but no domains
+    const hasHostingPlans = items.some(item => 
+      item.type === 'hosting' && !item.details.existingDomain
+    );
+    
+    const hasWordPressPlans = items.some(item => 
+      item.type === 'hosting' && item.details.isWordPress === true
+    );
+    
+    const hasCPanelPlans = items.some(item =>
+      item.type === 'hosting' && 
+      !item.details.existingDomain && 
+      !item.details.cpu // Not a dedicated server
+    );
+    
+    // If we have hosting plans (WordPress or cPanel) that need domains
+    if ((hasWordPressPlans || hasCPanelPlans) && !hasDomain && !hasOnlyHostingWithoutDomain) {
+      // Redirect to domain registration with a flag indicating we came from hosting
+      toast.info('É necessário configurar um domínio para o seu plano de hospedagem.');
+      navigate('/dominios/registrar?fromHosting=true');
+    }
+  }, [items, hasDomain, hasOnlyHostingWithoutDomain, navigate]);
 
   if (loading) {
     return (
