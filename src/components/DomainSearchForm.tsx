@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,7 +75,6 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     { value: '.com', label: '.com', price: 15000 },
   ];
 
-  // Check sessionStorage for any pending email plan
   useEffect(() => {
     const pendingEmailPlan = sessionStorage.getItem('pendingEmailPlan');
     if (pendingEmailPlan) {
@@ -95,12 +93,9 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     setIsSearching(true);
     setSearchResult(null);
     
-    // Simulating API call - in a real application, this would be an actual API call
     setTimeout(() => {
-      // For demo purposes, let's assume most domains are available
       const randomAvailable = Math.random() > 0.3;
       
-      // Find the price of the selected extension
       const selectedExt = extensionOptions.find(ext => ext.value === extension);
       
       setSearchResult({
@@ -125,7 +120,6 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   const onTitularitySubmit = (values: z.infer<typeof formSchema>) => {
     setIsProcessingOrder(true);
 
-    // Simulate processing delay
     setTimeout(() => {
       const price = getPrice();
 
@@ -189,37 +183,42 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     const selectedExt = extensionOptions.find(ext => ext.value === extension);
     const basePrice = selectedExt?.price || 0;
     
-    // Apply different pricing for special cases
     if (domainName.length <= 3) {
-      return 300000; // Special price for 3-letter domains
+      return 300000;
     }
     
     return basePrice;
   };
 
   const formClasses = {
-    default: 'flex flex-col space-y-4 max-w-2xl mx-auto',
-    hero: 'flex flex-col md:flex-row items-center gap-2 w-full max-w-3xl mx-auto',
+    default: 'flex flex-col space-y-4 max-w-3xl mx-auto',
+    hero: 'flex flex-col md:flex-row items-center gap-3 w-full max-w-4xl mx-auto',
     sidebar: 'flex flex-col space-y-4'
   };
 
   return (
     <div className={variant === 'hero' ? 'w-full' : ''}>
       <form onSubmit={handleSearch} className={formClasses[variant]}>
-        <div className={`flex flex-1 ${variant === 'hero' ? 'flex-col md:flex-row w-full' : ''}`}>
+        <div className={`flex flex-1 ${variant === 'hero' ? 'flex-col md:flex-row w-full' : ''} relative rounded-lg shadow-lg bg-white/90 backdrop-blur-sm border border-gray-100`}>
           <div className="relative flex-grow">
             <Input
               type="text"
               placeholder="Digite o nome do domínio"
               value={domainName}
               onChange={(e) => setDomainName(e.target.value)}
-              className={`${variant === 'hero' ? 'md:rounded-r-none text-base md:text-lg' : 'text-base'} bg-white text-black pl-10 border-primary focus:border-primary focus:ring-primary`}
+              className={`${
+                variant === 'hero' ? 'md:rounded-r-none text-lg' : 'text-base'
+              } bg-transparent border-0 shadow-none focus:ring-0 pl-10 h-14 text-gray-800`}
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
           
           <Select value={extension} onValueChange={setExtension}>
-            <SelectTrigger className={`${variant === 'hero' ? 'md:w-32 md:rounded-l-none' : 'w-full'} bg-white text-black text-base md:text-lg border-primary focus:border-primary`}>
+            <SelectTrigger 
+              className={`${
+                variant === 'hero' ? 'md:w-28 md:rounded-l-none' : 'w-full'
+              } bg-transparent text-gray-800 text-base border-0 border-l border-gray-100 focus:ring-0 h-14`}
+            >
               <SelectValue placeholder=".co.ao" />
             </SelectTrigger>
             <SelectContent>
@@ -233,11 +232,13 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
         <Button 
           type="submit" 
           disabled={isSearching}
-          className={`${variant === 'hero' ? 'w-full md:w-auto' : ''} bg-primary hover:bg-primary/90`}
+          className={`${
+            variant === 'hero' ? 'w-full md:w-auto' : ''
+          } h-14 px-8 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300`}
         >
           {isSearching ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               A verificar...
             </>
           ) : 'Verificar Disponibilidade'}
@@ -247,7 +248,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       {searchResult && (
         <div className="mt-6 text-center">
           {searchResult.available ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col items-center">
+            <div className="bg-green-50/80 backdrop-blur-sm border border-green-100 rounded-xl p-6 flex flex-col items-center shadow-lg">
               <h4 className="text-green-800 text-lg font-medium">
                 {domainName}{extension} está disponível!
               </h4>
@@ -259,13 +260,13 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
               </p>
               <Button 
                 onClick={handleOpenTitularityForm} 
-                className="mt-4 bg-primary hover:bg-primary/90"
+                className="mt-4 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-300"
               >
                 Registrar Domínio
               </Button>
             </div>
           ) : (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="bg-red-50/80 backdrop-blur-sm border border-red-100 rounded-xl p-6 shadow-lg">
               <h4 className="text-red-800 text-lg font-medium">
                 {domainName}{extension} não está disponível
               </h4>
@@ -277,7 +278,6 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
         </div>
       )}
 
-      {/* Domain Ownership Form Dialog */}
       <Dialog open={showTitularityForm} onOpenChange={setShowTitularityForm}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
