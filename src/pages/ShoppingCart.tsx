@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CartIcon as CartIcon } from 'lucide-react';
+import { ShoppingCart as CartIcon } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { TitularityForm } from '@/components/domain/TitularityForm';
 import { CartItem, ContactProfile } from '@/types/cart';
