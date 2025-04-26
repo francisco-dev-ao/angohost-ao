@@ -1,22 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
-import EmisPaymentFrame from '@/components/EmisPaymentFrame';
-import { PaymentMethodSelector } from '@/components/checkout/PaymentMethodSelector';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
-import { Button } from '@/components/ui/button';
+import { CheckoutForm } from '@/components/checkout/CheckoutForm';
+import { PaymentFrame } from '@/components/checkout/PaymentFrame';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, CreditCard, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
-type PaymentMethod = 'emis' | 'bank-transfer' | 'credit-card';
+import { PaymentMethod } from '@/types/payment';
 
 const Checkout = () => {
   const { 
     items, 
-    customer, 
     paymentInfo, 
     getTotalPrice, 
     setPaymentInfo, 
@@ -129,64 +124,20 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {!showPaymentFrame ? (
-              <Card className="overflow-hidden">
-                <CardHeader className="bg-white">
-                  <CardTitle className="text-xl flex items-center">
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Selecione o Método de Pagamento
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <Alert variant="default" className="mb-6">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Detalhes de faturação</AlertTitle>
-                    <AlertDescription>
-                      Os dados de faturação serão obtidos do perfil da sua conta.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <PaymentMethodSelector
-                    selected={paymentMethod}
-                    onSelect={(method) => setPaymentMethod(method as PaymentMethod)}
-                  />
-                  
-                  <div className="mt-8 flex justify-end">
-                    <Button
-                      onClick={handleProcessPayment}
-                      disabled={!paymentMethod || isLoading}
-                      className="w-full md:w-auto"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processando...
-                        </>
-                      ) : 'Processar Pagamento'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <CheckoutForm 
+                paymentMethod={paymentMethod}
+                isLoading={isLoading}
+                onSelectPaymentMethod={setPaymentMethod}
+                onProcessPayment={handleProcessPayment}
+              />
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-6">Pagamento Multicaixa Express</h2>
-                <p className="mb-6 text-gray-600">
-                  Por favor, siga as instruções para concluir o pagamento. Você receberá um alerta no seu telemóvel para confirmar a transação.
-                </p>
-                <EmisPaymentFrame 
-                  amount={getTotalPrice() * 100} // Convert to cents
-                  reference={orderReference}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPaymentFrame(false)}
-                  className="mt-4"
-                >
-                  Voltar aos dados de pagamento
-                </Button>
-              </div>
+              <PaymentFrame
+                orderReference={orderReference}
+                getTotalPrice={getTotalPrice}
+                onSuccess={handlePaymentSuccess}
+                onError={handlePaymentError}
+                onBack={() => setShowPaymentFrame(false)}
+              />
             )}
           </div>
           
