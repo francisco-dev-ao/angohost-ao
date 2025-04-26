@@ -1,0 +1,105 @@
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu';
+import { cn } from '@/lib/utils';
+
+interface NavbarDesktopMenuProps {
+  hostingMenuItems: Array<{ title: string; href: string; }>;
+  domainMenuItems: Array<{ title: string; href: string; }>;
+  emailMenuItems: Array<{ title: string; href: string; }>;
+}
+
+export const NavbarDesktopMenu = ({
+  hostingMenuItems,
+  domainMenuItems,
+  emailMenuItems,
+}: NavbarDesktopMenuProps) => {
+  return (
+    <div className="hidden lg:block">
+      <NavigationMenu>
+        <NavigationMenuList className="gap-6">
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link 
+                to="/"
+                className={cn(
+                  "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                )}
+              >
+                Início
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Alojamento Web</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[220px] gap-3 p-4">
+                {hostingMenuItems.map((item) => (
+                  <li key={item.title}>
+                    <NavigationMenuLink asChild>
+                      <Link 
+                        to={item.href}
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">{item.title}</div>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Domínios</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[220px] gap-3 p-4">
+                {domainMenuItems.map((item) => (
+                  <li key={item.title}>
+                    <NavigationMenuLink asChild>
+                      <Link 
+                        to={item.href}
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">{item.title}</div>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Email Corporativo</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[220px] gap-3 p-4">
+                {emailMenuItems.map((item) => (
+                  <li key={item.title}>
+                    <NavigationMenuLink asChild>
+                      <Link 
+                        to={item.href}
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <div className="text-sm font-medium leading-none">{item.title}</div>
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    </div>
+  );
+};
