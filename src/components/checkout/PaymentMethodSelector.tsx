@@ -1,78 +1,68 @@
 
 import React from 'react';
-import { FormField, FormItem, FormControl } from "@/components/ui/form";
-import { CreditCard } from "lucide-react";
-import { UseFormReturn } from 'react-hook-form';
-import { CheckoutFormData } from '@/schemas/formSchema';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from '@/components/ui/label';
+import { CreditCard, Building, ArrowRightLeft } from 'lucide-react';
 
 interface PaymentMethodSelectorProps {
-  form: UseFormReturn<CheckoutFormData>;
+  selected: string | null;
+  onSelect: (method: string) => void;
 }
 
-export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ form }) => {
+export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
+  selected,
+  onSelect
+}) => {
+  const paymentMethods = [
+    {
+      id: 'emis',
+      name: 'Multicaixa Express',
+      icon: <CreditCard className="h-5 w-5 text-blue-600" />,
+      description: 'Pagamento instantâneo via aplicativo do seu banco',
+    },
+    {
+      id: 'bank-transfer',
+      name: 'Transferência Bancária',
+      icon: <Building className="h-5 w-5 text-green-600" />,
+      description: 'Instrução de transferência será enviada por email',
+    },
+    {
+      id: 'credit-card',
+      name: 'Cartão de Crédito',
+      icon: <ArrowRightLeft className="h-5 w-5 text-purple-600" />,
+      description: 'Pagamento seguro com cartão de crédito',
+    }
+  ];
+
   return (
-    <FormField
-      control={form.control}
-      name="paymentMethod"
-      render={({ field }) => (
-        <FormItem>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div 
-              className={`flex items-center p-4 border rounded-lg cursor-pointer ${field.value === 'emis' ? 'border-primary bg-blue-50' : 'bg-white'}`}
-              onClick={() => form.setValue('paymentMethod', 'emis')}
-            >
-              <FormControl>
-                <input
-                  type="radio"
-                  checked={field.value === 'emis'}
-                  onChange={() => {}}
-                  className="mr-3"
-                />
-              </FormControl>
-              <div className="flex items-center">
-                <CreditCard className="h-6 w-6 mr-2 text-gray-500" />
-                <label>Multicaixa Express</label>
+    <RadioGroup 
+      value={selected || ""} 
+      onValueChange={onSelect}
+      className="space-y-4"
+    >
+      {paymentMethods.map((method) => (
+        <div key={method.id} className="flex items-start space-x-3">
+          <RadioGroupItem 
+            value={method.id} 
+            id={`payment-${method.id}`} 
+            className="mt-1"
+          />
+          <Label 
+            htmlFor={`payment-${method.id}`}
+            className="flex-1 p-4 bg-white rounded-md border cursor-pointer hover:bg-gray-50"
+          >
+            <div className="flex items-center">
+              <div className="mr-3">
+                {method.icon}
+              </div>
+              <div>
+                <div className="font-medium">{method.name}</div>
+                <div className="text-sm text-gray-500">{method.description}</div>
               </div>
             </div>
-            
-            <div 
-              className={`flex items-center p-4 border rounded-lg cursor-pointer ${field.value === 'credit-card' ? 'border-primary bg-blue-50' : 'bg-white'}`}
-              onClick={() => form.setValue('paymentMethod', 'credit-card')}
-            >
-              <FormControl>
-                <input
-                  type="radio"
-                  checked={field.value === 'credit-card'}
-                  onChange={() => {}}
-                  className="mr-3"
-                />
-              </FormControl>
-              <div className="flex items-center">
-                <CreditCard className="h-6 w-6 mr-2 text-gray-500" />
-                <label>Cartão de Crédito</label>
-              </div>
-            </div>
-            
-            <div 
-              className={`flex items-center p-4 border rounded-lg cursor-pointer ${field.value === 'bank-transfer' ? 'border-primary bg-blue-50' : 'bg-white'}`}
-              onClick={() => form.setValue('paymentMethod', 'bank-transfer')}
-            >
-              <FormControl>
-                <input
-                  type="radio"
-                  checked={field.value === 'bank-transfer'}
-                  onChange={() => {}}
-                  className="mr-3"
-                />
-              </FormControl>
-              <div className="flex items-center">
-                <CreditCard className="h-6 w-6 mr-2 text-gray-500" />
-                <label>Transferência Bancária</label>
-              </div>
-            </div>
-          </div>
-        </FormItem>
-      )}
-    />
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
   );
 };

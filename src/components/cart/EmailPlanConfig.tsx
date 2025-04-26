@@ -1,18 +1,25 @@
 
 import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
-import { EmailPlan } from '@/data/emailPlans';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmailPlanPriceSummary } from './EmailPlanPriceSummary';
 
 interface EmailPlanConfigProps {
-  selectedPlan: EmailPlan | null;
+  selectedPlan: {
+    id: string;
+    title: string;
+    price: number;
+    storage: string;
+    features: string[];
+  } | null;
   emailAccounts: number;
   selectedPeriod: string;
-  onAccountsChange: (value: number) => void;
-  onPeriodChange: (value: string) => void;
+  selectedDomain?: string | null;
+  onAccountsChange: (accounts: number) => void;
+  onPeriodChange: (period: string) => void;
   onCancel: () => void;
   onAdd: () => void;
   getDiscountedPrice: (basePrice: number, years: number) => number;
@@ -22,65 +29,89 @@ export const EmailPlanConfig: React.FC<EmailPlanConfigProps> = ({
   selectedPlan,
   emailAccounts,
   selectedPeriod,
+  selectedDomain,
   onAccountsChange,
   onPeriodChange,
   onCancel,
   onAdd,
-  getDiscountedPrice,
+  getDiscountedPrice
 }) => {
   if (!selectedPlan) return null;
 
   return (
-    <div className="mt-6 border-t pt-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card className="mt-8 p-6 bg-gray-50/50">
+      <CardContent className="space-y-6">
+        {selectedDomain && (
+          <div className="p-3 bg-blue-50 rounded-md border border-blue-200 mb-4">
+            <p className="text-sm font-medium text-blue-700">
+              Configurando email para: <span className="font-bold">{selectedDomain}</span>
+            </p>
+          </div>
+        )}
+        
         <div>
-          <label className="block text-sm font-medium mb-2">Quantidade de contas</label>
-          <Input 
-            type="number" 
-            min="1" 
-            value={emailAccounts} 
-            onChange={(e) => onAccountsChange(parseInt(e.target.value) || 1)} 
-          />
+          <Label htmlFor="email-accounts">Quantidade de Contas</Label>
+          <div className="flex items-center space-x-4 mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAccountsChange(Math.max(1, emailAccounts - 1))}
+              disabled={emailAccounts <= 1}
+            >
+              -
+            </Button>
+            <Input
+              id="email-accounts"
+              type="number"
+              min="1"
+              value={emailAccounts}
+              onChange={(e) => onAccountsChange(parseInt(e.target.value) || 1)}
+              className="w-24 text-center"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onAccountsChange(emailAccounts + 1)}
+            >
+              +
+            </Button>
+          </div>
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-2">Período de contratação</label>
-          <Select value={selectedPeriod} onValueChange={onPeriodChange}>
-            <SelectTrigger id="period">
+          <Label htmlFor="contract-period">Período de Contrato</Label>
+          <Select
+            value={selectedPeriod}
+            onValueChange={onPeriodChange}
+          >
+            <SelectTrigger id="contract-period" className="mt-2">
               <SelectValue placeholder="Selecione o período" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1">1 ano</SelectItem>
-              <SelectItem value="2">2 anos (10% desconto)</SelectItem>
-              <SelectItem value="3">3 anos (20% desconto)</SelectItem>
+              <SelectItem value="1">1 Ano</SelectItem>
+              <SelectItem value="2">2 Anos (10% desconto)</SelectItem>
+              <SelectItem value="3">3 Anos (20% desconto)</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
-      
-      <EmailPlanPriceSummary
-        selectedPlan={selectedPlan}
-        emailAccounts={emailAccounts}
-        selectedPeriod={selectedPeriod}
-        getDiscountedPrice={getDiscountedPrice}
-      />
-      
-      <div className="mt-6 flex justify-end">
-        <Button 
-          variant="outline" 
-          className="mr-2"
-          onClick={onCancel}
-        >
-          <X className="h-4 w-4 mr-1" />
+
+        <EmailPlanPriceSummary
+          planName={selectedPlan.title}
+          basePrice={selectedPlan.price}
+          quantity={emailAccounts}
+          years={parseInt(selectedPeriod)}
+          getDiscountedPrice={getDiscountedPrice}
+        />
+      </CardContent>
+
+      <CardFooter className="flex justify-end space-x-4 pt-4">
+        <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button 
-          className="bg-orange-500 hover:bg-orange-600"
-          onClick={onAdd}
-        >
-          <Plus className="h-4 w-4 mr-1" />
+        <Button onClick={onAdd}>
           Adicionar ao Carrinho
         </Button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };

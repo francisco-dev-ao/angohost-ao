@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { 
   Card, 
   CardContent, 
@@ -23,13 +23,17 @@ const Auth = () => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const defaultMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
   
   // Check if user is already logged in
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate('/dashboard');
+        const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+        sessionStorage.removeItem('redirect_after_login');
+        navigate(redirectUrl);
       }
     };
     
@@ -39,7 +43,9 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
-          navigate('/dashboard');
+          const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+          sessionStorage.removeItem('redirect_after_login');
+          navigate(redirectUrl);
         }
       }
     );
@@ -59,7 +65,9 @@ const Auth = () => {
       if (error) throw error;
       
       toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+      sessionStorage.removeItem('redirect_after_login');
+      navigate(redirectUrl);
     } catch (error: any) {
       toast.error(error.message || 'Erro ao fazer login');
     } finally {
@@ -100,7 +108,7 @@ const Auth = () => {
             Acesse sua conta ou crie uma nova
           </CardDescription>
         </CardHeader>
-        <Tabs defaultValue="login" className="w-full">
+        <Tabs defaultValue={defaultMode} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Cadastro</TabsTrigger>
