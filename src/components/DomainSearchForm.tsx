@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -52,7 +52,8 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
   const [showTitularityForm, setShowTitularityForm] = useState(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
-  
+  const registerButtonRef = React.useRef<HTMLButtonElement>(null);
+
   const navigate = useNavigate();
   const { addItem } = useCart();
   
@@ -107,6 +108,9 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       
       if (randomAvailable) {
         toast.success(`O domínio ${domainName}${extension} está disponível!`);
+        setTimeout(() => {
+          registerButtonRef.current?.focus();
+        }, 100);
       } else {
         toast.error(`O domínio ${domainName}${extension} não está disponível.`);
       }
@@ -199,7 +203,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   return (
     <div className={variant === 'hero' ? 'w-full' : ''}>
       <form onSubmit={handleSearch} className={formClasses[variant]}>
-        <div className={`flex flex-1 ${variant === 'hero' ? 'flex-col md:flex-row w-full' : ''} relative rounded-lg shadow-lg bg-white/70 backdrop-blur-sm border border-gray-100/50`}>
+        <div className={`flex flex-1 ${variant === 'hero' ? 'flex-col md:flex-row w-full' : ''} relative rounded-lg shadow-lg bg-white/40 backdrop-blur-[2px] border border-gray-100/30`}>
           <div className="relative flex-grow">
             <Input
               type="text"
@@ -250,7 +254,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       {searchResult && (
         <div className="mt-6 text-center">
           {searchResult.available ? (
-            <div className="bg-green-50/80 backdrop-blur-sm border border-green-100 rounded-xl p-6 flex flex-col items-center shadow-lg">
+            <div className="bg-green-50/60 backdrop-blur-[2px] border border-green-100/30 rounded-xl p-6 flex flex-col items-center shadow-lg">
               <h4 className="text-green-800 text-lg font-medium">
                 {domainName}{extension} está disponível!
               </h4>
@@ -261,6 +265,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
                 Renovação: {getPrice().toLocaleString('pt-AO')} Kz por ano
               </p>
               <Button 
+                ref={registerButtonRef}
                 onClick={handleOpenTitularityForm} 
                 className="mt-4 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-300"
               >
