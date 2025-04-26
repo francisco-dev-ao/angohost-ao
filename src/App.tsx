@@ -32,6 +32,7 @@ import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
 import DedicatedServersPage from "./pages/DedicatedServersPage";
 
+// Criando o queryClient fora do componente App
 const queryClient = new QueryClient();
 
 // Layout component que decide se mostra ou não o navbar/footer
@@ -55,11 +56,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const App = () => (
+// Componente App definido como função React
+const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <BrowserRouter>
-        <TooltipProvider>
+    <BrowserRouter>
+      <TooltipProvider>
+        <CartProvider>
           <div className="flex flex-col min-h-screen">
             <Toaster />
             <Sonner />
@@ -97,9 +99,9 @@ const App = () => (
               } />
             </Routes>
           </div>
-        </TooltipProvider>
-      </BrowserRouter>
-    </CartProvider>
+        </CartProvider>
+      </TooltipProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 

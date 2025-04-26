@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, FC } from 'react';
 import { CartContextType, CartItem, Customer, PaymentInfo, ContactProfile } from '../types/cart';
 import { useCartStorage } from '../hooks/useCartStorage';
 import {
@@ -11,9 +11,11 @@ import {
   generateOrderRef,
 } from '../utils/cartUtils';
 
+// Criando o contexto com um valor padrão indefinido
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Definindo explicitamente o tipo do componente como FC (FunctionComponent)
+export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     items,
     setItems,
@@ -116,7 +118,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useCart = () => {
+// Hook para usar o contexto do carrinho
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (context === undefined) {
     throw new Error('useCart must be used within a CartProvider');
