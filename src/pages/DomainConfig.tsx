@@ -6,8 +6,10 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useCart } from '@/context/CartContext';
+import { useCart, ContactProfile } from '@/context/CartContext';
+import { PlusCircle } from 'lucide-react';
 
 interface ClientDetails {
   name: string;
@@ -26,6 +28,9 @@ const DomainConfig = () => {
   const [domainName, setDomainName] = useState('');
   const [domainExtension, setDomainExtension] = useState('.co.ao');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("1");
+  const [useExistingProfile, setUseExistingProfile] = useState<boolean>(false);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   
   const [clientDetails, setClientDetails] = useState<ClientDetails>({
     name: '',
@@ -41,7 +46,7 @@ const DomainConfig = () => {
   });
 
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, addContactProfile, getContactProfiles, contactProfiles } = useCart();
   
   useEffect(() => {
     // Get domain details from URL params or localStorage
@@ -52,6 +57,27 @@ const DomainConfig = () => {
     if (domain) setDomainName(domain);
     if (extension) setDomainExtension(extension);
   }, []);
+
+  useEffect(() => {
+    // If a profile is selected, fill the form with its data
+    if (selectedProfileId && useExistingProfile) {
+      const profile = contactProfiles.find(p => p.id === selectedProfileId);
+      if (profile) {
+        setClientDetails({
+          name: profile.name || '',
+          nif: profile.nif || '',
+          responsibleName: '',
+          province: '',
+          city: profile.city || '',
+          address: profile.billingAddress || '',
+          postalCode: profile.postalCode || '',
+          email: profile.email || '',
+          phone: profile.phone || '',
+          idNumber: profile.idNumber || '',
+        });
+      }
+    }
+  }, [selectedProfileId, contactProfiles, useExistingProfile]);
 
   const handleInputChange = (field: keyof ClientDetails, value: string) => {
     setClientDetails({
@@ -120,18 +146,36 @@ const DomainConfig = () => {
       return;
     }
     
-    // In a real app, you'd submit this to your backend
-    // For now, we'll just add it to the cart
-    
-    // Calculate price based on domain name and extension
-    let price = 35000; // Default price for .co.ao domains
+    // Calculate price based on domain name, extension and period
+    const years = parseInt(selectedPeriod);
+    let basePrice = 35000; // Default price for .co.ao domains
     
     if (domainExtension === '.ao') {
-      price = 25000;
+      basePrice = 25000;
     }
     
     if (domainName.length <= 3) {
-      price = 300000; // Special price for 3-letter domains
+      basePrice = 300000; // Special price for 3-letter domains
+    }
+    
+    const totalPrice = basePrice * years;
+    
+    // If user is creating a new contact profile, save it
+    let profileId = selectedProfileId;
+    if (!useExistingProfile) {
+      const newProfile: ContactProfile = {
+        id: `profile-${Date.now()}`,
+        name: clientDetails.name,
+        email: clientDetails.email,
+        phone: clientDetails.phone,
+        nif: clientDetails.nif,
+        billingAddress: clientDetails.address,
+        city: clientDetails.city,
+        postalCode: clientDetails.postalCode,
+        idNumber: clientDetails.idNumber
+      };
+      
+      profileId = addContactProfile(newProfile);
     }
     
     // Add domain to cart
@@ -139,18 +183,28 @@ const DomainConfig = () => {
       id: `domain-${domainName}${domainExtension}-${Date.now()}`,
       type: 'domain',
       name: `Domínio ${domainName}${domainExtension}`,
-      price: price,
+      price: totalPrice,
       period: 'yearly',
       details: {
         domainName: `${domainName}${domainExtension}`,
-        registrationPeriod: '1 ano',
-        ownerDetails: clientDetails
+        registrationPeriod: `${years} ${years === 1 ? 'ano' : 'anos'}`,
+        ownerDetails: clientDetails,
+        contractYears: years,
+        contactProfileId: profileId
       }
     });
     
     toast.success(`Domínio ${domainName}${domainExtension} adicionado ao carrinho!`);
     navigate('/carrinho');
   };
+
+  const domainPeriods = [
+    { value: "1", label: "1 ano" },
+    { value: "2", label: "2 anos" },
+    { value: "3", label: "3 anos" },
+    { value: "4", label: "4 anos" },
+    { value: "5", label: "5 anos" }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -165,7 +219,7 @@ const DomainConfig = () => {
             <CardContent className="p-6">
               <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Detalhes do Domínio</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="domainName">Nome do Domínio</Label>
                     <Input
@@ -186,6 +240,21 @@ const DomainConfig = () => {
                       readOnly
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="period">Período</Label>
+                    <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                      <SelectTrigger id="period">
+                        <SelectValue placeholder="Selecione o período" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {domainPeriods.map((period) => (
+                          <SelectItem key={period.value} value={period.value}>
+                            {period.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               
@@ -194,127 +263,161 @@ const DomainConfig = () => {
               <div>
                 <h2 className="text-xl font-semibold mb-4">Contato do Titular</h2>
                 
-                <div className="mb-6">
-                  <Label htmlFor="nif">NIF (Número de Identificação Fiscal)</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="nif"
-                      value={clientDetails.nif}
-                      onChange={(e) => handleInputChange('nif', e.target.value)}
-                      placeholder="Digite o NIF"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleNifSearch}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Consultando...' : 'Consultar'}
-                    </Button>
+                {contactProfiles.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                      <input
+                        type="checkbox"
+                        id="useExistingProfile"
+                        checked={useExistingProfile}
+                        onChange={(e) => setUseExistingProfile(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <Label htmlFor="useExistingProfile">Usar perfil de contato existente</Label>
+                    </div>
+                    
+                    {useExistingProfile && (
+                      <Select value={selectedProfileId || ''} onValueChange={setSelectedProfileId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um perfil de contato" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {contactProfiles.map((profile) => (
+                            <SelectItem key={profile.id} value={profile.id}>
+                              {profile.name} ({profile.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Digite o NIF para preencher automaticamente os dados da empresa.
-                  </p>
-                </div>
+                )}
                 
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <Label htmlFor="name">Nome do Perfil</Label>
-                    <Input
-                      id="name"
-                      value={clientDetails.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Nome da empresa ou pessoa física"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="responsibleName">Nome do Responsável</Label>
-                      <Input
-                        id="responsibleName"
-                        value={clientDetails.responsibleName}
-                        onChange={(e) => handleInputChange('responsibleName', e.target.value)}
-                        placeholder="Nome do responsável"
-                      />
+                {(!useExistingProfile || contactProfiles.length === 0) && (
+                  <>
+                    <div className="mb-6">
+                      <Label htmlFor="nif">NIF (Número de Identificação Fiscal)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="nif"
+                          value={clientDetails.nif}
+                          onChange={(e) => handleInputChange('nif', e.target.value)}
+                          placeholder="Digite o NIF"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleNifSearch}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Consultando...' : 'Consultar'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Digite o NIF para preencher automaticamente os dados da empresa.
+                      </p>
                     </div>
-                    <div>
-                      <Label htmlFor="idNumber">Nº de Bilhete de Identidade</Label>
-                      <Input
-                        id="idNumber"
-                        value={clientDetails.idNumber}
-                        onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                        placeholder="Número do BI"
-                      />
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <Label htmlFor="name">Nome do Perfil</Label>
+                        <Input
+                          id="name"
+                          value={clientDetails.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Nome da empresa ou pessoa física"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="responsibleName">Nome do Responsável</Label>
+                          <Input
+                            id="responsibleName"
+                            value={clientDetails.responsibleName}
+                            onChange={(e) => handleInputChange('responsibleName', e.target.value)}
+                            placeholder="Nome do responsável"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="idNumber">Nº de Bilhete de Identidade</Label>
+                          <Input
+                            id="idNumber"
+                            value={clientDetails.idNumber}
+                            onChange={(e) => handleInputChange('idNumber', e.target.value)}
+                            placeholder="Número do BI"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="province">Província</Label>
+                          <Input
+                            id="province"
+                            value={clientDetails.province}
+                            onChange={(e) => handleInputChange('province', e.target.value)}
+                            placeholder="Província"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="city">Cidade</Label>
+                          <Input
+                            id="city"
+                            value={clientDetails.city}
+                            onChange={(e) => handleInputChange('city', e.target.value)}
+                            placeholder="Cidade"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="address">Endereço</Label>
+                          <Input
+                            id="address"
+                            value={clientDetails.address}
+                            onChange={(e) => handleInputChange('address', e.target.value)}
+                            placeholder="Endereço completo"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="postalCode">Código Postal</Label>
+                          <Input
+                            id="postalCode"
+                            value={clientDetails.postalCode}
+                            onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                            placeholder="Código postal"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={clientDetails.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="Email de contato"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone">Telemóvel</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={clientDetails.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            placeholder="Número de telemóvel"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="province">Província</Label>
-                      <Input
-                        id="province"
-                        value={clientDetails.province}
-                        onChange={(e) => handleInputChange('province', e.target.value)}
-                        placeholder="Província"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="city">Cidade</Label>
-                      <Input
-                        id="city"
-                        value={clientDetails.city}
-                        onChange={(e) => handleInputChange('city', e.target.value)}
-                        placeholder="Cidade"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="address">Endereço</Label>
-                      <Input
-                        id="address"
-                        value={clientDetails.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        placeholder="Endereço completo"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="postalCode">Código Postal</Label>
-                      <Input
-                        id="postalCode"
-                        value={clientDetails.postalCode}
-                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                        placeholder="Código postal"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={clientDetails.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="Email de contato"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Telemóvel</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={clientDetails.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        placeholder="Número de telemóvel"
-                      />
-                    </div>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             </CardContent>
             

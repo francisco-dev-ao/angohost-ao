@@ -3,16 +3,30 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface CartItem {
   id: string;
-  type: 'domain' | 'hosting' | 'vps' | 'email';
+  type: 'domain' | 'hosting' | 'vps' | 'email' | 'office365';
   name: string;
   price: number;
-  period: 'monthly' | 'yearly';
+  period: 'yearly' | 'monthly';
   details: {
     [key: string]: any;
     renewalPrice?: number;
     quantity?: number;
     domainName?: string;
+    contractYears?: number;
   };
+}
+
+export interface ContactProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  nif: string;
+  billingAddress: string;
+  city: string;
+  postalCode?: string;
+  country?: string;
+  idNumber?: string;
 }
 
 export interface Customer {
@@ -33,6 +47,8 @@ export interface Customer {
     ownerEmail: string;
     organizationName?: string;
   };
+  // Contact profiles
+  contactProfiles?: ContactProfile[];
 }
 
 export interface PaymentInfo {
@@ -48,6 +64,7 @@ interface CartContextType {
   items: CartItem[];
   customer: Customer | null;
   paymentInfo: PaymentInfo | null;
+  contactProfiles: ContactProfile[];
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateItem: (id: string, item: Partial<CartItem>) => void;
@@ -61,6 +78,12 @@ interface CartContextType {
   hasDomainInCart: () => boolean;
   hasEmailInCart: () => boolean;
   getDomainNames: () => string[];
+  addContactProfile: (profile: ContactProfile) => void;
+  removeContactProfile: (id: string) => void;
+  updateContactProfile: (id: string, profile: Partial<ContactProfile>) => void;
+  getContactProfiles: () => ContactProfile[];
+  setSelectedContactProfile: (id: string | null) => void;
+  selectedContactProfileId: string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -72,18 +95,23 @@ const defaultCustomer: Customer = {
   nif: '',
   billingAddress: '',
   city: '',
+  contactProfiles: [],
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+  const [contactProfiles, setContactProfiles] = useState<ContactProfile[]>([]);
+  const [selectedContactProfileId, setSelectedContactProfileId] = useState<string | null>(null);
   
   // Load cart from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('angohost_cart');
     const savedCustomer = localStorage.getItem('angohost_customer');
     const savedPayment = localStorage.getItem('angohost_payment');
+    const savedContactProfiles = localStorage.getItem('angohost_contact_profiles');
+    const savedSelectedProfile = localStorage.getItem('angohost_selected_profile');
     
     if (savedCart) {
       try {
@@ -108,6 +136,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse payment from localStorage', err);
       }
     }
+    
+    if (savedContactProfiles) {
+      try {
+        setContactProfiles(JSON.parse(savedContactProfiles));
+      } catch (err) {
+        console.error('Failed to parse contact profiles from localStorage', err);
+      }
+    }
+    
+    if (savedSelectedProfile) {
+      try {
+        setSelectedContactProfileId(JSON.parse(savedSelectedProfile));
+      } catch (err) {
+        console.error('Failed to parse selected profile from localStorage', err);
+      }
+    }
   }, []);
   
   // Save cart to localStorage when it changes
@@ -128,6 +172,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('angohost_payment', JSON.stringify(paymentInfo));
     }
   }, [paymentInfo]);
+  
+  // Save contact profiles to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('angohost_contact_profiles', JSON.stringify(contactProfiles));
+  }, [contactProfiles]);
+  
+  // Save selected profile to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('angohost_selected_profile', JSON.stringify(selectedContactProfileId));
+  }, [selectedContactProfileId]);
   
   const addItem = (newItem: CartItem) => {
     // Check if the item already exists in the cart
@@ -210,6 +264,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPaymentInfo(updatedInfo);
   };
   
+  // Contact profiles management
+  const addContactProfile = (profile: ContactProfile) => {
+    const newProfile = {
+      ...profile,
+      id: profile.id || `profile-${Date.now()}`
+    };
+    setContactProfiles([...contactProfiles, newProfile]);
+    return newProfile.id;
+  };
+  
+  const removeContactProfile = (id: string) => {
+    setContactProfiles(contactProfiles.filter(profile => profile.id !== id));
+    if (selectedContactProfileId === id) {
+      setSelectedContactProfileId(null);
+    }
+  };
+  
+  const updateContactProfile = (id: string, updatedFields: Partial<ContactProfile>) => {
+    setContactProfiles(contactProfiles.map(profile => 
+      profile.id === id ? { ...profile, ...updatedFields } : profile
+    ));
+  };
+  
+  const getContactProfiles = (): ContactProfile[] => {
+    return contactProfiles;
+  };
+  
   // Generate a unique order reference
   const generateOrderReference = (): string => {
     const date = new Date();
@@ -224,6 +305,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     items,
     customer,
     paymentInfo,
+    contactProfiles,
+    selectedContactProfileId,
     addItem,
     removeItem,
     updateItem,
@@ -236,7 +319,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     generateOrderReference,
     hasDomainInCart,
     hasEmailInCart,
-    getDomainNames
+    getDomainNames,
+    addContactProfile,
+    removeContactProfile,
+    updateContactProfile,
+    getContactProfiles,
+    setSelectedContactProfile: setSelectedContactProfileId
   };
   
   return (

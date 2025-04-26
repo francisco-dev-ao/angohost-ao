@@ -5,6 +5,7 @@ import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PricingCardProps {
   title: string;
@@ -22,7 +23,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
   title,
   price,
   renewalPrice,
-  period = '/mês',
+  period = '/ano',
   features,
   isPopular = false,
   buttonText = 'Selecionar',
@@ -31,6 +32,28 @@ const PricingCard: React.FC<PricingCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const [selectedPeriod, setSelectedPeriod] = React.useState<string>("1");
+  
+  const getPeriodText = (period: string) => {
+    switch (period) {
+      case "1": return "1 ano";
+      case "2": return "2 anos (10% desconto)";
+      case "3": return "3 anos (15% desconto)";
+      default: return "1 ano";
+    }
+  };
+  
+  const calculateTotalPrice = (basePrice: number, period: string): number => {
+    const years = parseInt(period);
+    let discount = 0;
+    
+    if (years === 2) discount = 0.1; // 10% discount
+    if (years === 3) discount = 0.15; // 15% discount
+    
+    const yearlyPrice = basePrice;
+    const totalBeforeDiscount = yearlyPrice * years;
+    return Math.round(totalBeforeDiscount * (1 - discount));
+  };
   
   const handleSelect = () => {
     if (type === 'email') {
@@ -40,20 +63,24 @@ const PricingCard: React.FC<PricingCardProps> = ({
     }
     
     let newItem = null;
-      
+    const years = parseInt(selectedPeriod);
+    const totalPrice = calculateTotalPrice(price, selectedPeriod);
+    const yearlyRenewalPrice = renewalPrice || price;
+    
     if (type === 'hosting') {
       if (id === 'basic') {
         newItem = {
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Plano Básico de Hospedagem',
-          price: 2500,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             diskSpace: '5GB',
             emailAccounts: '10',
             databases: 'Ilimitado',
-            renewalPrice: 2500
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'professional') {
@@ -61,13 +88,14 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Plano Profissional de Hospedagem',
-          price: 4500,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             diskSpace: '20GB',
             emailAccounts: '30',
             databases: 'Ilimitado',
-            renewalPrice: 4500
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'enterprise') {
@@ -75,13 +103,14 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `hosting-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Plano Empresarial de Hospedagem',
-          price: 8500,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             diskSpace: '50GB',
             emailAccounts: 'Ilimitado',
             databases: 'Ilimitado',
-            renewalPrice: 8500
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'dedicated-basic') {
@@ -89,15 +118,16 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Servidor Dedicado Básico',
-          price: 45000,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             cpu: '4 Cores',
             ram: '8GB',
             storage: '1TB HDD',
             bandwidth: 'Ilimitado',
             ips: '1 IP Dedicado',
-            renewalPrice: 45000
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'dedicated-pro') {
@@ -105,15 +135,16 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Servidor Dedicado Pro',
-          price: 75000,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             cpu: '8 Cores',
             ram: '16GB',
             storage: '2TB HDD',
             bandwidth: 'Ilimitado',
             ips: '2 IPs Dedicados',
-            renewalPrice: 75000
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'dedicated-enterprise') {
@@ -121,15 +152,16 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `dedicated-${id}-${Date.now()}`,
           type: 'hosting',
           name: 'Servidor Dedicado Enterprise',
-          price: 120000,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             cpu: '16 Cores',
             ram: '32GB',
             storage: '4TB HDD',
             bandwidth: 'Ilimitado',
             ips: '4 IPs Dedicados',
-            renewalPrice: 120000
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       }
@@ -142,11 +174,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `office365-${id}-${Date.now()}`,
           type: 'office365',
           name: 'Office 365 Business Basic',
-          price: 2900,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             users: 1,
-            renewalPrice: 2900
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'o365-standard') {
@@ -154,11 +187,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `office365-${id}-${Date.now()}`,
           type: 'office365',
           name: 'Office 365 Business Standard',
-          price: 3900,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             users: 1,
-            renewalPrice: 3900
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       } else if (id === 'o365-premium') {
@@ -166,11 +200,12 @@ const PricingCard: React.FC<PricingCardProps> = ({
           id: `office365-${id}-${Date.now()}`,
           type: 'office365',
           name: 'Office 365 Business Premium',
-          price: 5900,
-          period: 'monthly',
+          price: totalPrice,
+          period: 'yearly',
           details: {
             users: 1,
-            renewalPrice: 5900
+            renewalPrice: yearlyRenewalPrice,
+            contractYears: years
           }
         };
       }
@@ -183,6 +218,9 @@ const PricingCard: React.FC<PricingCardProps> = ({
     }
   };
 
+  // Calculate the price to display based on selected period
+  const displayPrice = calculateTotalPrice(price, selectedPeriod);
+
   return (
     <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300 hover:shadow-md`}>
       {isPopular && (
@@ -192,13 +230,26 @@ const PricingCard: React.FC<PricingCardProps> = ({
       <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
       
       <div className="mt-4 flex items-baseline text-gray-900">
-        <span className="text-3xl font-extrabold tracking-tight">{price.toLocaleString('pt-AO')} Kz</span>
+        <span className="text-3xl font-extrabold tracking-tight">{displayPrice.toLocaleString('pt-AO')} Kz</span>
         <span className="ml-1 text-xl font-semibold">{period}</span>
+      </div>
+      
+      <div className="mt-4">
+        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Periodo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1">{getPeriodText("1")}</SelectItem>
+            <SelectItem value="2">{getPeriodText("2")}</SelectItem>
+            <SelectItem value="3">{getPeriodText("3")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       
       {renewalPrice && renewalPrice !== price && (
         <div className="mt-1 text-sm text-gray-500">
-          Renovação: {renewalPrice.toLocaleString('pt-AO')} Kz{period}
+          Renovação: {renewalPrice.toLocaleString('pt-AO')} Kz/ano
         </div>
       )}
 

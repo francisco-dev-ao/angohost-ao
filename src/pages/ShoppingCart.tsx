@@ -5,11 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { Trash, ShoppingCart as CartIcon } from 'lucide-react';
-import { useCart, CartItem } from '@/context/CartContext';
+import { useCart, CartItem, ContactProfile } from '@/context/CartContext';
 
 const ShoppingCart = () => {
-  const { items, removeItem, getTotalPrice } = useCart();
+  const { items, removeItem, getTotalPrice, getContactProfiles } = useCart();
   const navigate = useNavigate();
+  const contactProfiles = getContactProfiles();
+  
+  const getContactProfileById = (id: string): ContactProfile | undefined => {
+    return contactProfiles.find(profile => profile.id === id);
+  };
   
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -56,7 +61,8 @@ const ShoppingCart = () => {
                               <p>Espaço em disco: {item.details.diskSpace}</p>
                               <p>Contas de email: {item.details.emailAccounts}</p>
                               <p>Bancos de dados: {item.details.databases}</p>
-                              <p className="mt-2 text-orange-600">Renovação: {item.price.toLocaleString('pt-AO')} Kz/mês</p>
+                              <p>Período: {item.details.contractYears} {item.details.contractYears === 1 ? 'ano' : 'anos'}</p>
+                              <p className="mt-2 text-orange-600">Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO')} Kz/ano</p>
                             </div>
                           )}
                           {item.type === 'email' && (
@@ -66,23 +72,34 @@ const ShoppingCart = () => {
                               {item.details.quantity && (
                                 <p>Quantidade: {item.details.quantity} contas</p>
                               )}
-                              <p className="mt-2 text-orange-600">Renovação: {item.price.toLocaleString('pt-AO')} Kz/mês</p>
+                              <p>Período: {item.details.contractYears} {item.details.contractYears === 1 ? 'ano' : 'anos'}</p>
+                              <p className="mt-2 text-orange-600">Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO')} Kz/ano</p>
                             </div>
                           )}
                           {item.type === 'domain' && (
                             <div className="mt-2 text-sm text-gray-600">
-                              <p>Período: 1 ano</p>
+                              <p>Período: {item.details.registrationPeriod}</p>
                               <p>Proteção de privacidade: Incluída</p>
+                              {item.details.contactProfileId && (
+                                <p>Perfil de contato: {getContactProfileById(item.details.contactProfileId as string)?.name || 'Perfil não encontrado'}</p>
+                              )}
                               <p className="mt-2 text-orange-600">
-                                Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO') || item.price.toLocaleString('pt-AO')} Kz/ano
+                                Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO') || Math.round(item.price / (item.details.contractYears || 1)).toLocaleString('pt-AO')} Kz/ano
                               </p>
+                            </div>
+                          )}
+                          {item.type === 'office365' && (
+                            <div className="mt-2 text-sm text-gray-600">
+                              <p>Usuários: {item.details.users}</p>
+                              <p>Período: {item.details.contractYears} {item.details.contractYears === 1 ? 'ano' : 'anos'}</p>
+                              <p className="mt-2 text-orange-600">Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO')} Kz/ano</p>
                             </div>
                           )}
                         </div>
                         <div className="flex flex-col md:items-end mt-4 md:mt-0">
                           <span className="font-semibold text-lg">
                             {item.price.toLocaleString('pt-AO')} Kz
-                            {item.period === 'monthly' ? '/mês' : '/ano'}
+                            {item.period === 'monthly' ? '/mês' : ' total'}
                           </span>
                           <Button 
                             variant="ghost" 
@@ -113,7 +130,6 @@ const ShoppingCart = () => {
                       <span className="text-gray-600">{item.name}</span>
                       <span>
                         {item.price.toLocaleString('pt-AO')} Kz
-                        {item.period === 'monthly' ? '/mês' : '/ano'}
                       </span>
                     </div>
                   ))}
