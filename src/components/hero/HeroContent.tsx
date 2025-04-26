@@ -25,7 +25,7 @@ const HeroContent = () => {
           <Button 
             asChild 
             size="lg" 
-            className="bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg"
+            className="bg-orange-500 text-white hover:bg-orange-600"
           >
             <Link to="/hospedagem/cpanel">Ver Planos de Hospedagem</Link>
           </Button>
@@ -33,7 +33,7 @@ const HeroContent = () => {
             asChild 
             size="lg" 
             variant="outline" 
-            className="border-2 border-white text-white hover:bg-white/10 font-semibold"
+            className="border-white text-white hover:bg-white/10"
           >
             <Link to="/dominios/registrar">Registrar Domínio</Link>
           </Button>
