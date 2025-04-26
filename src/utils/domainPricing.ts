@@ -27,3 +27,8 @@ export const calculateDomainPrice = (domainName: string, extension: string, year
     saving: discount > 0 ? (basePrice * years) - totalPrice : 0
   };
 };
+
+// Add the missing formatCurrency function
+export const formatCurrency = (amount: number): string => {
+  return amount.toLocaleString('pt-AO') + ' Kz';
+};

@@ -1,39 +1,38 @@
 
 import React from 'react';
-import { EmailPlan } from '@/data/emailPlans';
 
 interface EmailPlanPriceSummaryProps {
-  selectedPlan: EmailPlan;
-  emailAccounts: number;
-  selectedPeriod: string;
+  planName: string;
+  basePrice: number;
+  quantity: number;
+  years: number;
   getDiscountedPrice: (basePrice: number, years: number) => number;
 }
 
 export const EmailPlanPriceSummary: React.FC<EmailPlanPriceSummaryProps> = ({
-  selectedPlan,
-  emailAccounts,
-  selectedPeriod,
+  planName,
+  basePrice,
+  quantity,
+  years,
   getDiscountedPrice,
 }) => {
-  const years = parseInt(selectedPeriod);
-  
   return (
     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
       <div className="flex justify-between">
         <span className="font-medium">Plano selecionado:</span>
-        <span>{selectedPlan.title}</span>
+        <span>{planName}</span>
       </div>
       <div className="flex justify-between mt-1">
         <span className="font-medium">Contas:</span>
-        <span>{emailAccounts}</span>
+        <span>{quantity}</span>
       </div>
       <div className="flex justify-between mt-1">
         <span className="font-medium">Período:</span>
-        <span>{selectedPeriod} {years === 1 ? 'ano' : 'anos'}</span>
+        <span>{years} {years === 1 ? 'ano' : 'anos'}</span>
       </div>
       <div className="flex justify-between mt-1">
         <span className="font-medium">Preço por ano:</span>
-        <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz</span>
+        <span>{basePrice.toLocaleString('pt-AO')} Kz</span>
       </div>
       {years > 1 && (
         <div className="flex justify-between mt-1 text-green-600">
@@ -45,7 +44,7 @@ export const EmailPlanPriceSummary: React.FC<EmailPlanPriceSummaryProps> = ({
         <span className="font-medium">Total:</span>
         <span className="font-bold">
           {getDiscountedPrice(
-            selectedPlan.price * emailAccounts,
+            basePrice * quantity,
             years
           ).toLocaleString('pt-AO')} Kz
         </span>
