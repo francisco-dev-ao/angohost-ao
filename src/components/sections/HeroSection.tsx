@@ -25,7 +25,7 @@ const textVariants = {
 const HeroSection = () => {
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/70 z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/50 to-primary/30 z-10"></div>
       
       <div className="absolute inset-0 w-full h-full">
         <motion.div 
@@ -67,7 +67,7 @@ const HeroSection = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-20"></div>
+      <div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/10 to-transparent z-20"></div>
     </section>
   );
 };
