@@ -40,7 +40,7 @@ export const NifSearch: React.FC<NifSearchProps> = ({
           onKeyPress={handleKeyPress}
           placeholder="Digite o NIF ou BI"
           className={`flex-1 ${error ? 'border-red-500' : ''}`}
-          maxLength={9}
+          maxLength={14}
           minLength={8}
         />
         <Button

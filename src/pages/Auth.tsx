@@ -1,10 +1,8 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContainer } from '@/components/auth/AuthContainer';
-import { AuthHeader } from '@/components/auth/AuthHeader';
 import { AuthTabs } from '@/components/auth/AuthTabs';
 
 const Auth = () => {
