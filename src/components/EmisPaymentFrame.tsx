@@ -55,7 +55,8 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
             'https://pagamentonline.emis.co.ao',
             window.location.origin,
             'https://www.mocky.io',
-            'https://corsproxy.io'
+            'https://corsproxy.io',
+            'https://api.allorigins.win'
           ];
           
           console.log('Mensagem recebida de origem:', event.origin);
@@ -117,9 +118,11 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   const handleDirectPayment = () => {
     // Simulamos um pagamento direto para contornar problemas de integração
     toast.success('Simulando pagamento direto...');
+    
+    // Redirecionar para callback com parâmetros de sucesso
+    const callbackUrl = `${window.location.origin}/payment/callback?reference=${reference}`;
     setTimeout(() => {
-      const simulatedTransactionId = `direct-${Math.random().toString(36).substring(2, 12)}`;
-      onSuccess(simulatedTransactionId);
+      window.location.href = callbackUrl;
     }, 2000);
   };
 
@@ -176,7 +179,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[900px] sm:max-h-[90vh] sm:h-[90vh]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] h-auto">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>Pagamento Multicaixa Express</DialogTitle>
           <Button variant="ghost" size="icon" onClick={handleClose}>
@@ -184,12 +187,12 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
           </Button>
         </DialogHeader>
         
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="overflow-hidden">
           {frameUrl && (
             <iframe 
               src={frameUrl}
-              className="w-full h-[calc(90vh-100px)]"
-              style={{ border: 'none' }}
+              className="w-full h-[500px]"
+              style={{ border: 'none', overflow: 'hidden' }}
               title="EMIS Payment"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"

@@ -23,7 +23,11 @@ const PaymentCallback = () => {
     
     if ((status && transactionId && reference) || hasEmergencyReference) {
       // Log callback data for debugging
-      console.info('Payment callback received:', { status: status || 'SUCCESS', transactionId: transactionId || 'DIRECT-PAYMENT', reference });
+      console.info('Payment callback received:', { 
+        status: status || 'SUCCESS', 
+        transactionId: transactionId || 'DIRECT-PAYMENT', 
+        reference 
+      });
       
       // Process the callback
       processPaymentCallback({
@@ -62,11 +66,12 @@ const PaymentCallback = () => {
   }, [navigate, setPaymentInfo]);
   
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center bg-white p-8 rounded-lg shadow-sm max-w-md w-full">
         <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
         <h2 className="mt-4 text-xl font-semibold">Processando pagamento...</h2>
         <p className="mt-2 text-gray-600">Por favor, aguarde enquanto confirmamos seu pagamento.</p>
+        <p className="mt-4 text-sm text-gray-500">Não feche esta página.</p>
       </div>
     </div>
   );

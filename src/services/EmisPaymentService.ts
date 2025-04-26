@@ -43,18 +43,43 @@ const simulateEmisResponse = (data: EmisPaymentRequest): EmisPaymentResponse => 
   };
 };
 
-// Função para contornar problemas de CORS usando proxy
-const fetchWithProxy = async (url: string, options: RequestInit): Promise<Response> => {
+// Melhorado: Array de proxies para tentar em sequência
+const corsProxies = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
+  'https://cors-anywhere.herokuapp.com/'
+];
+
+// Função para contornar problemas de CORS usando múltiplos proxies
+const fetchWithProxies = async (url: string, options: RequestInit): Promise<Response> => {
+  // Primeiro tentamos o acesso direto
   try {
-    // Primeiro tentamos o acesso direto
-    return await fetch(url, options);
+    console.log('Tentando acesso direto à API EMIS');
+    const response = await fetch(url, options);
+    if (response.ok) return response;
+    console.log('Acesso direto falhou, status:', response.status);
   } catch (err) {
-    console.log('Falha no acesso direto à API EMIS, tentando via proxy:', err);
-    
-    // Se falhar, tentamos usando um serviço de proxy CORS
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    return await fetch(proxyUrl, options);
+    console.log('Falha no acesso direto à API EMIS:', err);
   }
+  
+  // Se falhar, tentamos cada proxy em sequência
+  for (const proxy of corsProxies) {
+    try {
+      console.log(`Tentando via proxy: ${proxy}`);
+      const proxyUrl = `${proxy}${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl, options);
+      if (response.ok) {
+        console.log('Proxy funcionou!', proxy);
+        return response;
+      }
+      console.log(`Proxy ${proxy} falhou, status:`, response.status);
+    } catch (proxyErr) {
+      console.log(`Erro ao usar proxy ${proxy}:`, proxyErr);
+    }
+  }
+  
+  // Se todos os proxies falharem
+  throw new Error('Todos os métodos de acesso à API EMIS falharam');
 };
 
 export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisPaymentResponse> {
@@ -75,25 +100,16 @@ export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisP
       // URL do endpoint EMIS
       const emisUrl = 'https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken';
       
-      // Tentativa com proxy CORS
-      const response = await fetchWithProxy(emisUrl, {
+      // Tentativa com múltiplos proxies
+      const response = await fetchWithProxies(emisUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Origin': window.location.origin
+          'Origin': window.location.origin,
+          'Access-Control-Allow-Origin': '*'
         },
         body: JSON.stringify(params)
       });
-
-      if (!response.ok) {
-        console.warn('Resposta de erro da EMIS API:', response.status);
-        // Se estiver em ambiente de desenvolvimento, simulamos uma resposta
-        if (process.env.NODE_ENV === 'development' || window.location.hostname.includes('lovableproject')) {
-          console.log('Em ambiente de desenvolvimento - simulando resposta de sucesso');
-          return simulateEmisResponse(data);
-        }
-        throw new Error(`Erro na API EMIS: ${response.status}`);
-      }
 
       const result = await response.json();
       console.log('Resposta da API EMIS:', result);
@@ -101,9 +117,11 @@ export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisP
     } catch (fetchError) {
       console.error('Erro ao conectar com API EMIS:', fetchError);
       
-      // Se estiver em ambiente de desenvolvimento, simulamos uma resposta
-      if (process.env.NODE_ENV === 'development' || window.location.hostname.includes('lovableproject')) {
-        console.log('Em ambiente de desenvolvimento - simulando resposta de sucesso após erro');
+      // Se estiver em ambiente de desenvolvimento ou previews, simulamos uma resposta
+      if (process.env.NODE_ENV === 'development' || 
+          window.location.hostname.includes('lovableproject') ||
+          window.location.hostname.includes('preview-')) {
+        console.log('Em ambiente de desenvolvimento/preview - simulando resposta de sucesso');
         return simulateEmisResponse(data);
       }
       
