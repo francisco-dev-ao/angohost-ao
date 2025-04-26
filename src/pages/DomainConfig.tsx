@@ -3,26 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { useCart, ContactProfile } from '@/context/CartContext';
-import { PlusCircle } from 'lucide-react';
-
-interface ClientDetails {
-  name: string;
-  nif: string;
-  responsibleName: string;
-  province: string;
-  city: string;
-  address: string;
-  postalCode: string;
-  email: string;
-  phone: string;
-  idNumber: string;
-}
+import { useCart } from '@/context/CartContext';
+import { NifSearch } from '@/components/domain/NifSearch';
+import { DomainPricingDisplay } from '@/components/domain/DomainPricingDisplay';
+import { ClientDetailsForm } from '@/components/domain/ClientDetailsForm';
+import { calculateDomainPrice } from '@/utils/domainPricing';
 
 const DomainConfig = () => {
   const [domainName, setDomainName] = useState('');
@@ -32,7 +22,7 @@ const DomainConfig = () => {
   const [useExistingProfile, setUseExistingProfile] = useState<boolean>(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   
-  const [clientDetails, setClientDetails] = useState<ClientDetails>({
+  const [clientDetails, setClientDetails] = useState({
     name: '',
     nif: '',
     responsibleName: '',
@@ -47,7 +37,7 @@ const DomainConfig = () => {
 
   const navigate = useNavigate();
   const { addItem, addContactProfile, getContactProfiles, contactProfiles } = useCart();
-  
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const domain = searchParams.get('domain');
@@ -62,10 +52,9 @@ const DomainConfig = () => {
       const profile = contactProfiles.find(p => p.id === selectedProfileId);
       if (profile) {
         setClientDetails({
+          ...clientDetails,
           name: profile.name || '',
           nif: profile.nif || '',
-          responsibleName: '',
-          province: '',
           city: profile.city || '',
           address: profile.billingAddress || '',
           postalCode: profile.postalCode || '',
@@ -77,7 +66,7 @@ const DomainConfig = () => {
     }
   }, [selectedProfileId, contactProfiles, useExistingProfile]);
 
-  const handleInputChange = (field: keyof ClientDetails, value: string) => {
+  const handleInputChange = (field: keyof typeof clientDetails, value: string) => {
     setClientDetails({
       ...clientDetails,
       [field]: value
@@ -107,15 +96,15 @@ const DomainConfig = () => {
         };
 
         if (mockResponse.success) {
-          setClientDetails({
-            ...clientDetails,
+          setClientDetails(prev => ({
+            ...prev,
             name: mockResponse.data.name,
             responsibleName: mockResponse.data.responsibleName,
             province: mockResponse.data.province,
             city: mockResponse.data.city,
             address: mockResponse.data.address,
             postalCode: mockResponse.data.postalCode,
-          });
+          }));
           toast.success('Informações do NIF carregadas com sucesso!');
         } else {
           toast.error('NIF não encontrado. Por favor, preencha os dados manualmente.');
@@ -132,7 +121,7 @@ const DomainConfig = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const requiredFields: Array<keyof ClientDetails> = ['name', 'email', 'phone', 'idNumber'];
+    const requiredFields: Array<keyof typeof clientDetails> = ['name', 'email', 'phone', 'idNumber'];
     const missingFields = requiredFields.filter(field => !clientDetails[field]);
     
     if (missingFields.length > 0) {
@@ -141,27 +130,11 @@ const DomainConfig = () => {
     }
     
     const years = parseInt(selectedPeriod);
-    let basePrice = 35000;
+    const pricing = calculateDomainPrice(domainName, domainExtension, years);
     
-    if (domainExtension === '.ao') {
-      basePrice = 25000;
-    }
-    
-    if (domainName.length <= 3) {
-      basePrice = 300000;
-    }
-    
-    // Apply discount for multi-year registrations
-    let discount = 0;
-    if (years === 2) discount = 0.10; // 10% discount for 2 years
-    if (years === 3) discount = 0.15; // 15% discount for 3 years
-    if (years >= 4) discount = 0.20; // 20% discount for 4 or 5 years
-    
-    const totalPrice = basePrice * years * (1 - discount);
-    
-    let profileId = selectedProfileId;
+    let newProfile;
     if (!useExistingProfile) {
-      const newProfile: ContactProfile = {
+      newProfile = {
         id: `profile-${Date.now()}`,
         name: clientDetails.name,
         email: clientDetails.email,
@@ -174,22 +147,21 @@ const DomainConfig = () => {
       };
       
       addContactProfile(newProfile);
-      profileId = newProfile.id;
     }
     
     addItem({
       id: `domain-${domainName}${domainExtension}-${Date.now()}`,
       type: 'domain',
       name: `Domínio ${domainName}${domainExtension}`,
-      price: totalPrice,
+      price: pricing.totalPrice,
       period: 'yearly',
       details: {
         domainName: `${domainName}${domainExtension}`,
         registrationPeriod: `${years} ${years === 1 ? 'ano' : 'anos'}`,
         ownerDetails: clientDetails,
         contractYears: years,
-        contactProfileId: profileId,
-        renewalPrice: basePrice // Annual renewal price without discounts
+        contactProfileId: useExistingProfile ? selectedProfileId : newProfile?.id,
+        renewalPrice: pricing.basePrice
       }
     });
     
@@ -205,38 +177,7 @@ const DomainConfig = () => {
     { value: "5", label: "5 anos (20% desconto)" }
   ];
 
-  // Calculate pricing based on period
-  const getPrice = () => {
-    const years = parseInt(selectedPeriod);
-    let basePrice = 35000;
-    
-    if (domainExtension === '.ao') {
-      basePrice = 25000;
-    }
-    
-    if (domainName.length <= 3) {
-      basePrice = 300000;
-    }
-    
-    // Apply discount for multi-year registrations
-    let discount = 0;
-    if (years === 2) discount = 0.10; // 10% discount for 2 years
-    if (years === 3) discount = 0.15; // 15% discount for 3 years
-    if (years >= 4) discount = 0.20; // 20% discount for 4 or 5 years
-    
-    const totalPrice = basePrice * years * (1 - discount);
-    const annualPrice = totalPrice / years;
-    
-    return { 
-      totalPrice: totalPrice, 
-      annualPrice: annualPrice,
-      discount: discount,
-      basePrice: basePrice,
-      saving: discount > 0 ? (basePrice * years) - totalPrice : 0
-    };
-  };
-
-  const pricing = getPrice();
+  const pricing = calculateDomainPrice(domainName, domainExtension, parseInt(selectedPeriod));
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -290,32 +231,12 @@ const DomainConfig = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-gray-50 p-4 rounded-lg mt-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Preço base:</span>
-                      <span>{pricing.basePrice.toLocaleString('pt-AO')} Kz/ano</span>
-                    </div>
-                    {pricing.discount > 0 && (
-                      <>
-                        <div className="flex justify-between items-center mb-2">
-                          <span>Desconto:</span>
-                          <span className="text-green-600">-{(pricing.discount * 100).toFixed(0)}%</span>
-                        </div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span>Economia:</span>
-                          <span className="text-green-600">{pricing.saving.toLocaleString('pt-AO')} Kz</span>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Preço médio anual:</span>
-                      <span>{Math.round(pricing.annualPrice).toLocaleString('pt-AO')} Kz/ano</span>
-                    </div>
-                    <div className="flex justify-between items-center border-t pt-2 mt-2">
-                      <span className="font-medium">Preço total para {selectedPeriod} {parseInt(selectedPeriod) === 1 ? 'ano' : 'anos'}:</span>
-                      <span className="font-bold text-lg">{Math.round(pricing.totalPrice).toLocaleString('pt-AO')} Kz</span>
-                    </div>
-                  </div>
+                  <DomainPricingDisplay 
+                    pricing={{
+                      ...pricing,
+                      selectedPeriod
+                    }}
+                  />
                 </div>
               </div>
               
@@ -356,127 +277,17 @@ const DomainConfig = () => {
                 
                 {(!useExistingProfile || contactProfiles.length === 0) && (
                   <>
-                    <div className="mb-6">
-                      <Label htmlFor="nif">NIF (Número de Identificação Fiscal)</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="nif"
-                          value={clientDetails.nif}
-                          onChange={(e) => handleInputChange('nif', e.target.value)}
-                          placeholder="Digite o NIF"
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleNifSearch}
-                          disabled={isLoading}
-                        >
-                          {isLoading ? 'Consultando...' : 'Consultar'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Digite o NIF para preencher automaticamente os dados da empresa.
-                      </p>
-                    </div>
+                    <NifSearch
+                      nif={clientDetails.nif}
+                      onNifChange={(value) => handleInputChange('nif', value)}
+                      onSearch={handleNifSearch}
+                      isLoading={isLoading}
+                    />
                     
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label htmlFor="name">Nome do Perfil</Label>
-                        <Input
-                          id="name"
-                          value={clientDetails.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          placeholder="Nome da empresa ou pessoa física"
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="responsibleName">Nome do Responsável</Label>
-                          <Input
-                            id="responsibleName"
-                            value={clientDetails.responsibleName}
-                            onChange={(e) => handleInputChange('responsibleName', e.target.value)}
-                            placeholder="Nome do responsável"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="idNumber">Nº de Bilhete de Identidade</Label>
-                          <Input
-                            id="idNumber"
-                            value={clientDetails.idNumber}
-                            onChange={(e) => handleInputChange('idNumber', e.target.value)}
-                            placeholder="Número do BI"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="province">Província</Label>
-                          <Input
-                            id="province"
-                            value={clientDetails.province}
-                            onChange={(e) => handleInputChange('province', e.target.value)}
-                            placeholder="Província"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="city">Cidade</Label>
-                          <Input
-                            id="city"
-                            value={clientDetails.city}
-                            onChange={(e) => handleInputChange('city', e.target.value)}
-                            placeholder="Cidade"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="address">Endereço</Label>
-                          <Input
-                            id="address"
-                            value={clientDetails.address}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            placeholder="Endereço completo"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="postalCode">Código Postal</Label>
-                          <Input
-                            id="postalCode"
-                            value={clientDetails.postalCode}
-                            onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                            placeholder="Código postal"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={clientDetails.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            placeholder="Email de contato"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="phone">Telemóvel</Label>
-                          <Input
-                            id="phone"
-                            type="tel"
-                            value={clientDetails.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            placeholder="Número de telemóvel"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    <ClientDetailsForm
+                      details={clientDetails}
+                      onInputChange={handleInputChange}
+                    />
                   </>
                 )}
               </div>
