@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
 import { EmailPlan } from '@/data/emailPlans';
+import { EmailPlanPriceSummary } from './EmailPlanPriceSummary';
 
 interface EmailPlanConfigProps {
   selectedPlan: EmailPlan | null;
@@ -56,39 +57,12 @@ export const EmailPlanConfig: React.FC<EmailPlanConfigProps> = ({
         </div>
       </div>
       
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <div className="flex justify-between">
-          <span className="font-medium">Plano selecionado:</span>
-          <span>{selectedPlan.title}</span>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="font-medium">Contas:</span>
-          <span>{emailAccounts}</span>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="font-medium">Período:</span>
-          <span>{selectedPeriod} {parseInt(selectedPeriod) === 1 ? 'ano' : 'anos'}</span>
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="font-medium">Preço por ano:</span>
-          <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz</span>
-        </div>
-        {parseInt(selectedPeriod) > 1 && (
-          <div className="flex justify-between mt-1 text-green-600">
-            <span className="font-medium">Desconto:</span>
-            <span>{parseInt(selectedPeriod) === 2 ? '10%' : '20%'}</span>
-          </div>
-        )}
-        <div className="flex justify-between mt-2 pt-2 border-t">
-          <span className="font-medium">Total:</span>
-          <span className="font-bold">
-            {getDiscountedPrice(
-              selectedPlan.price * emailAccounts,
-              parseInt(selectedPeriod)
-            ).toLocaleString('pt-AO')} Kz
-          </span>
-        </div>
-      </div>
+      <EmailPlanPriceSummary
+        selectedPlan={selectedPlan}
+        emailAccounts={emailAccounts}
+        selectedPeriod={selectedPeriod}
+        getDiscountedPrice={getDiscountedPrice}
+      />
       
       <div className="mt-6 flex justify-end">
         <Button 
