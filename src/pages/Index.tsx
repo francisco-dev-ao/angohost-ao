@@ -13,11 +13,11 @@ const Index = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <HeroSection />
+      <TestimonialsSection />
+      <ClientLogosSection />
       <DomainSearchSection />
       <ServicesSection />
       <PricingSection />
-      <TestimonialsSection />
-      <ClientLogosSection />
       <SupportSection />
       <CallToActionSection />
     </div>

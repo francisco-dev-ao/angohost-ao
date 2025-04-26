@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Star } from 'lucide-react';
 import { 
   Carousel,
   CarouselContent,
@@ -51,11 +52,31 @@ const ClientLogosSection = () => {
   return (
     <section className="py-12 px-4 bg-white">
       <div className="container max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold mb-2">Nossos Clientes</h2>
-          <p className="text-gray-600">
-            Empresas que confiam na ANGOHOST para seus serviços online
-          </p>
+        <div className="text-center mb-12">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <h2 className="text-2xl font-bold">Clientes Satisfeitos</h2>
+            <div className="flex items-center gap-2">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className="w-6 h-6 fill-yellow-400 text-yellow-400"
+                  />
+                ))}
+              </div>
+              <span className="text-lg font-semibold">4.8/5</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <img 
+                src="https://cdn.trustpilot.net/brand-assets/4.1.0/logo-white.svg" 
+                alt="TrustPilot" 
+                className="h-6 invert"
+              />
+              <span className="text-gray-600">
+                Mais de 1000 avaliações verificadas
+              </span>
+            </div>
+          </div>
         </div>
 
         <Carousel
