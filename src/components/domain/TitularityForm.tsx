@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2 } from 'lucide-react';
 
-const formSchema = z.object({
+export const formSchema = z.object({
   ownerName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
   ownerNif: z.string().min(9, "NIF inválido").max(14, "NIF inválido"),
   ownerContact: z.string().min(9, "Telefone inválido"),
@@ -156,3 +156,4 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
     </Dialog>
   );
 };
+
