@@ -74,7 +74,7 @@ export interface CartContextType {
   hasDomainInCart: () => boolean;
   hasEmailInCart: () => boolean;
   getDomainNames: () => string[];
-  addContactProfile: (profile: ContactProfile) => string;
+  addContactProfile: (profile: Omit<ContactProfile, 'id'> | ContactProfile) => string;
   removeContactProfile: (id: string) => void;
   updateContactProfile: (id: string, profile: Partial<ContactProfile>) => void;
   getContactProfiles: () => ContactProfile[];

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, FC } from 'react';
 import { CartContextType, CartItem, Customer, PaymentInfo, ContactProfile } from '../types/cart';
 import { useCartStorage } from '../hooks/useCartStorage';
@@ -11,10 +10,8 @@ import {
   generateOrderRef,
 } from '../utils/cartUtils';
 
-// Criando o contexto com um valor padrão indefinido
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Definindo explicitamente o tipo do componente como FC (FunctionComponent)
 export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     items,
@@ -63,10 +60,11 @@ export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
     localStorage.removeItem('angohost_payment');
   };
   
-  const addContactProfile = (profile: ContactProfile): string => {
+  const addContactProfile = (profile: Omit<ContactProfile, 'id'> | ContactProfile): string => {
+    const newProfileId = `profile-${Date.now()}`;
     const newProfile = {
       ...profile,
-      id: profile.id || `profile-${Date.now()}`
+      id: 'id' in profile ? profile.id : newProfileId
     };
     setContactProfiles([...contactProfiles, newProfile]);
     return newProfile.id;
@@ -118,7 +116,6 @@ export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 };
 
-// Hook para usar o contexto do carrinho
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (context === undefined) {
@@ -127,5 +124,4 @@ export const useCart = (): CartContextType => {
   return context;
 };
 
-// Re-export types
 export type { CartItem, Customer, PaymentInfo, ContactProfile, CartContextType };
