@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,6 @@ const DomainConfig = () => {
   const { addItem, addContactProfile, getContactProfiles, contactProfiles } = useCart();
   
   useEffect(() => {
-    // Get domain details from URL params or localStorage
     const searchParams = new URLSearchParams(window.location.search);
     const domain = searchParams.get('domain');
     const extension = searchParams.get('ext');
@@ -59,7 +57,6 @@ const DomainConfig = () => {
   }, []);
 
   useEffect(() => {
-    // If a profile is selected, fill the form with its data
     if (selectedProfileId && useExistingProfile) {
       const profile = contactProfiles.find(p => p.id === selectedProfileId);
       if (profile) {
@@ -94,11 +91,8 @@ const DomainConfig = () => {
 
     setIsLoading(true);
 
-    // Simulating API call to http://consulta.edgarsingui.ao/public/consultar-por-nif/
     try {
-      // In a real app, this would be a fetch call to the API
       setTimeout(() => {
-        // Mock response for demonstration
         const mockResponse = {
           success: true,
           data: {
@@ -137,7 +131,6 @@ const DomainConfig = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     const requiredFields: Array<keyof ClientDetails> = ['name', 'email', 'phone', 'idNumber'];
     const missingFields = requiredFields.filter(field => !clientDetails[field]);
     
@@ -146,21 +139,19 @@ const DomainConfig = () => {
       return;
     }
     
-    // Calculate price based on domain name, extension and period
     const years = parseInt(selectedPeriod);
-    let basePrice = 35000; // Default price for .co.ao domains
+    let basePrice = 35000;
     
     if (domainExtension === '.ao') {
       basePrice = 25000;
     }
     
     if (domainName.length <= 3) {
-      basePrice = 300000; // Special price for 3-letter domains
+      basePrice = 300000;
     }
     
     const totalPrice = basePrice * years;
     
-    // If user is creating a new contact profile, save it
     let profileId = selectedProfileId;
     if (!useExistingProfile) {
       const newProfile: ContactProfile = {
@@ -178,7 +169,6 @@ const DomainConfig = () => {
       profileId = addContactProfile(newProfile);
     }
     
-    // Add domain to cart
     addItem({
       id: `domain-${domainName}${domainExtension}-${Date.now()}`,
       type: 'domain',
