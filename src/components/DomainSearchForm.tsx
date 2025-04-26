@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -6,7 +7,8 @@ import { useCart } from '@/context/CartContext';
 import { Loader2 } from 'lucide-react';
 import { DomainSearchInput } from './domain/DomainSearchInput';
 import { DomainSearchResult } from './domain/DomainSearchResult';
-import { TitularityForm, formSchema } from './domain/TitularityForm';
+import { TitularityForm } from './domain/TitularityForm';
+import { formSchema } from './domain/TitularityForm';
 import * as z from "zod";
 
 interface DomainSearchFormProps {
