@@ -36,9 +36,9 @@ const PlanCategories = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {categories.map((category, index) => (
         <Link key={index} to={category.link}>
-          <Card className="h-full transition-all duration-300 hover:shadow-lg hover:border-primary">
+          <Card className="h-full transition-all duration-300 hover:shadow-lg hover:border-primary hover:scale-105">
             <CardContent className="p-6 flex flex-col items-center text-center">
-              <div className="mb-4">
+              <div className="mb-4 bg-primary/10 p-3 rounded-full">
                 {category.icon}
               </div>
               <h3 className="text-lg font-semibold mb-2">{category.title}</h3>
