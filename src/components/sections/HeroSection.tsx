@@ -5,9 +5,13 @@ import HeroContent from '../hero/HeroContent';
 
 const HeroSection = () => {
   return (
-    <section className="relative py-20 md:py-32 overflow-hidden">
-      <HeroBackground />
-      <HeroContent />
+    <section className="relative py-20 md:py-32">
+      <div className="container max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-8 items-center">
+        <HeroContent />
+        <div className="order-first lg:order-last">
+          <HeroBackground />
+        </div>
+      </div>
     </section>
   );
 };
