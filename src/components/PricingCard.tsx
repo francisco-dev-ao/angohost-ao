@@ -14,7 +14,7 @@ interface PricingCardProps {
   features: string[];
   isPopular?: boolean;
   buttonText?: string;
-  type: 'hosting' | 'vps' | 'email';
+  type: 'hosting' | 'vps' | 'email' | 'office365';
   id: string;
 }
 
@@ -82,6 +82,47 @@ const PricingCard: React.FC<PricingCardProps> = ({
             emailAccounts: 'Ilimitado',
             databases: 'Ilimitado',
             renewalPrice: 8500
+          }
+        };
+      }
+    }
+    
+    // Handle Office 365 plans
+    if (type === 'office365') {
+      if (id === 'o365-basic') {
+        newItem = {
+          id: `office365-${id}-${Date.now()}`,
+          type: 'office365',
+          name: 'Office 365 Business Basic',
+          price: 2900,
+          period: 'monthly',
+          details: {
+            users: 1,
+            renewalPrice: 2900
+          }
+        };
+      } else if (id === 'o365-standard') {
+        newItem = {
+          id: `office365-${id}-${Date.now()}`,
+          type: 'office365',
+          name: 'Office 365 Business Standard',
+          price: 3900,
+          period: 'monthly',
+          details: {
+            users: 1,
+            renewalPrice: 3900
+          }
+        };
+      } else if (id === 'o365-premium') {
+        newItem = {
+          id: `office365-${id}-${Date.now()}`,
+          type: 'office365',
+          name: 'Office 365 Business Premium',
+          price: 5900,
+          period: 'monthly',
+          details: {
+            users: 1,
+            renewalPrice: 5900
           }
         };
       }

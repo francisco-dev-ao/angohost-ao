@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Check, Globe } from 'lucide-react';
+import { Check, Globe, Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import DomainSearchForm from '@/components/DomainSearchForm';
 
