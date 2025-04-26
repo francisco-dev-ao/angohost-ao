@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { CartItem } from '@/types/cart';
+import { CartItem, ContactProfile } from '@/types/cart';
 
 interface DomainCartItemProps {
   item: CartItem;
-  getContactProfileById: (id: string) => any;
+  getContactProfileById: (id: string) => ContactProfile | null;
 }
 
 export const DomainCartItem: React.FC<DomainCartItemProps> = ({ item, getContactProfileById }) => {
