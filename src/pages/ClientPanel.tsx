@@ -18,6 +18,7 @@ const ClientPanel = () => {
   const [selectedProfile, setSelectedProfile] = useState<ContactProfile | null>(null);
   
   const [newProfile, setNewProfile] = useState<Omit<ContactProfile, 'id'>>({
+    profileName: '', // Added the required profileName property
     name: '',
     email: '',
     phone: '',
@@ -40,15 +41,22 @@ const ClientPanel = () => {
       return;
     }
     
+    // If profileName is empty, use the name as the profile name
+    const profileToCreate = {
+      ...newProfile,
+      profileName: newProfile.profileName || newProfile.name
+    };
+    
     // Add new profile
     addContactProfile({
-      ...newProfile,
+      ...profileToCreate,
       id: `profile-${Date.now()}`
     });
     
     // Reset form and close dialog
     toast.success('Perfil de contato criado com sucesso!');
     setNewProfile({
+      profileName: '',
       name: '',
       email: '',
       phone: '',
@@ -62,6 +70,7 @@ const ClientPanel = () => {
   const handleSelectProfileToEdit = (profile: ContactProfile) => {
     setSelectedProfile(profile);
     setNewProfile({
+      profileName: profile.profileName || profile.name,
       name: profile.name,
       email: profile.email,
       phone: profile.phone || '',
@@ -82,9 +91,15 @@ const ClientPanel = () => {
       toast.error('Por favor, preencha pelo menos o nome e email.');
       return;
     }
+
+    // If profileName is empty, use the name as the profile name
+    const profileToUpdate = {
+      ...newProfile,
+      profileName: newProfile.profileName || newProfile.name
+    };
     
     // Update profile
-    updateContactProfile(selectedProfile.id, newProfile);
+    updateContactProfile(selectedProfile.id, profileToUpdate);
     
     // Reset and close dialog
     toast.success('Perfil de contato atualizado com sucesso!');
