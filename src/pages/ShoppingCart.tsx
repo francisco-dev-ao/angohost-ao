@@ -1,9 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
-import { TitularityForm } from '@/components/domain/TitularityForm';
-import { CartItem } from '@/types/cart';
 import { CartItemsList } from '@/components/cart/CartItemsList';
 import { EmailPlansSection } from '@/components/cart/EmailPlansSection';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
@@ -17,15 +15,11 @@ const ShoppingCart = () => {
     removeItem, 
     getTotalPrice, 
     getContactProfiles, 
-    addItem, 
-    updateItem 
+    addItem
   } = useCart();
   const navigate = useNavigate();
   const contactProfiles = getContactProfiles();
-  const [showTitularityForm, setShowTitularityForm] = useState(false);
-  const [currentDomainItem, setCurrentDomainItem] = useState<CartItem | null>(null);
-  const [isProcessingTitularity, setIsProcessingTitularity] = useState(false);
-
+  
   const hasDomain = items.some(item => item.type === 'domain');
   const hasEmailPlan = items.some(item => item.type === 'email');
   
@@ -34,49 +28,11 @@ const ShoppingCart = () => {
   };
   
   const handleCheckout = () => {
-    const domainsNeedingTitularity = items.filter(
-      item => item.type === 'domain' && item.details.requiresTitularity
-    );
-
-    if (domainsNeedingTitularity.length > 0) {
-      setCurrentDomainItem(domainsNeedingTitularity[0]);
-      setShowTitularityForm(true);
-      return;
-    }
-
     if (items.length === 0) {
       toast.error('Seu carrinho está vazio!');
       return;
     }
     navigate('/checkout');
-  };
-
-  const handleTitularitySubmit = async (values: any) => {
-    setIsProcessingTitularity(true);
-    
-    setTimeout(() => {
-      if (currentDomainItem) {
-        const updatedItem = {
-          ...currentDomainItem,
-          details: {
-            ...currentDomainItem.details,
-            ownerName: values.ownerName,
-            ownerNif: values.ownerNif,
-            ownerContact: values.ownerContact,
-            ownerEmail: values.ownerEmail,
-            organizationName: values.organizationName || "",
-            contactProfileId: values.useExistingProfile ? values.selectedProfileId : undefined,
-            requiresTitularity: false
-          }
-        };
-        updateItem(currentDomainItem.id, updatedItem);
-        
-        toast.success('Dados de titularidade salvos com sucesso!');
-        setShowTitularityForm(false);
-        setCurrentDomainItem(null);
-      }
-      setIsProcessingTitularity(false);
-    }, 1000);
   };
 
   return (
@@ -115,17 +71,6 @@ const ShoppingCart = () => {
           </div>
         )}
       </div>
-      
-      {currentDomainItem && (
-        <TitularityForm
-          open={showTitularityForm}
-          onOpenChange={setShowTitularityForm}
-          onSubmit={handleTitularitySubmit}
-          isProcessing={isProcessingTitularity}
-          domainName={currentDomainItem.details.domainName?.split('.')[0] || ''}
-          extension={`.${currentDomainItem.details.domainName?.split('.').slice(1).join('.')}` || ''}
-        />
-      )}
     </div>
   );
 };

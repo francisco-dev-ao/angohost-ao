@@ -76,8 +76,7 @@ const DomainConfig = () => {
         period: '1 ano',
         renewalPrice: price,
         privacyProtection: 'Incluída',
-        domainName: `${domainName}${domainExtension}`,
-        requiresTitularity: true
+        domainName: `${domainName}${domainExtension}`
       }
     });
 

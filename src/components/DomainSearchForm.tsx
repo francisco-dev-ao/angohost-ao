@@ -7,9 +7,6 @@ import { useCart } from '@/context/CartContext';
 import { Loader2 } from 'lucide-react';
 import { DomainSearchInput } from './domain/DomainSearchInput';
 import { DomainSearchResult } from './domain/DomainSearchResult';
-import { TitularityForm } from './domain/TitularityForm';
-import { formSchema } from './domain/TitularityForm';
-import * as z from "zod";
 
 interface DomainSearchFormProps {
   variant?: 'default' | 'hero' | 'sidebar';
@@ -28,7 +25,6 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   const [extension, setExtension] = useState('.co.ao');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
-  const [showTitularityForm, setShowTitularityForm] = useState(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -80,7 +76,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     }, 1500);
   };
 
-  const handleTitularitySubmit = (values: z.infer<typeof formSchema>) => {
+  const handleAddToCart = () => {
     setIsProcessingOrder(true);
 
     setTimeout(() => {
@@ -89,7 +85,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       addItem({
         id: `domain-${domainName}${extension}-${Date.now()}`,
         type: 'domain',
-        name: `${domainName}${extension}`,
+        name: `Domínio ${domainName}${extension}`,
         price: price,
         period: 'yearly',
         details: {
@@ -97,18 +93,12 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
           period: '1 ano',
           renewalPrice: price,
           privacyProtection: 'Incluída',
-          domainName: `${domainName}${extension}`,
-          ownerName: values.ownerName,
-          ownerNif: values.ownerNif,
-          ownerContact: values.ownerContact,
-          ownerEmail: values.ownerEmail,
-          organizationName: values.organizationName || ""
+          domainName: `${domainName}${extension}`
         }
       });
 
       toast.success(`Domínio ${domainName}${extension} adicionado ao carrinho!`);
       setIsProcessingOrder(false);
-      setShowTitularityForm(false);
 
       const pendingEmailPlan = sessionStorage.getItem('pendingEmailPlan');
       if (pendingEmailPlan) {
@@ -177,20 +167,11 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
             domainName={domainName}
             extension={extension}
             searchResult={searchResult}
-            onRegister={() => setShowTitularityForm(true)}
+            onRegister={handleAddToCart}
             registerButtonRef={registerButtonRef}
           />
         </div>
       )}
-
-      <TitularityForm
-        open={showTitularityForm}
-        onOpenChange={setShowTitularityForm}
-        onSubmit={handleTitularitySubmit}
-        isProcessing={isProcessingOrder}
-        domainName={domainName}
-        extension={extension}
-      />
     </div>
   );
 };
