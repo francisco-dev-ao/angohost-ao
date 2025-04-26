@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,13 +33,13 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <CartProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <CartProvider>
+      <BrowserRouter>
+        <TooltipProvider>
           <div className="flex flex-col min-h-screen">
             <Navbar />
+            <Toaster />
+            <Sonner />
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -67,9 +68,9 @@ const App = () => (
             </main>
             <Footer />
           </div>
-        </BrowserRouter>
-      </CartProvider>
-    </TooltipProvider>
+        </TooltipProvider>
+      </BrowserRouter>
+    </CartProvider>
   </QueryClientProvider>
 );
 
