@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PeriodSelector } from './pricing/PeriodSelector';
+import { FeaturesList } from './pricing/FeaturesList';
+import { usePricingCalculator } from '@/hooks/usePricingCalculator';
 
 interface PricingCardProps {
   title: string;
@@ -19,7 +19,7 @@ interface PricingCardProps {
   id: string;
 }
 
-const PricingCard: React.FC<PricingCardProps> = ({
+const PricingCard = ({
   title,
   price,
   renewalPrice,
@@ -29,31 +29,15 @@ const PricingCard: React.FC<PricingCardProps> = ({
   buttonText = 'Selecionar',
   type,
   id
-}) => {
+}: PricingCardProps) => {
   const navigate = useNavigate();
   const { addItem } = useCart();
-  const [selectedPeriod, setSelectedPeriod] = React.useState<string>("1");
-  
-  const getPeriodText = (period: string) => {
-    switch (period) {
-      case "1": return "1 ano";
-      case "2": return "2 anos (10% desconto)";
-      case "3": return "3 anos (15% desconto)";
-      default: return "1 ano";
-    }
-  };
-  
-  const calculateTotalPrice = (basePrice: number, period: string): number => {
-    const years = parseInt(period);
-    let discount = 0;
-    
-    if (years === 2) discount = 0.1; // 10% discount
-    if (years === 3) discount = 0.15; // 15% discount
-    
-    const yearlyPrice = basePrice;
-    const totalBeforeDiscount = yearlyPrice * years;
-    return Math.round(totalBeforeDiscount * (1 - discount));
-  };
+  const { 
+    selectedPeriod, 
+    setSelectedPeriod, 
+    getPeriodText, 
+    displayPrice 
+  } = usePricingCalculator(price, renewalPrice);
   
   const handleSelect = () => {
     // For email plans, navigate to the email page to select quantity
@@ -64,7 +48,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
     
     let newItem = null;
     const years = parseInt(selectedPeriod);
-    const totalPrice = calculateTotalPrice(price, selectedPeriod);
+    const totalPrice = displayPrice;
     const yearlyRenewalPrice = renewalPrice || price;
     
     // Create item based on type and ID
@@ -258,34 +242,28 @@ const PricingCard: React.FC<PricingCardProps> = ({
     }
   };
 
-  // Calculate the price to display based on selected period
-  const displayPrice = calculateTotalPrice(price, selectedPeriod);
-
   return (
     <div className={`pricing-card relative rounded-xl border ${isPopular ? 'border-primary shadow-lg' : 'border-gray-200'} bg-white p-6 transition-all duration-300 hover:shadow-md`}>
       {isPopular && (
-        <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">Popular</span>
+        <span className="absolute top-0 right-0 bg-orange-500 text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">
+          Popular
+        </span>
       )}
 
       <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
       
       <div className="mt-4 flex items-baseline text-gray-900">
-        <span className="text-3xl font-extrabold tracking-tight">{displayPrice.toLocaleString('pt-AO')} Kz</span>
+        <span className="text-3xl font-extrabold tracking-tight">
+          {displayPrice.toLocaleString('pt-AO')} Kz
+        </span>
         <span className="ml-1 text-xl font-semibold">{period}</span>
       </div>
       
-      <div className="mt-4">
-        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Periodo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">{getPeriodText("1")}</SelectItem>
-            <SelectItem value="2">{getPeriodText("2")}</SelectItem>
-            <SelectItem value="3">{getPeriodText("3")}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <PeriodSelector
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={setSelectedPeriod}
+        getPeriodText={getPeriodText}
+      />
       
       {renewalPrice && renewalPrice !== price && (
         <div className="mt-1 text-sm text-gray-500">
@@ -293,16 +271,7 @@ const PricingCard: React.FC<PricingCardProps> = ({
         </div>
       )}
 
-      <ul className="mt-6 space-y-4">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-start">
-            <div className="flex-shrink-0">
-              <Check className="h-5 w-5 text-green-500" />
-            </div>
-            <p className="ml-3 text-sm text-gray-700">{feature}</p>
-          </li>
-        ))}
-      </ul>
+      <FeaturesList features={features} />
 
       <Button 
         className={`mt-8 w-full ${isPopular ? 'bg-primary hover:bg-primary/90' : ''}`}
