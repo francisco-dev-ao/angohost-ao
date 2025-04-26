@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
@@ -11,9 +10,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <span className="font-poppins font-bold text-2xl text-angohost-700">
-                ANGO<span className="text-orange-500">HOST</span>
-              </span>
+              <img
+                src="/ANGOHOST-01.png"
+                alt="Logo ANGOHOST"
+                className="h-10"
+              />
             </Link>
             <p className="text-gray-600 mb-6">
               Soluções completas em hospedagem e domínios para o mercado angolano.
@@ -21,15 +22,15 @@ const Footer = () => {
             <div className="flex flex-col space-y-3">
               <div className="flex items-center">
                 <Phone className="h-4 w-4 text-primary mr-2" />
-                <span className="text-sm text-gray-600">+244 923 456 789</span>
+                <span className="text-sm text-gray-600">+244 942 090 108</span>
               </div>
               <div className="flex items-center">
                 <Mail className="h-4 w-4 text-primary mr-2" />
-                <span className="text-sm text-gray-600">contato@angohost.ao</span>
+                <span className="text-sm text-gray-600">support@angohost.ao</span>
               </div>
               <div className="flex items-start">
                 <MapPin className="h-4 w-4 text-primary mr-2 mt-1 flex-shrink-0" />
-                <span className="text-sm text-gray-600">Av. Ho Chi Minh, Luanda, Angola</span>
+                <span className="text-sm text-gray-600">Luanda, Angola</span>
               </div>
             </div>
             <div className="flex space-x-4 mt-6">

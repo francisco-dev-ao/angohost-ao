@@ -5,7 +5,7 @@ export const AuthHero = () => {
   return (
     <div className="hidden md:block bg-primary/5 relative">
       <img 
-        src="/lovable-uploads/26bd684c-fd6e-4bb5-acbf-36c2eeaa8ee0.png" 
+        src="/lovable-uploads/login.png" 
         alt="Atendente" 
         className="object-cover w-full h-full"
       />

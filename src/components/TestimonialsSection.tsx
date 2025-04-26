@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { 
@@ -40,34 +39,34 @@ const Testimonial: React.FC<TestimonialProps> = ({ quote, author, company, image
 const TestimonialsSection = () => {
   const testimonials = [
     {
-      quote: "A ANGOHOST superou nossas expectativas. A migração do nosso site foi perfeita e o suporte técnico é excelente.",
-      author: "Carlos Mendes",
-      company: "TechAngola",
-      imageSrc: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?q=80&w=200&auto=format&fit=crop"
+      quote: "A Angohost foi essencial para o crescimento do meu negócio digital. Atendimento rápido e eficiente!",
+      author: "Paulo Domingos",
+      company: "Empreendedor Digital",
+      imageSrc: "/user.png"
     },
     {
-      quote: "Desde que mudamos para a hospedagem da ANGOHOST, nosso site nunca mais ficou fora do ar. Recomendo fortemente.",
-      author: "Maria Fernanda",
-      company: "Revista Digital Angola",
-      imageSrc: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop"
+      quote: "O suporte da Angohost é excelente, sempre me ajudaram quando precisei. Recomendo para todos empreendedores.",
+      author: "Carla Mavungo",
+      company: "Loja Online Luanda",
+      imageSrc: "/user1.png"
     },
     {
-      quote: "O serviço de email profissional da ANGOHOST melhorou significativamente nossa comunicação corporativa.",
-      author: "Paulo Joaquim",
-      company: "Construções JP",
-      imageSrc: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=200&auto=format&fit=crop"
+      quote: "Hospedo todos os meus projetos na Angohost. Segurança e estabilidade para startups angolanas.",
+      author: "Miguel António",
+      company: "Startup Luanda",
+      imageSrc: "/user.png"
     },
     {
-      quote: "O suporte técnico responde rapidamente e sempre resolve nossos problemas. Estamos muito satisfeitos.",
-      author: "Ana Sofia",
-      company: "Boutique Elegance",
-      imageSrc: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop"
+      quote: "A plataforma é fácil de usar e o serviço de email profissional melhorou minha comunicação com clientes.",
+      author: "Tatiana Silva",
+      company: "Consultora Independente",
+      imageSrc: "/user1.png"
     },
     {
-      quote: "Registro de domínio simplificado e rápido. Todo o processo foi concluído em menos de 24 horas.",
-      author: "João Miguel",
-      company: "Startup Inovação",
-      imageSrc: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop"
+      quote: "Registro de domínio foi rápido e sem complicações. Recomendo para quem quer empreender em Angola.",
+      author: "Joaquim Manuel",
+      company: "Empreendedor",
+      imageSrc: "/user.png"
     }
   ];
 
@@ -77,7 +76,7 @@ const TestimonialsSection = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">O Que Nossos Clientes Dizem</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Veja o que nossos clientes têm a dizer sobre nossos serviços
+            Veja o que empreendedores angolanos têm a dizer sobre nossos serviços
           </p>
         </div>
 

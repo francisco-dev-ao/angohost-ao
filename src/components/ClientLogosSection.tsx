@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { 
@@ -11,39 +10,79 @@ import Autoplay from "embla-carousel-autoplay";
 const ClientLogosSection = () => {
   // Logos placeholder - Replace with actual client logos
   const clientLogos = [
-    {
-      name: "Company 1",
-      logo: "https://via.placeholder.com/150x80?text=Logo+1"
-    },
-    {
-      name: "Company 2",
-      logo: "https://via.placeholder.com/150x80?text=Logo+2"
-    },
-    {
-      name: "Company 3",
-      logo: "https://via.placeholder.com/150x80?text=Logo+3"
-    },
-    {
-      name: "Company 4",
-      logo: "https://via.placeholder.com/150x80?text=Logo+4"
-    },
-    {
-      name: "Company 5",
-      logo: "https://via.placeholder.com/150x80?text=Logo+5"
-    },
-    {
-      name: "Company 6",
-      logo: "https://via.placeholder.com/150x80?text=Logo+6"
-    },
-    {
-      name: "Company 7",
-      logo: "https://via.placeholder.com/150x80?text=Logo+7"
-    },
-    {
-      name: "Company 8",
-      logo: "https://via.placeholder.com/150x80?text=Logo+8"
-    },
-  ];
+  {
+    name: "Aldeia Nova",
+    logo: "/aldeianova.jpg"
+  },
+  {
+    name: "Aeroporto Internacional Dr. António Agostinho Neto",
+    logo: "/areportointernacional.png"
+  },
+  {
+    name: "Clínica General Katondo",
+    logo: "/clinicacatondo.png"
+  },
+  {
+    name: "Clínica Girassol",
+    logo: "/clinicagiralsol.png"
+  },
+  {
+    name: "Farmácias Coimbra",
+    logo: "/farmaciasdecoimbra.png"
+  },
+  {
+    name: "GIPSA",
+    logo: "/gipsa.png"
+  },
+  {
+    name: "Grupo Zahara",
+    logo: "/grupozahara.png"
+  },
+  {
+    name: "ISPTEC",
+    logo: "/isptec.png"
+  },
+  {
+    name: "Kero",
+    logo: "/kero.png"
+  },
+  {
+    name: "Sonangol Distribuidora",
+    logo: "/Sonangol_Distribuidora.png"
+  },
+  {
+    name: "Sonangol",
+    logo: "/Sonangol_Logo_Horizontal_Preto4_Footer-2.png"
+  },
+  {
+    name: "Tech Look",
+    logo: "/techkllook.png"
+  },
+  {
+    name: "Somiluana",
+    logo: "/somil.png"
+  },
+  {
+    name: "Rede Girassol",
+    logo: "/redegirassol.jpeg"
+  },
+  {
+    name: "Centro Cultural Paz Flor",
+    logo: "/pazflor.png"
+  },
+  {
+    name: "Nespecred",
+    logo: "/nespecred.jpeg"
+  },
+  {
+    name: "NewCare Saúde",
+    logo: "/newcare.jpeg"
+  },
+  {
+    name: "SonAir",
+    logo: "/sonair.png"
+  }
+];
 
   const plugin = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: false })

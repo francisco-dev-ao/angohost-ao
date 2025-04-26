@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,7 @@ const SupportSection = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold">Email de Suporte</h3>
-                    <p className="text-primary">suporte@angohost.ao</p>
+                    <p className="text-primary">support@angohost.ao</p>
                   </div>
                 </div>
                 
@@ -39,7 +38,7 @@ const SupportSection = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold">Telefone</h3>
-                    <p className="text-primary">+244 923 456 789</p>
+                    <p className="text-primary">+244 942 090 108</p>
                   </div>
                 </div>
                 
@@ -70,9 +69,11 @@ const SupportSection = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               viewport={{ once: true }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white">
-                <p className="text-sm font-semibold">Foto de atendente</p>
-              </div>
+              <img
+                src="/atendente.png"
+                alt="Foto de atendente"
+                className="object-cover w-full h-full"
+              />
             </motion.div>
             
             <motion.div 
@@ -82,9 +83,11 @@ const SupportSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white">
-                <p className="text-sm font-semibold">Foto de equipe</p>
-              </div>
+              <img
+                src="/equipe.png"
+                alt="Foto da equipe de suporte"
+                className="object-cover w-full h-full"
+              />
             </motion.div>
             
             <motion.div 
@@ -94,9 +97,11 @@ const SupportSection = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 flex items-center justify-center text-white">
-                <p className="text-sm font-semibold">Foto de suporte</p>
-              </div>
+              <img
+                src="/suporte.png"
+                alt="Foto de suporte"
+                className="object-cover w-full h-full"
+              />
             </motion.div>
             
             <motion.div 
@@ -106,9 +111,11 @@ const SupportSection = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white">
-                <p className="text-sm font-semibold">Foto de escritório</p>
-              </div>
+              <img
+                src="/sup.png"
+                alt="Foto de escritório com computador"
+                className="object-cover w-full h-full"
+              />
             </motion.div>
           </div>
         </div>

@@ -26,14 +26,7 @@ export const NavbarMobileMenu = ({
   return (
     <div className="lg:hidden fixed inset-0 z-50 bg-background/95 backdrop-blur-sm pt-16">
       <nav className="container mt-4 flex flex-col gap-4 pb-20 max-h-[calc(100vh-4rem)] overflow-y-auto">
-        <Link 
-          to="/" 
-          className="flex items-center gap-2 px-4 py-3 hover:bg-accent rounded-md transition-colors" 
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          <Home className="h-5 w-5 text-primary" />
-          <span className="font-medium">Início</span>
-        </Link>
+       
         
         <div className="px-4 py-2">
           <div className="flex items-center gap-2 font-medium text-lg mb-2">

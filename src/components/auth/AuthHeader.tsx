@@ -5,7 +5,7 @@ export const AuthHeader = () => {
   return (
     <div className="text-center mb-8">
       <img 
-        src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
+        src="/ANGOHOST-01.png" 
         alt="ANGOHOST" 
         className="h-16 mx-auto mb-6" 
       />

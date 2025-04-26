@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -15,10 +14,10 @@ const HeroContent = () => {
         className="space-y-6"
       >
         <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white">
-          Sua Presença Online Começa Aqui
+        O seu site sempre no ar, protegido.
         </h1>
         <p className="text-xl md:text-2xl mb-8 text-white/80">
-          Hospedagem confiável, domínios .AO e soluções completas para o mercado angolano
+          Hospedagem confiável, domínios .AO e soluções completas para o mercado angolano!
         </p>
         
         <div className="flex flex-wrap gap-4">
@@ -26,14 +25,6 @@ const HeroContent = () => {
             asChild 
             size="lg" 
             className="bg-orange-500 text-white hover:bg-orange-600"
-          >
-            <Link to="/hospedagem/cpanel">Ver Planos de Hospedagem</Link>
-          </Button>
-          <Button 
-            asChild 
-            size="lg" 
-            variant="outline" 
-            className="border-white text-white hover:bg-white/20 hover:border-orange-500 transition-colors duration-300"
           >
             <Link to="/dominios/registrar">Registrar Domínio</Link>
           </Button>

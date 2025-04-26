@@ -81,7 +81,7 @@ const Navbar = () => {
         {/* Logo */}
         <Link to={isAuthenticated ? "/painel-cliente" : "/"} className="flex items-center gap-2 z-30">
           <img 
-            src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
+            src="/ANGOHOST-01.png" 
             alt="ANGOHOST" 
             className="h-16 w-auto" 
           />
