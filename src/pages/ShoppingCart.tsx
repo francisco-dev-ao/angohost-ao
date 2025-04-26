@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,9 @@ import { useCart, CartItem, ContactProfile } from '@/context/CartContext';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { z } from 'zod';
+import { formSchema } from '@/schemas/formSchema';
+import TitularityForm from '@/components/TitularityForm';
 
 // Email plan options
 const emailPlans = [
@@ -36,13 +38,16 @@ const emailPlans = [
 ];
 
 const ShoppingCart = () => {
-  const { items, removeItem, getTotalPrice, getContactProfiles, addItem } = useCart();
+  const { items, removeItem, getTotalPrice, getContactProfiles, addItem, updateItem } = useCart();
   const navigate = useNavigate();
   const contactProfiles = getContactProfiles();
   const [selectedEmailPlan, setSelectedEmailPlan] = useState<string | null>(null);
   const [emailAccounts, setEmailAccounts] = useState<number>(5);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("1"); // Default to 1 year
-  
+  const [showTitularityForm, setShowTitularityForm] = useState(false);
+  const [currentDomainItem, setCurrentDomainItem] = useState<CartItem | null>(null);
+  const [isProcessingTitularity, setIsProcessingTitularity] = useState(false);
+
   const hasDomain = items.some(item => item.type === 'domain');
   const hasEmailPlan = items.some(item => item.type === 'email');
   
@@ -51,6 +56,18 @@ const ShoppingCart = () => {
   };
   
   const handleCheckout = () => {
+    // Check if there are domains that need titularity data
+    const domainsNeedingTitularity = items.filter(
+      item => item.type === 'domain' && item.details.requiresTitularity
+    );
+
+    if (domainsNeedingTitularity.length > 0) {
+      setCurrentDomainItem(domainsNeedingTitularity[0]);
+      setShowTitularityForm(true);
+      return;
+    }
+
+    // Proceed with normal checkout
     if (items.length === 0) {
       toast.error('Seu carrinho está vazio!');
       return;
@@ -108,7 +125,36 @@ const ShoppingCart = () => {
     
     return basePrice * years * (1 - discount);
   };
-  
+
+  const handleTitularitySubmit = (values: z.infer<typeof formSchema>) => {
+    setIsProcessingTitularity(true);
+    
+    setTimeout(() => {
+      if (currentDomainItem) {
+        // Update the domain item with titularity data
+        const updatedItem = {
+          ...currentDomainItem,
+          details: {
+            ...currentDomainItem.details,
+            ownerName: values.ownerName,
+            ownerNif: values.ownerNif,
+            ownerContact: values.ownerContact,
+            ownerEmail: values.ownerEmail,
+            organizationName: values.organizationName || "",
+            contactProfileId: values.useExistingProfile ? values.selectedProfileId : undefined,
+            requiresTitularity: false
+          }
+        };
+        updateItem(currentDomainItem.id, updatedItem);
+        
+        toast.success('Dados de titularidade salvos com sucesso!');
+        setShowTitularityForm(false);
+        setCurrentDomainItem(null);
+      }
+      setIsProcessingTitularity(false);
+    }, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="container max-w-6xl mx-auto">
@@ -357,7 +403,7 @@ const ShoppingCart = () => {
                 </div>
                 
                 <Button 
-                  className="w-full mt-6 bg-primary hover:bg-primary/90"
+                  className="w-full mt-6"
                   onClick={handleCheckout}
                 >
                   Finalizar Compra
@@ -373,6 +419,17 @@ const ShoppingCart = () => {
           </div>
         )}
       </div>
+      
+      {currentDomainItem && (
+        <TitularityForm
+          open={showTitularityForm}
+          onOpenChange={setShowTitularityForm}
+          onSubmit={handleTitularitySubmit}
+          isProcessing={isProcessingTitularity}
+          domainName={currentDomainItem.details.domainName?.split('.')[0] || ''}
+          extension={`.${currentDomainItem.details.domainName?.split('.').slice(1).join('.')}` || ''}
+        />
+      )}
     </div>
   );
 };

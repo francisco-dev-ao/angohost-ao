@@ -8,6 +8,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCart } from '@/context/CartContext';
 
 export const formSchema = z.object({
   ownerName: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
@@ -15,6 +17,8 @@ export const formSchema = z.object({
   ownerContact: z.string().min(9, "Telefone inválido"),
   ownerEmail: z.string().email("Email inválido"),
   organizationName: z.string().optional(),
+  useExistingProfile: z.boolean().optional(),
+  selectedProfileId: z.string().optional(),
 });
 
 interface TitularityFormProps {
@@ -34,6 +38,9 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
   domainName,
   extension
 }) => {
+  const { getContactProfiles } = useCart();
+  const contactProfiles = getContactProfiles();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,8 +49,25 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
       ownerContact: "",
       ownerEmail: "",
       organizationName: "",
+      useExistingProfile: false,
+      selectedProfileId: "",
     },
   });
+
+  const useExistingProfile = form.watch('useExistingProfile');
+  const selectedProfileId = form.watch('selectedProfileId');
+
+  React.useEffect(() => {
+    if (useExistingProfile && selectedProfileId) {
+      const profile = contactProfiles.find(p => p.id === selectedProfileId);
+      if (profile) {
+        form.setValue('ownerName', profile.name);
+        form.setValue('ownerNif', profile.nif || '');
+        form.setValue('ownerContact', profile.phone);
+        form.setValue('ownerEmail', profile.email);
+      }
+    }
+  }, [useExistingProfile, selectedProfileId, contactProfiles]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,80 +81,147 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="ownerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Proprietário</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nome completo" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="ownerNif"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>NIF</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Número de Identificação Fiscal" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {contactProfiles.length > 0 && (
               <FormField
                 control={form.control}
-                name="ownerContact"
+                name="useExistingProfile"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={(e) => {
+                          field.onChange(e.target.checked);
+                          if (!e.target.checked) {
+                            form.setValue('selectedProfileId', '');
+                            form.setValue('ownerName', '');
+                            form.setValue('ownerNif', '');
+                            form.setValue('ownerContact', '');
+                            form.setValue('ownerEmail', '');
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Usar perfil existente</FormLabel>
+                      <FormDescription>
+                        Selecione um perfil de contato existente
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {useExistingProfile && (
+              <FormField
+                control={form.control}
+                name="selectedProfileId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: 923456789" {...field} />
-                    </FormControl>
+                    <FormLabel>Selecione um Perfil</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um perfil" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {contactProfiles.map((profile) => (
+                          <SelectItem key={profile.id} value={profile.id}>
+                            {profile.name} ({profile.email})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <FormField
-                control={form.control}
-                name="ownerEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="exemplo@email.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="organizationName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome da Organização (opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nome da empresa ou organização" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Para registros empresariais ou institucionais.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            )}
+
+            {(!useExistingProfile || !selectedProfileId) && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="ownerName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome do Proprietário</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome completo" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="ownerNif"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>NIF</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Número de Identificação Fiscal" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="ownerContact"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 923456789" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="ownerEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="exemplo@email.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="organizationName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Organização (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome da empresa ou organização" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Para registros empresariais ou institucionais.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             
             <DialogFooter>
               <Button 
@@ -147,7 +238,7 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processando...
                   </>
-                ) : 'Adicionar ao Carrinho'}
+                ) : 'Confirmar Dados'}
               </Button>
             </DialogFooter>
           </form>
@@ -156,4 +247,3 @@ export const TitularityForm: React.FC<TitularityFormProps> = ({
     </Dialog>
   );
 };
-
