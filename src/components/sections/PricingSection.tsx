@@ -16,8 +16,11 @@ const PricingSection = () => {
           >
             <h2 className="text-3xl font-bold mb-4">Planos e Preços</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Compare nossos planos e escolha a solução ideal para seu negócio com pagamentos anuais
+              Compare nossos planos e escolha a solução ideal para seu negócio
             </p>
+            <div className="mt-4 text-sm text-green-600 font-medium">
+              Economize até 20% com planos de 3 anos!
+            </div>
           </motion.div>
         </div>
         <PlanPricingTabs />

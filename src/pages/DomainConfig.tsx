@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -150,7 +151,13 @@ const DomainConfig = () => {
       basePrice = 300000;
     }
     
-    const totalPrice = basePrice * years;
+    // Apply discount for multi-year registrations
+    let discount = 0;
+    if (years === 2) discount = 0.10; // 10% discount for 2 years
+    if (years === 3) discount = 0.15; // 15% discount for 3 years
+    if (years >= 4) discount = 0.20; // 20% discount for 4 or 5 years
+    
+    const totalPrice = basePrice * years * (1 - discount);
     
     let profileId = selectedProfileId;
     if (!useExistingProfile) {
@@ -181,7 +188,8 @@ const DomainConfig = () => {
         registrationPeriod: `${years} ${years === 1 ? 'ano' : 'anos'}`,
         ownerDetails: clientDetails,
         contractYears: years,
-        contactProfileId: profileId
+        contactProfileId: profileId,
+        renewalPrice: basePrice // Annual renewal price without discounts
       }
     });
     
@@ -191,11 +199,44 @@ const DomainConfig = () => {
 
   const domainPeriods = [
     { value: "1", label: "1 ano" },
-    { value: "2", label: "2 anos" },
-    { value: "3", label: "3 anos" },
-    { value: "4", label: "4 anos" },
-    { value: "5", label: "5 anos" }
+    { value: "2", label: "2 anos (10% desconto)" },
+    { value: "3", label: "3 anos (15% desconto)" },
+    { value: "4", label: "4 anos (20% desconto)" },
+    { value: "5", label: "5 anos (20% desconto)" }
   ];
+
+  // Calculate pricing based on period
+  const getPrice = () => {
+    const years = parseInt(selectedPeriod);
+    let basePrice = 35000;
+    
+    if (domainExtension === '.ao') {
+      basePrice = 25000;
+    }
+    
+    if (domainName.length <= 3) {
+      basePrice = 300000;
+    }
+    
+    // Apply discount for multi-year registrations
+    let discount = 0;
+    if (years === 2) discount = 0.10; // 10% discount for 2 years
+    if (years === 3) discount = 0.15; // 15% discount for 3 years
+    if (years >= 4) discount = 0.20; // 20% discount for 4 or 5 years
+    
+    const totalPrice = basePrice * years * (1 - discount);
+    const annualPrice = totalPrice / years;
+    
+    return { 
+      totalPrice: totalPrice, 
+      annualPrice: annualPrice,
+      discount: discount,
+      basePrice: basePrice,
+      saving: discount > 0 ? (basePrice * years) - totalPrice : 0
+    };
+  };
+
+  const pricing = getPrice();
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -210,41 +251,70 @@ const DomainConfig = () => {
             <CardContent className="p-6">
               <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Detalhes do Domínio</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="domainName">Nome do Domínio</Label>
-                    <Input
-                      id="domainName"
-                      value={domainName}
-                      onChange={(e) => setDomainName(e.target.value)}
-                      placeholder="exemplo"
-                      readOnly={!!domainName}
-                      className={domainName ? 'bg-gray-50' : ''}
-                    />
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="domainName">Nome do Domínio</Label>
+                      <Input
+                        id="domainName"
+                        value={domainName}
+                        onChange={(e) => setDomainName(e.target.value)}
+                        placeholder="exemplo"
+                        readOnly={!!domainName}
+                        className={domainName ? 'bg-gray-50' : ''}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="domainExtension">Extensão</Label>
+                      <Input
+                        id="domainExtension"
+                        value={domainExtension}
+                        className="bg-gray-50"
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="period">Período</Label>
+                      <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                        <SelectTrigger id="period">
+                          <SelectValue placeholder="Selecione o período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {domainPeriods.map((period) => (
+                            <SelectItem key={period.value} value={period.value}>
+                              {period.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="domainExtension">Extensão</Label>
-                    <Input
-                      id="domainExtension"
-                      value={domainExtension}
-                      className="bg-gray-50"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="period">Período</Label>
-                    <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                      <SelectTrigger id="period">
-                        <SelectValue placeholder="Selecione o período" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {domainPeriods.map((period) => (
-                          <SelectItem key={period.value} value={period.value}>
-                            {period.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span>Preço base:</span>
+                      <span>{pricing.basePrice.toLocaleString('pt-AO')} Kz/ano</span>
+                    </div>
+                    {pricing.discount > 0 && (
+                      <>
+                        <div className="flex justify-between items-center mb-2">
+                          <span>Desconto:</span>
+                          <span className="text-green-600">-{(pricing.discount * 100).toFixed(0)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span>Economia:</span>
+                          <span className="text-green-600">{pricing.saving.toLocaleString('pt-AO')} Kz</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between items-center mb-2">
+                      <span>Preço médio anual:</span>
+                      <span>{Math.round(pricing.annualPrice).toLocaleString('pt-AO')} Kz/ano</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t pt-2 mt-2">
+                      <span className="font-medium">Preço total para {selectedPeriod} {parseInt(selectedPeriod) === 1 ? 'ano' : 'anos'}:</span>
+                      <span className="font-bold text-lg">{Math.round(pricing.totalPrice).toLocaleString('pt-AO')} Kz</span>
+                    </div>
                   </div>
                 </div>
               </div>
