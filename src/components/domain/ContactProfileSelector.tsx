@@ -3,21 +3,18 @@ import React, { useState } from 'react';
 import { ContactProfile } from '@/types/cart';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ClientDetailsForm } from './ClientDetailsForm';
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
-import { useNifSearch } from '@/hooks/useNifSearch';
-import { PlusCircle, UserCircle, Loader2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useNifValidation } from '@/hooks/useNifValidation';
+import { PlusCircle } from 'lucide-react';
+import { ProfileList } from './contact/ProfileList';
+import { ProfileForm } from './contact/ProfileForm';
 
 interface ContactProfileSelectorProps {
   profiles: ContactProfile[];
   selectedProfileId: string | null;
   onSelectProfile: (id: string) => void;
-  onCreateProfile?: (profile: ContactProfile) => void;
 }
 
 export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
@@ -38,7 +35,10 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
     country: 'Angola'
   });
 
-  const { isLoading: isNifLoading, fetchNifData } = useNifSearch((data) => {
+  const { isLoading: isNifLoading, error: nifError, validateNif } = useNifValidation();
+
+  const handleNifSearch = async () => {
+    const data = await validateNif(nif);
     if (data) {
       setNewProfile(prev => ({
         ...prev,
@@ -47,13 +47,6 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
         nif: nif,
         billingAddress: data.endereco || '',
       }));
-      toast.success('Dados do NIF carregados com sucesso!');
-    }
-  });
-
-  const handleNifBlur = async () => {
-    if (nif.length >= 8) {
-      await fetchNifData(nif);
     }
   };
 
@@ -62,7 +55,6 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
   };
 
   const handleCreateProfile = () => {
-    // Validação básica
     const requiredFields = ['name', 'email', 'phone', 'nif', 'billingAddress', 'city'] as const;
     const missingFields = requiredFields.filter(field => !newProfile[field]);
     
@@ -71,54 +63,19 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
       return;
     }
     
-    // Adicionar ao contexto
     const profileId = addContactProfile(newProfile as ContactProfile);
-    
-    // Selecionar o novo perfil
     onSelectProfile(profileId);
-    
-    // Fechar o diálogo
     setIsOpen(false);
-    
-    // Feedback
     toast.success('Perfil de contato criado com sucesso!');
   };
 
   return (
     <div className="space-y-6">
-      {profiles.length > 0 ? (
-        <RadioGroup 
-          value={selectedProfileId || ""} 
-          onValueChange={onSelectProfile}
-          className="space-y-4"
-        >
-          {profiles.map((profile) => (
-            <div key={profile.id} className="flex items-start space-x-3">
-              <RadioGroupItem value={profile.id} id={`profile-${profile.id}`} className="mt-1" />
-              <Label 
-                htmlFor={`profile-${profile.id}`} 
-                className="flex-1 p-3 bg-white rounded-md border cursor-pointer hover:bg-gray-50"
-              >
-                <div className="font-medium mb-1">{profile.name}</div>
-                <div className="text-sm text-gray-500">
-                  {profile.email} • {profile.phone}
-                </div>
-                <div className="text-sm text-gray-500">
-                  NIF: {profile.nif} • {profile.city}, {profile.country}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {profile.billingAddress}
-                </div>
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      ) : (
-        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-md border border-dashed">
-          <UserCircle className="h-12 w-12 text-gray-400 mb-3" />
-          <p className="text-gray-500 mb-4">Você ainda não tem perfis de contato cadastrados</p>
-        </div>
-      )}
+      <ProfileList 
+        profiles={profiles}
+        selectedProfileId={selectedProfileId}
+        onSelectProfile={onSelectProfile}
+      />
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
@@ -132,53 +89,17 @@ export const ContactProfileSelector: React.FC<ContactProfileSelectorProps> = ({
             <DialogTitle>Criar Perfil de Contato</DialogTitle>
           </DialogHeader>
           
-          <div className="py-4">
-            <div className="mb-6">
-              <Label htmlFor="nif">NIF (Número de Identificação Fiscal) ou BI</Label>
-              <div className="relative">
-                <Input
-                  id="nif"
-                  value={nif}
-                  onChange={(e) => setNif(e.target.value)}
-                  onBlur={handleNifBlur}
-                  placeholder="Digite o NIF ou BI"
-                  className="pr-10"
-                />
-                {isNifLoading && (
-                  <div className="absolute right-3 top-3">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Ao informar o NIF, preencheremos alguns campos automaticamente.
-              </p>
-            </div>
-
-            <ClientDetailsForm
-              details={{
-                name: newProfile.name,
-                responsibleName: newProfile.name,
-                idNumber: '',
-                province: '',
-                city: newProfile.city,
-                address: newProfile.billingAddress,
-                postalCode: '',
-                email: newProfile.email,
-                phone: newProfile.phone
-              }}
-              onInputChange={handleInputChange}
-            />
-            
-            <div className="mt-6 flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleCreateProfile}>
-                Criar Perfil
-              </Button>
-            </div>
-          </div>
+          <ProfileForm
+            nif={nif}
+            onNifChange={setNif}
+            onNifSearch={handleNifSearch}
+            isNifLoading={isNifLoading}
+            nifError={nifError}
+            newProfile={newProfile}
+            onInputChange={handleInputChange}
+            onCreateProfile={handleCreateProfile}
+            onCancel={() => setIsOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
