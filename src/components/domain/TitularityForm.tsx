@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from 'lucide-react';
 import { formSchema } from "@/schemas/formSchema";
+import { z } from "zod"; // Add explicit import
 import { useNifValidation } from '@/hooks/useNifValidation';
 import { NifField } from './titularity/NifField';
 import { OwnerInfoFields } from './titularity/OwnerInfoFields';

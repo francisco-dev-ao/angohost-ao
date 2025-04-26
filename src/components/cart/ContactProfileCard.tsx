@@ -93,7 +93,6 @@ export const ContactProfileCard: React.FC<ContactProfileCardProps> = ({
           profiles={profiles}
           selectedProfileId={selectedProfileId}
           onSelectProfile={onSelectProfile}
-          onCreateProfile={() => {}}
         />
       </CardContent>
     </Card>
