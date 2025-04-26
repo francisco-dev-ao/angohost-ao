@@ -15,6 +15,7 @@ import ShoppingCart from "./pages/ShoppingCart";
 import RegisterDomain from "./pages/RegisterDomain";
 import DomainConfig from "./pages/DomainConfig";
 import EmailProfessional from "./pages/EmailProfessional";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/carrinho" element={<ShoppingCart />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/dominios/registrar" element={<RegisterDomain />} />
                 <Route path="/dominios/configurar" element={<DomainConfig />} />
                 <Route path="/email/profissional" element={<EmailProfessional />} />

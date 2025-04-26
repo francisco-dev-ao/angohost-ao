@@ -88,7 +88,7 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     });
     
     toast.success(`Domínio ${domainName}${extension} adicionado ao carrinho!`);
-    navigate('/carrinho');
+    navigate('/carrinho'); // Navigate to cart immediately after adding
   };
 
   const getPrice = () => {
@@ -119,13 +119,13 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
               placeholder="Digite o nome do domínio"
               value={domainName}
               onChange={(e) => setDomainName(e.target.value)}
-              className={`${variant === 'hero' ? 'md:rounded-r-none text-base md:text-lg' : 'text-base'} bg-white pl-10`}
+              className={`${variant === 'hero' ? 'md:rounded-r-none text-base md:text-lg' : 'text-base'} bg-white text-black pl-10 border-primary focus:border-primary focus:ring-primary`}
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           </div>
           
           <Select value={extension} onValueChange={setExtension}>
-            <SelectTrigger className={`${variant === 'hero' ? 'md:w-32 md:rounded-l-none' : 'w-full'} bg-white text-base md:text-lg`}>
+            <SelectTrigger className={`${variant === 'hero' ? 'md:w-32 md:rounded-l-none' : 'w-full'} bg-white text-black text-base md:text-lg border-primary focus:border-primary`}>
               <SelectValue placeholder=".co.ao" />
             </SelectTrigger>
             <SelectContent>

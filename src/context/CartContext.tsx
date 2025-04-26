@@ -25,17 +25,27 @@ export interface Customer {
   idNumber?: string; // Número de Bilhete de Identidade
 }
 
+export interface PaymentInfo {
+  method: 'credit-card' | 'bank-transfer' | 'emis';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  transactionId?: string;
+  reference?: string;
+}
+
 interface CartContextType {
   items: CartItem[];
   customer: Customer | null;
+  paymentInfo: PaymentInfo | null;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   updateItem: (id: string, item: Partial<CartItem>) => void;
   clearCart: () => void;
   setCustomer: (customer: Customer) => void;
+  setPaymentInfo: (info: PaymentInfo) => void;
   getTotalPrice: () => number;
   getItemCount: () => number;
   getRenewalTotal: () => number;
+  generateOrderReference: () => string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -52,11 +62,13 @@ const defaultCustomer: Customer = {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
   
   // Load cart from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('angohost_cart');
     const savedCustomer = localStorage.getItem('angohost_customer');
+    const savedPayment = localStorage.getItem('angohost_payment');
     
     if (savedCart) {
       try {
@@ -73,6 +85,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Failed to parse customer from localStorage', err);
       }
     }
+    
+    if (savedPayment) {
+      try {
+        setPaymentInfo(JSON.parse(savedPayment));
+      } catch (err) {
+        console.error('Failed to parse payment from localStorage', err);
+      }
+    }
   }, []);
   
   // Save cart to localStorage when it changes
@@ -86,6 +106,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('angohost_customer', JSON.stringify(customer));
     }
   }, [customer]);
+  
+  // Save payment info to localStorage when it changes
+  useEffect(() => {
+    if (paymentInfo) {
+      localStorage.setItem('angohost_payment', JSON.stringify(paymentInfo));
+    }
+  }, [paymentInfo]);
   
   const addItem = (newItem: CartItem) => {
     // Check if the item already exists in the cart
@@ -120,6 +147,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const clearCart = () => {
     setItems([]);
+    setPaymentInfo(null);
+    localStorage.removeItem('angohost_payment');
   };
   
   const getTotalPrice = (): number => {
@@ -142,17 +171,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCustomer(customerData);
   };
   
+  const updatePaymentInfo = (info: PaymentInfo) => {
+    setPaymentInfo(info);
+  };
+  
+  // Generate a unique order reference
+  const generateOrderReference = (): string => {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `AH${year}${month}${day}${random}`;
+  };
+  
   const value = {
     items,
     customer,
+    paymentInfo,
     addItem,
     removeItem,
     updateItem,
     clearCart,
     setCustomer: updateCustomer,
+    setPaymentInfo: updatePaymentInfo,
     getTotalPrice,
     getItemCount,
-    getRenewalTotal
+    getRenewalTotal,
+    generateOrderReference
   };
   
   return (

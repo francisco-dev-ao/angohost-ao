@@ -81,6 +81,10 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins font-bold;
   }
+  
+  input, select, textarea {
+    @apply text-foreground;
+  }
 }
 
 .custom-shadow {
@@ -125,4 +129,20 @@
 .form-floating-label input:not(:placeholder-shown) ~ label {
   transform: translateY(-20px) scale(0.85);
   @apply bg-white px-1 text-primary;
+}
+
+/* Fix for input text color */
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
+input.bg-white, 
+select.bg-white {
+  color: #000;
+}
+
+input::placeholder {
+  color: #6b7280;
+  opacity: 1;
 }
