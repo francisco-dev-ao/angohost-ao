@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,11 @@ const Navbar = () => {
   // Estados para gerenciar o menu mobile e autenticação
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const location = useLocation();
+  const isClientArea = location.pathname.startsWith('/dashboard') || 
+                       location.pathname.startsWith('/painel-cliente') ||
+                       location.pathname === '/carrinho' ||
+                       location.pathname === '/checkout';
   
   useEffect(() => {
     // Verifica se o usuário está autenticado
@@ -71,10 +76,10 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className="py-4 border-b sticky top-0 bg-background/95 backdrop-blur-sm z-[100]">
+    <header className={`py-4 border-b sticky top-0 backdrop-blur-sm z-[100] ${isClientArea || isAuthenticated ? 'bg-blue-50' : 'bg-background/95'}`}>
       <div className="container flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 z-30">
+        <Link to={isAuthenticated ? "/painel-cliente" : "/"} className="flex items-center gap-2 z-30">
           <img 
             src="/public/lovable-uploads/b8702021-42ee-4d88-af7a-590e5dae0e08.png" 
             alt="ANGOHOST" 
@@ -87,6 +92,7 @@ const Navbar = () => {
           hostingMenuItems={hostingMenuItems}
           domainMenuItems={domainMenuItems}
           emailMenuItems={emailMenuItems}
+          isAuthenticated={isAuthenticated}
         />
 
         {/* Botões de autenticação */}

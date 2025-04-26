@@ -40,7 +40,7 @@ export const BillingForm: React.FC<BillingFormProps> = ({
       toast.info("Consultando dados do NIF...");
       
       try {
-        const response = await fetch(`http://consulta.edgarsingui.ao/public/consultar-por-nif/${nif}`);
+        const response = await fetch(`https://consulta.edgarsingui.ao/public/consultar-por-nif/${nif}`);
         if (response.ok) {
           const data = await response.json();
           

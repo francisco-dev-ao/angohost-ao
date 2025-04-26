@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,23 +34,27 @@ import DedicatedServersPage from "./pages/DedicatedServersPage";
 // Criando o queryClient fora do componente App
 const queryClient = new QueryClient();
 
-// Layout component que decide se mostra ou não o navbar/footer
+// Layout component that decides whether to show or not the navbar/footer
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const path = location.pathname;
+  const { data: session } = supabase.auth.getSession();
   
-  // Esconder navbar e footer na página de autenticação, dashboard e painel do cliente
+  // Hide navbar and footer on authentication pages, dashboard and client panel
+  // Also hide footer when user is authenticated
   const hideNavbarFooter = 
     path === "/auth" || 
     path.startsWith("/dashboard") ||
     path === "/admin" ||
     path.startsWith("/admin/");
   
+  const hideFooter = hideNavbarFooter || session?.session?.user;
+  
   return (
     <>
       {!hideNavbarFooter && <Navbar />}
       <main className="flex-grow">{children}</main>
-      {!hideNavbarFooter && <Footer />}
+      {!hideFooter && <Footer />}
     </>
   );
 };

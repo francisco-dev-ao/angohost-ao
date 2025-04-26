@@ -15,12 +15,14 @@ interface NavbarDesktopMenuProps {
   hostingMenuItems: Array<{ title: string; href: string; }>;
   domainMenuItems: Array<{ title: string; href: string; }>;
   emailMenuItems: Array<{ title: string; href: string; }>;
+  isAuthenticated?: boolean;
 }
 
 export const NavbarDesktopMenu = ({
   hostingMenuItems,
   domainMenuItems,
   emailMenuItems,
+  isAuthenticated = false
 }: NavbarDesktopMenuProps) => {
   return (
     <div className="hidden lg:block">
@@ -29,12 +31,12 @@ export const NavbarDesktopMenu = ({
           <NavigationMenuItem>
             <NavigationMenuLink asChild>
               <Link 
-                to="/"
+                to={isAuthenticated ? "/painel-cliente" : "/"}
                 className={cn(
                   "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                 )}
               >
-                Início
+                {isAuthenticated ? "Painel do Cliente" : "Início"}
               </Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
@@ -98,6 +100,21 @@ export const NavbarDesktopMenu = ({
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
+          
+          {isAuthenticated && (
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
+                  to="/painel-cliente"
+                  className={cn(
+                    "group inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
+                  )}
+                >
+                  Minha Conta
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          )}
         </NavigationMenuList>
       </NavigationMenu>
     </div>

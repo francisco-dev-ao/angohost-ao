@@ -13,7 +13,7 @@ export const useNifSearch = (
     try {
       toast.info("Consultando dados do NIF...");
       
-      const response = await fetch(`http://consulta.edgarsingui.ao/public/consultar-por-nif/${nif}`);
+      const response = await fetch(`https://consulta.edgarsingui.ao/public/consultar-por-nif/${nif}`);
       
       if (!response.ok) {
         throw new Error('Falha ao consultar o NIF');
