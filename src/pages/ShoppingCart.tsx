@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Trash, ShoppingCart } from 'lucide-react';
+import { Trash, ShoppingCart as CartIcon } from 'lucide-react';
 import { useCart, CartItem } from '@/context/CartContext';
 
 const ShoppingCart = () => {
@@ -135,7 +135,7 @@ const ShoppingCart = () => {
         {items.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
             <div className="flex justify-center mb-4">
-              <ShoppingCart className="w-16 h-16 text-gray-400" />
+              <CartIcon className="w-16 h-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold mb-4">Seu carrinho está vazio</h2>
             <p className="text-gray-600 mb-8">
