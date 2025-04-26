@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   NavigationMenu,
@@ -12,14 +12,32 @@ import {
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+  
   const menuRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+    };
+    
+    checkAuth();
+    
+    // Listen for authentication changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsAuthenticated(!!session);
+      }
+    );
+    
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false);
@@ -29,6 +47,7 @@ const Navbar = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -144,9 +163,15 @@ const Navbar = () => {
           <Link to="/carrinho">
             <Button variant="outline">Carrinho</Button>
           </Link>
-          <Link to="/login">
-            <Button>Área do Cliente</Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/dashboard">
+              <Button>Painel do Cliente</Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button>Área do Cliente</Button>
+            </Link>
+          )}
         </div>
 
         <div className="lg:hidden">
@@ -221,9 +246,15 @@ const Navbar = () => {
               <Link to="/carrinho" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" className="w-full">Carrinho</Button>
               </Link>
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full">Área do Cliente</Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full">Painel do Cliente</Button>
+                </Link>
+              ) : (
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full">Área do Cliente</Button>
+                </Link>
+              )}
             </div>
           </nav>
         </div>

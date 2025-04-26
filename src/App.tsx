@@ -20,6 +20,8 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
 import ClientPanel from "./pages/ClientPanel";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 
 // New Pages
 import HostingPage from "./pages/HostingPage";
@@ -52,6 +54,8 @@ const App = () => (
                 <Route path="/email/profissional" element={<EmailProfessional />} />
                 <Route path="/email/configurar" element={<EmailConfig />} />
                 <Route path="/painel-cliente" element={<ClientPanel />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 
                 <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                 <Route path="/hospedagem/cpanel" element={<HostingPage />} />
