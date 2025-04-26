@@ -8,7 +8,7 @@ interface EmisPaymentOptions {
 }
 
 const API_URL = {
-  TOKEN: '/api/payment/token',
+  TOKEN: 'https://deve.angohost.ao/api/payment/pagar.php',
   FRAME: '/payment-frame'
 };
 
@@ -21,12 +21,13 @@ export async function getEmisPaymentToken(options: EmisPaymentOptions): Promise<
     const response = await fetch(API_URL.TOKEN, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         reference: options.reference,
         amount: options.amount,
-        callbackUrl: options.callbackUrl
+        callbackUrl: `https://deve.angohost.ao/payment/callback`
       })
     });
     
@@ -53,8 +54,13 @@ export async function getEmisPaymentToken(options: EmisPaymentOptions): Promise<
 // Setup event listener for EMIS postMessage
 export function setupEmisMessageListener(onSuccess: (transactionId: string) => void): () => void {
   const listener = (event: MessageEvent) => {
-    // In production, verify the origin
-    const allowedOrigins = ['https://pagamentonline.emis.co.ao', window.location.origin];
+    // Verify the origin - include production domain
+    const allowedOrigins = [
+      'https://pagamentonline.emis.co.ao', 
+      'https://deve.angohost.ao',
+      window.location.origin
+    ];
+    
     if (!allowedOrigins.includes(event.origin)) {
       console.warn('Rejected message from untrusted origin:', event.origin);
       return;
@@ -69,7 +75,6 @@ export function setupEmisMessageListener(onSuccess: (transactionId: string) => v
   
   window.addEventListener('message', listener);
   
-  // Return a function to remove the listener when no longer needed
   return () => {
     window.removeEventListener('message', listener);
   };
