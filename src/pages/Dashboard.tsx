@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,18 +10,20 @@ import { ServicesTab } from '@/components/dashboard/ServicesTab';
 import { InvoicesTab } from '@/components/dashboard/InvoicesTab';
 import { TicketsTab } from '@/components/dashboard/TicketsTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
+import { RequireAuth } from '@/components/auth/RequireAuth';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
       
       if (error || !data?.user) {
-        navigate('/auth');
+        navigate('/auth', { state: { from: location.pathname } });
         return;
       }
       
@@ -34,7 +36,7 @@ const Dashboard = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_OUT') {
-          navigate('/auth');
+          navigate('/auth', { state: { from: location.pathname } });
         } else if (session?.user) {
           setUser(session.user);
         }
@@ -42,7 +44,7 @@ const Dashboard = () => {
     );
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const handleSignOut = async () => {
     try {
@@ -62,53 +64,55 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Painel do Cliente</h1>
-          <p className="text-gray-500">
-            Bem-vindo, {user?.user_metadata?.full_name || user?.email}
-          </p>
-        </div>
-        <div className="mt-4 md:mt-0 flex gap-2">
-          {user?.app_metadata?.is_admin && (
-            <Button variant="outline" onClick={() => navigate('/admin')}>
-              Painel Admin
+    <RequireAuth>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Painel do Cliente</h1>
+            <p className="text-gray-500">
+              Bem-vindo, {user?.user_metadata?.full_name || user?.email}
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0 flex gap-2">
+            {user?.app_metadata?.is_admin && (
+              <Button variant="outline" onClick={() => navigate('/admin')}>
+                Painel Admin
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleSignOut}>
+              Sair
             </Button>
-          )}
-          <Button variant="outline" onClick={handleSignOut}>
-            Sair
-          </Button>
+          </div>
         </div>
+        
+        <Separator className="my-6" />
+        
+        <Tabs defaultValue="servicos" className="w-full">
+          <TabsList className="mb-8 flex flex-wrap gap-2">
+            <TabsTrigger value="servicos">Meus Serviços</TabsTrigger>
+            <TabsTrigger value="faturas">Faturas</TabsTrigger>
+            <TabsTrigger value="tickets">Tickets de Suporte</TabsTrigger>
+            <TabsTrigger value="perfil">Meu Perfil</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="servicos">
+            <ServicesTab />
+          </TabsContent>
+          
+          <TabsContent value="faturas">
+            <InvoicesTab />
+          </TabsContent>
+          
+          <TabsContent value="tickets">
+            <TicketsTab />
+          </TabsContent>
+          
+          <TabsContent value="perfil">
+            <ProfileTab user={user} />
+          </TabsContent>
+        </Tabs>
       </div>
-      
-      <Separator className="my-6" />
-      
-      <Tabs defaultValue="servicos" className="w-full">
-        <TabsList className="mb-8 flex flex-wrap gap-2">
-          <TabsTrigger value="servicos">Meus Serviços</TabsTrigger>
-          <TabsTrigger value="faturas">Faturas</TabsTrigger>
-          <TabsTrigger value="tickets">Tickets de Suporte</TabsTrigger>
-          <TabsTrigger value="perfil">Meu Perfil</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="servicos">
-          <ServicesTab />
-        </TabsContent>
-        
-        <TabsContent value="faturas">
-          <InvoicesTab />
-        </TabsContent>
-        
-        <TabsContent value="tickets">
-          <TicketsTab />
-        </TabsContent>
-        
-        <TabsContent value="perfil">
-          <ProfileTab user={user} />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </RequireAuth>
   );
 };
 
