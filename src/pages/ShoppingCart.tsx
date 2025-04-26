@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ShoppingCart as CartIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { TitularityForm } from '@/components/domain/TitularityForm';
-import { CartItem, ContactProfile } from '@/types/cart';
+import { CartItem } from '@/types/cart';
 import { CartItemsList } from '@/components/cart/CartItemsList';
 import { EmailPlansSection } from '@/components/cart/EmailPlansSection';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
+import { EmptyCart } from '@/components/cart/EmptyCart';
+import { CartHeader } from '@/components/cart/CartHeader';
 import { toast } from 'sonner';
 
 const ShoppingCart = () => {
@@ -29,7 +29,7 @@ const ShoppingCart = () => {
   const hasDomain = items.some(item => item.type === 'domain');
   const hasEmailPlan = items.some(item => item.type === 'email');
   
-  const getContactProfileById = (id: string): ContactProfile | undefined => {
+  const getContactProfileById = (id: string) => {
     return contactProfiles.find(profile => profile.id === id);
   };
   
@@ -49,12 +49,6 @@ const ShoppingCart = () => {
       return;
     }
     navigate('/checkout');
-  };
-
-  const getDomainNames = (): string[] => {
-    return items
-      .filter(item => item.type === 'domain')
-      .map(item => item.details.domainName as string);
   };
 
   const handleTitularitySubmit = async (values: any) => {
@@ -88,21 +82,10 @@ const ShoppingCart = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="container max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Carrinho de Compras</h1>
+        <CartHeader />
         
         {items.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <CartIcon className="w-16 h-16 text-gray-400" />
-            </div>
-            <h2 className="text-2xl font-semibold mb-4">Seu carrinho está vazio</h2>
-            <p className="text-gray-600 mb-8">
-              Adicione produtos ao seu carrinho para continuar.
-            </p>
-            <Button asChild>
-              <Link to="/">Continuar Comprando</Link>
-            </Button>
-          </div>
+          <EmptyCart />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -116,7 +99,9 @@ const ShoppingCart = () => {
                 onAddPlan={addItem}
                 hasDomain={hasDomain}
                 hasEmailPlan={hasEmailPlan}
-                getDomainNames={getDomainNames}
+                getDomainNames={() => items
+                  .filter(item => item.type === 'domain')
+                  .map(item => item.details.domainName as string)}
               />
             </div>
             
@@ -124,6 +109,7 @@ const ShoppingCart = () => {
               <OrderSummary 
                 items={items}
                 getTotalPrice={getTotalPrice}
+                onCheckout={handleCheckout}
               />
             </div>
           </div>
