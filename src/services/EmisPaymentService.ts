@@ -175,8 +175,8 @@ export function getEmisFrameUrl(token: string): string {
   if (token.startsWith('sim-')) {
     console.log('Token simulado detectado, usando URL de simulação');
     
-    // Substituímos a URL do mocky.io (que está falhando) por uma nova URL de simulação
-    return `https://angohost-emis-simulator.netlify.app/sim.html?token=${token}`;
+    // Usar o arquivo local sim.html em vez de depender de serviços externos
+    return `${window.location.origin}/sim.html?token=${token}`;
   }
   
   return realUrl;
