@@ -46,7 +46,7 @@ export const useContactProfileSync = () => {
             city: profile.city || '',
             postalCode: profile.postal_code || '',
             country: profile.country || 'Angola',
-            idNumber: profile.id_number || '',
+            idNumber: '' // Add default empty string for idNumber
           }));
           
           setContactProfiles(formattedProfiles);
@@ -112,7 +112,7 @@ export const useContactProfileSync = () => {
                 city: profile.city || '',
                 postalCode: profile.postal_code || '',
                 country: profile.country || 'Angola',
-                idNumber: profile.id_number || '',  // Use optional chaining in case it's undefined
+                idNumber: '' // Add default empty string for idNumber
               }));
               
               setContactProfiles(formattedProfiles);
