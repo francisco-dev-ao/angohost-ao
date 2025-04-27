@@ -105,7 +105,7 @@ const BankTransferInstructions = ({ reference, amount }: BankTransferInstruction
         </div>
       </div>
       
-      <Alert variant="default" className="bg-amber-50 border-amber-200">
+      <Alert className="bg-amber-50 border-amber-200">
         <AlertCircle className="h-4 w-4 text-amber-600" />
         <AlertTitle>Importante</AlertTitle>
         <AlertDescription>

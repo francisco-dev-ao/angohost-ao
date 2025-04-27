@@ -1,7 +1,15 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import {
+  LayoutDashboard,
+  FileText,
+  Globe,
+  Server,
+  LifeBuoy,
+  Bell,
+  Loader2,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PanelNavigationProps {
   activeTab: string;
@@ -10,93 +18,64 @@ interface PanelNavigationProps {
 }
 
 export const PanelNavigation = ({ activeTab, onTabChange, loading = false }: PanelNavigationProps) => {
-  const location = useLocation();
-  
-  const isActive = (tabName: string) => {
-    return activeTab === tabName || location.pathname === `/painel-cliente/${tabName}`;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-4 border-b">
-        <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-        <span>Carregando...</span>
-      </div>
-    );
-  }
+  const tabs = [
+    {
+      id: 'visao-geral',
+      name: 'Visão Geral',
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      id: 'faturas',
+      name: 'Faturas',
+      icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      id: 'dominios',
+      name: 'Domínios',
+      icon: <Globe className="h-4 w-4" />,
+    },
+    {
+      id: 'hospedagem',
+      name: 'Hospedagem',
+      icon: <Server className="h-4 w-4" />,
+    },
+    {
+      id: 'suporte',
+      name: 'Suporte',
+      icon: <LifeBuoy className="h-4 w-4" />,
+    },
+    {
+      id: 'notificacoes',
+      name: 'Notificações',
+      icon: <Bell className="h-4 w-4" />,
+    },
+  ];
 
   return (
-    <nav className="flex flex-wrap border-b overflow-x-auto">
-      <Link 
-        to="/painel-cliente/visao-geral"
-        className={`py-3 px-4 transition-colors ${isActive('visao-geral') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('visao-geral')}
-      >
-        Visão Geral
-      </Link>
-      <Link 
-        to="/painel-cliente/servicos"
-        className={`py-3 px-4 transition-colors ${isActive('servicos') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('servicos')}
-      >
-        Meus Serviços
-      </Link>
-      <Link 
-        to="/painel-cliente/dominios"
-        className={`py-3 px-4 transition-colors ${isActive('dominios') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('dominios')}
-      >
-        Domínios
-      </Link>
-      <Link 
-        to="/painel-cliente/faturas"
-        className={`py-3 px-4 transition-colors ${isActive('faturas') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('faturas')}
-      >
-        Faturas
-      </Link>
-      <Link 
-        to="/painel-cliente/tickets"
-        className={`py-3 px-4 transition-colors ${isActive('tickets') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('tickets')}
-      >
-        Tickets de Suporte
-      </Link>
-      <Link 
-        to="/painel-cliente/perfil"
-        className={`py-3 px-4 transition-colors ${isActive('perfil') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('perfil')}
-      >
-        Meu Perfil
-      </Link>
-      <Link 
-        to="/painel-cliente/downloads"
-        className={`py-3 px-4 transition-colors ${isActive('downloads') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('downloads')}
-      >
-        Downloads
-      </Link>
-      <Link 
-        to="/painel-cliente/knowledge"
-        className={`py-3 px-4 transition-colors ${isActive('knowledge') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('knowledge')}
-      >
-        Base de Conhecimento
-      </Link>
-      <Link 
-        to="/painel-cliente/notificacoes"
-        className={`py-3 px-4 transition-colors ${isActive('notificacoes') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('notificacoes')}
-      >
-        Notificações
-      </Link>
-      <Link 
-        to="/painel-cliente/afiliados"
-        className={`py-3 px-4 transition-colors ${isActive('afiliados') ? 'border-b-2 border-primary text-primary font-medium' : 'hover:bg-gray-50'}`}
-        onClick={() => onTabChange('afiliados')}
-      >
-        Programa de Afiliados
-      </Link>
+    <nav className="flex items-center overflow-x-auto p-1">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          disabled={loading}
+          className={cn(
+            'flex items-center px-4 py-2 whitespace-nowrap text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+            activeTab === tab.id
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+          )}
+        >
+          {tab.icon}
+          <span className="ml-2">{tab.name}</span>
+        </button>
+      ))}
+
+      {loading && (
+        <div className="ml-2 flex items-center text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          <span className="text-xs">Carregando...</span>
+        </div>
+      )}
     </nav>
   );
 };

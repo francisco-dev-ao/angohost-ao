@@ -31,7 +31,7 @@ const PaymentErrorState = ({
         <p className="mt-2 text-sm text-gray-500 max-w-md">{errorMessage}</p>
       </div>
       
-      <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200">
+      <Alert className="mb-6 bg-amber-50 border-amber-200">
         <AlertTitle className="text-amber-800">Alternativa de pagamento</AlertTitle>
         <AlertDescription className="text-amber-700">
           <p>Você pode tentar novamente ou prosseguir com um pagamento manual usando a referência abaixo:</p>
