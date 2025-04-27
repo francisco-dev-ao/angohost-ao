@@ -3,21 +3,17 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, User, UserPlus } from 'lucide-react';
-import { ContactProfile } from '@/context/CartContext';
+import { useCart } from '@/context/CartContext';
+import { useContactProfile } from '@/context/ContactProfileContext';
 
-interface ContactProfilesListProps {
-  contactProfiles: ContactProfile[];
-  onEditProfile: (profile: ContactProfile) => void;
-  onDeleteProfile: (profileId: string) => void;
-  onNewProfile: () => void;
-}
+export const ContactProfilesList = () => {
+  const { contactProfiles } = useCart();
+  const { 
+    setIsNewProfileDialogOpen, 
+    handleSelectProfileToEdit, 
+    handleDeleteProfile 
+  } = useContactProfile();
 
-export const ContactProfilesList = ({
-  contactProfiles,
-  onEditProfile,
-  onDeleteProfile,
-  onNewProfile
-}: ContactProfilesListProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -27,7 +23,7 @@ export const ContactProfilesList = ({
             Gerencie seus perfis de contato para registro de domínios
           </CardDescription>
         </div>
-        <Button className="flex items-center" onClick={onNewProfile}>
+        <Button className="flex items-center" onClick={() => setIsNewProfileDialogOpen(true)}>
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Perfil
         </Button>
@@ -52,10 +48,10 @@ export const ContactProfilesList = ({
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg">{profile.name}</CardTitle>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => onEditProfile(profile)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleSelectProfileToEdit(profile)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="text-red-500" onClick={() => onDeleteProfile(profile.id)}>
+                      <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProfile(profile.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

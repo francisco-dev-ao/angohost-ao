@@ -4,29 +4,20 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ContactProfile } from '@/context/CartContext';
+import { useContactProfile } from '@/context/ContactProfileContext';
 
-interface ContactProfileDialogsProps {
-  isNewProfileDialogOpen: boolean;
-  setIsNewProfileDialogOpen: (open: boolean) => void;
-  isEditProfileDialogOpen: boolean;
-  setIsEditProfileDialogOpen: (open: boolean) => void;
-  newProfile: Omit<ContactProfile, 'id'>;
-  handleProfileFormChange: (field: keyof Omit<ContactProfile, 'id'>, value: string) => void;
-  handleCreateProfile: () => void;
-  handleUpdateProfile: () => void;
-}
+export const ContactProfileDialogs = () => {
+  const {
+    isNewProfileDialogOpen,
+    setIsNewProfileDialogOpen,
+    isEditProfileDialogOpen,
+    setIsEditProfileDialogOpen,
+    newProfile,
+    handleProfileFormChange,
+    handleCreateProfile,
+    handleUpdateProfile
+  } = useContactProfile();
 
-export const ContactProfileDialogs = ({
-  isNewProfileDialogOpen,
-  setIsNewProfileDialogOpen,
-  isEditProfileDialogOpen,
-  setIsEditProfileDialogOpen,
-  newProfile,
-  handleProfileFormChange,
-  handleCreateProfile,
-  handleUpdateProfile
-}: ContactProfileDialogsProps) => {
   return (
     <>
       <Dialog open={isNewProfileDialogOpen} onOpenChange={setIsNewProfileDialogOpen}>
@@ -88,25 +79,14 @@ export const ContactProfileDialogs = ({
                 placeholder="Endereço completo"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="city">Cidade</Label>
-                <Input 
-                  id="city" 
-                  value={newProfile.city} 
-                  onChange={(e) => handleProfileFormChange('city', e.target.value)}
-                  placeholder="Cidade"
-                />
-              </div>
-              <div>
-                <Label htmlFor="idNumber">Bilhete de Identidade</Label>
-                <Input 
-                  id="idNumber" 
-                  value={newProfile.idNumber || ''} 
-                  onChange={(e) => handleProfileFormChange('idNumber', e.target.value)}
-                  placeholder="Número do BI"
-                />
-              </div>
+            <div>
+              <Label htmlFor="city">Cidade</Label>
+              <Input 
+                id="city" 
+                value={newProfile.city} 
+                onChange={(e) => handleProfileFormChange('city', e.target.value)}
+                placeholder="Cidade"
+              />
             </div>
           </div>
           <DialogFooter>
@@ -174,25 +154,14 @@ export const ContactProfileDialogs = ({
                 placeholder="Endereço completo"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-city">Cidade</Label>
-                <Input 
-                  id="edit-city" 
-                  value={newProfile.city} 
-                  onChange={(e) => handleProfileFormChange('city', e.target.value)}
-                  placeholder="Cidade"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-idNumber">Bilhete de Identidade</Label>
-                <Input 
-                  id="edit-idNumber" 
-                  value={newProfile.idNumber || ''} 
-                  onChange={(e) => handleProfileFormChange('idNumber', e.target.value)}
-                  placeholder="Número do BI"
-                />
-              </div>
+            <div>
+              <Label htmlFor="edit-city">Cidade</Label>
+              <Input 
+                id="edit-city" 
+                value={newProfile.city} 
+                onChange={(e) => handleProfileFormChange('city', e.target.value)}
+                placeholder="Cidade"
+              />
             </div>
           </div>
           <DialogFooter>
