@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClientLogosSection } from '@/components/ClientLogosSection';
+import ClientLogosSection from '@/components/ClientLogosSection';
 
 const About = () => {
   return (

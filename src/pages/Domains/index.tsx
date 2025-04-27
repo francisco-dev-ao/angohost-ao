@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DomainSearchSection } from '@/components/sections/DomainSearchSection';
+import DomainSearchSection from '@/components/sections/DomainSearchSection';
 
 const Domains = () => {
   return (

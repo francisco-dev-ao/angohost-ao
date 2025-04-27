@@ -233,7 +233,7 @@ const Checkout = () => {
             </Card>
             
             {paymentMethod === 'bank-transfer' && (
-              <Alert variant="warning">
+              <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Atenção</AlertTitle>
                 <AlertDescription>

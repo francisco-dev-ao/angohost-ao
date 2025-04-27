@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DomainSearchForm } from '@/components/DomainSearchForm';
+import DomainSearchForm from '@/components/DomainSearchForm';
 
 const DomainCheck = () => {
   return (

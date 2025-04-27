@@ -15,6 +15,11 @@ const Cart = () => {
     navigate('/checkout');
   };
 
+  // Provide a dummy implementation for getContactProfileById
+  const getContactProfileById = (id: string) => {
+    return null; // This will be replaced with actual implementation when needed
+  };
+
   if (items.length === 0) {
     return <EmptyCart />;
   }
@@ -24,7 +29,11 @@ const Cart = () => {
       <CartHeader />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <CartItemsList items={items} onRemoveItem={removeItem} />
+          <CartItemsList 
+            items={items} 
+            onRemoveItem={removeItem} 
+            getContactProfileById={getContactProfileById}
+          />
         </div>
         <div>
           <OrderSummary 
