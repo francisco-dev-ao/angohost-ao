@@ -13,10 +13,9 @@ import {
   InvoicesTab, 
   OverviewTab, 
   DomainsTab,
-  NotificationsTab
+  NotificationsTab,
+  HostingTab
 } from './components/client-panel/tabs';
-import { HostingTab } from './components/client-panel/tabs/HostingTab';
-import SupportTicketsTab from './components/client-panel/tabs/SupportTicketsTab';
 
 export const router = createBrowserRouter([
   {
@@ -39,7 +38,6 @@ export const router = createBrowserRouter([
           { path: 'faturas', element: <InvoicesTab /> },
           { path: 'dominios', element: <DomainsTab /> },
           { path: 'hospedagem', element: <HostingTab /> },
-          { path: 'suporte', element: <SupportTicketsTab /> },
           { path: 'notificacoes', element: <NotificationsTab /> },
         ],
       },
