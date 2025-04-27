@@ -13,6 +13,7 @@ export const useRegisterValidation = () => {
         .from('customers')
         .select('id')
         .eq(field, value)
+        // Use .maybeSingle() instead of .single() to handle potential multiple or no results
         .maybeSingle();
       
       return data !== null;
