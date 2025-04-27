@@ -1,6 +1,8 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CreditCard, AlertCircle } from 'lucide-react';
 import EmisPaymentFrame from '@/components/EmisPaymentFrame';
 import PaymentInstructions from '@/components/payment/frame/PaymentInstructions';
 import PaymentSummary from '@/components/payment/frame/PaymentSummary';
@@ -21,35 +23,45 @@ export const PaymentFrame: React.FC<PaymentFrameProps> = ({
   onBack,
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-xl font-semibold mb-6">Pagamento Multicaixa Express</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <CreditCard className="mr-2 h-5 w-5" />
+          Pagamento Multicaixa Express
+        </CardTitle>
+        <CardDescription>
+          Complete seu pagamento de forma segura
+        </CardDescription>
+      </CardHeader>
       
-      <div className="mb-6">
-        <PaymentInstructions />
-      </div>
-      
-      <div className="mb-6">
-        <PaymentSummary 
-          totalPrice={getTotalPrice()} 
-          orderReference={orderReference} 
+      <CardContent>
+        <div className="mb-6">
+          <PaymentInstructions />
+        </div>
+        
+        <div className="mb-6">
+          <PaymentSummary 
+            totalPrice={getTotalPrice()} 
+            orderReference={orderReference} 
+          />
+        </div>
+        
+        <EmisPaymentFrame 
+          amount={getTotalPrice()}
+          reference={orderReference}
+          onSuccess={onSuccess}
+          onError={onError}
         />
-      </div>
-      
-      <EmisPaymentFrame 
-        amount={getTotalPrice()}
-        reference={orderReference}
-        onSuccess={onSuccess}
-        onError={onError}
-      />
-      
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onBack}
-        className="mt-4 w-full"
-      >
-        Voltar aos dados de pagamento
-      </Button>
-    </div>
+        
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className="mt-4 w-full"
+        >
+          Voltar aos dados de pagamento
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
