@@ -3,10 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, FileText } from "lucide-react";
-
-interface InvoicesSummaryProps {
-  unpaidInvoices?: number;
-}
+import { InvoicesSummaryProps } from './types';
 
 export const InvoicesSummary = ({ unpaidInvoices = 0 }: InvoicesSummaryProps) => {
   return (

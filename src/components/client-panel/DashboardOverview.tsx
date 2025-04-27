@@ -6,18 +6,22 @@ import { DomainsSummary } from './dashboard/DomainsSummary';
 import { InvoicesSummary } from './dashboard/InvoicesSummary';
 import { TicketsSummary } from './dashboard/TicketsSummary';
 import { AnnouncementsSummary } from './dashboard/AnnouncementsSummary';
+import { DashboardOverviewProps } from './dashboard/types';
 
-interface DashboardOverviewProps {
-  userData: any;
-}
+export const DashboardOverview = ({ 
+  userData,
+  services = [],
+  domains = [],
+  invoices = []
+}: DashboardOverviewProps) => {
+  const unpaidInvoices = invoices.filter(inv => inv.status === 'unpaid').length;
 
-export const DashboardOverview = ({ userData }: DashboardOverviewProps) => {
   return (
     <div className="grid gap-6">
       <QuickActions />
-      <ServicesSummary />
-      <DomainsSummary />
-      <InvoicesSummary unpaidInvoices={0} />
+      <ServicesSummary services={services} />
+      <DomainsSummary domains={domains} />
+      <InvoicesSummary unpaidInvoices={unpaidInvoices} />
       <TicketsSummary />
       <AnnouncementsSummary />
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -6,7 +5,7 @@ export interface Service {
   id: string;
   type: 'domain' | 'hosting' | 'email';
   name: string;
-  status: 'active' | 'suspended' | 'expired';
+  status: 'active' | 'suspended' | 'expired' | 'pending';
   expiryDate?: string;
   details?: any;
 }
@@ -29,7 +28,6 @@ export const useCustomerServices = () => {
           return;
         }
         
-        // Get customer ID
         const { data: customerData } = await supabase
           .from('customers')
           .select('id')
@@ -43,48 +41,44 @@ export const useCustomerServices = () => {
         
         const customerId = customerData.id;
         
-        // Fetch hosting services
         const { data: hostingData } = await supabase
           .from('hosting_services')
           .select('*, hosting_plans(*)')
           .eq('customer_id', customerId);
           
-        // Fetch domains
         const { data: domainsData } = await supabase
           .from('domains')
           .select('*')
           .eq('customer_id', customerId);
           
-        // Fetch email accounts
         const { data: emailData } = await supabase
           .from('email_accounts')
           .select('*')
           .eq('customer_id', customerId);
         
-        // Format data for unified services array
         const formattedServices: Service[] = [
           ...(hostingData?.map(hosting => ({
             id: hosting.id,
-            type: 'hosting' as const,
+            type: 'hosting',
             name: hosting.hosting_plans?.name || 'Plano de Hospedagem',
-            status: hosting.status,
+            status: (hosting.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             details: hosting
           })) || []),
           
           ...(domainsData?.map(domain => ({
             id: domain.id,
-            type: 'domain' as const,
+            type: 'domain',
             name: `${domain.name}.${domain.tld}`,
-            status: domain.status,
+            status: (domain.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             expiryDate: domain.expiry_date,
             details: domain
           })) || []),
           
           ...(emailData?.map(email => ({
             id: email.id,
-            type: 'email' as const,
+            type: 'email',
             name: email.email_address,
-            status: email.status,
+            status: (email.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             details: email
           })) || [])
         ];

@@ -1,15 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-export interface ServiceStatusCardProps {
-  type?: string;  // Adding the type prop to fix the error
-  title: string;
-  description: string;
-  status: string;
-  expiryDate?: string;
-  nextPayment?: string;
-}
+import { ServiceStatusCardProps } from '@/components/client-panel/dashboard/types';
 
 export const ServiceStatusCard = ({ 
   type,
@@ -30,6 +23,9 @@ export const ServiceStatusCard = ({
       break;
     case 'expired':
       statusBadge = <Badge className="bg-red-500">Expirado</Badge>;
+      break;
+    case 'suspended':
+      statusBadge = <Badge className="bg-red-500">Suspenso</Badge>;
       break;
     default:
       statusBadge = <Badge variant="outline">{status}</Badge>;
