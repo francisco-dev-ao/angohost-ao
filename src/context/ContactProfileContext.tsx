@@ -3,19 +3,9 @@ import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 import { useCartStorage } from '@/hooks/useCartStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { ContactProfile } from '@/types/cart';
 
-interface ContactProfile {
-  id: string;
-  profileName: string;
-  name: string;
-  email: string;
-  phone?: string;
-  nif?: string;
-  billingAddress?: string;
-  city?: string;
-  postalCode?: string;
-  country?: string;
-}
+const ContactProfileContext = createContext<ContactProfileContextType | undefined>(undefined);
 
 interface ContactProfileContextType {
   isNewProfileDialogOpen: boolean;
@@ -33,14 +23,11 @@ interface ContactProfileContextType {
   contactProfiles: ContactProfile[];
 }
 
-const ContactProfileContext = createContext<ContactProfileContextType | undefined>(undefined);
-
 export const ContactProfileProvider = ({ children }: { children: React.ReactNode }) => {
   const { contactProfiles, setContactProfiles } = useCartStorage();
   const [isNewProfileDialogOpen, setIsNewProfileDialogOpen] = useState(false);
   const [isEditProfileDialogOpen, setIsEditProfileDialogOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<ContactProfile | null>(null);
-
   const [newProfile, setNewProfile] = useState<Omit<ContactProfile, 'id'>>({
     profileName: '',
     name: '',
@@ -49,7 +36,6 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
     nif: '',
     billingAddress: '',
     city: '',
-    postalCode: '',
     country: 'Angola'
   });
 
