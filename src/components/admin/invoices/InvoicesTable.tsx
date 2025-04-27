@@ -3,7 +3,9 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from '@/utils/formatters';
-import { Tag } from 'lucide-react';
+import { Tag, Download, Eye } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface Invoice {
   id: string;
@@ -37,22 +39,33 @@ const getStatusBadge = (status: string) => {
 };
 
 export const InvoicesTable = ({ invoices }: InvoicesTableProps) => {
+  const handleViewInvoice = (invoiceId: string) => {
+    toast.info(`Visualizando fatura ${invoiceId}`);
+    // Implementação real abriria a fatura em modal ou nova página
+  };
+
+  const handleDownloadInvoice = (invoiceId: string) => {
+    toast.success(`Fatura ${invoiceId} baixada com sucesso`);
+    // Implementação real faria download do PDF da fatura
+  };
+  
   return (
     <Card>
       <CardContent className="p-0">
         <div className="rounded-md border">
-          <div className="grid grid-cols-7 p-4 font-medium border-b">
+          <div className="grid grid-cols-8 p-4 font-medium border-b">
             <div>Nº</div>
             <div>Cliente</div>
             <div>Serviço</div>
             <div>Emissão</div>
             <div>Vencimento</div>
             <div>Valor</div>
-            <div className="text-right">Status</div>
+            <div>Status</div>
+            <div className="text-right">Ações</div>
           </div>
           
           {invoices.map((invoice) => (
-            <div key={invoice.id} className="grid grid-cols-7 p-4 items-center border-b">
+            <div key={invoice.id} className="grid grid-cols-8 p-4 items-center border-b">
               <div>{invoice.id}</div>
               <div>{invoice.customer}</div>
               <div>{invoice.service}</div>
@@ -76,7 +89,15 @@ export const InvoicesTable = ({ invoices }: InvoicesTableProps) => {
                   formatCurrency(invoice.amount)
                 )}
               </div>
-              <div className="text-right">{getStatusBadge(invoice.status)}</div>
+              <div>{getStatusBadge(invoice.status)}</div>
+              <div className="text-right flex gap-2 justify-end">
+                <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice.id)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDownloadInvoice(invoice.id)}>
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
