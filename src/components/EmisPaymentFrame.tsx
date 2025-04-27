@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { createEmisPayment, getEmisFrameUrl, generateOrderReference } from '@/services/EmisPaymentService';
+import { createEmisPayment, getEmisFrameUrl, generateOrderReference, checkPhpAvailability } from '@/services/EmisPaymentService';
 import PaymentLoadingState from './payment/PaymentLoadingState';
 import PaymentErrorState from './payment/PaymentErrorState';
 import PaymentFrameDialog from './payment/PaymentFrame';
@@ -31,6 +31,10 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     setErrorMessage(null);
     
     try {
+      // Verificar se PHP está disponível (apenas para informação)
+      const phpAvailable = await checkPhpAvailability();
+      console.log('PHP disponível:', phpAvailable);
+      
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       
@@ -100,7 +104,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       console.error('Erro ao inicializar pagamento:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Erro ao iniciar pagamento');
       
-      if (retryCount < 2) {
+      if (retryCount < 1) {
         toast.info('Tentando novamente conectar ao serviço de pagamento...');
         setRetryCount(prev => prev + 1);
         setTimeout(() => initializePayment(), 2000);
