@@ -19,15 +19,39 @@ export const useBalancePaymentHandler = () => {
         return;
       }
       
-      // Verificar saldo disponível
+      // Get the customer ID and account balance
       const { data: customerData } = await supabase
         .from('customers')
-        .select('account_balance')
+        .select('id, account_balance')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (!customerData || customerData.account_balance < getTotalPrice()) {
+      if (!customerData) {
+        toast.error('Perfil de cliente não encontrado');
+        return;
+      }
+      
+      if (!customerData.account_balance || customerData.account_balance < getTotalPrice()) {
         toast.error('Saldo insuficiente para completar a compra');
+        return;
+      }
+      
+      // Create the order
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          id: orderId,
+          customer_id: customerData.id,
+          total_amount: getTotalPrice(),
+          status: 'pending',
+          payment_method: 'account_balance',
+          payment_id: orderReference,
+          reference: orderReference
+        });
+      
+      if (orderError) {
+        console.error('Error creating order:', orderError);
+        toast.error('Erro ao criar pedido: ' + orderError.message);
         return;
       }
       
