@@ -55,7 +55,6 @@ export interface PaymentInfo {
   reference?: string;
   hasDomain?: boolean;
   hasEmail?: boolean;
-  amount?: number;
 }
 
 export interface CartContextType {

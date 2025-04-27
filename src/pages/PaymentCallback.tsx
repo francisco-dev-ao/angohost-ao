@@ -3,13 +3,13 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { processPaymentCallback, verifyPaymentStatus } from '@/services/PaymentService';
+import { processPaymentCallback } from '@/services/PaymentService';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const PaymentCallback = () => {
   const navigate = useNavigate();
-  const { setPaymentInfo, items, getTotalPrice, clearCart } = useCart();
+  const { setPaymentInfo, items, getTotalPrice } = useCart();
   
   const saveOrderToDatabase = async (userId: string, reference: string, transactionId: string) => {
     try {
@@ -17,7 +17,7 @@ const PaymentCallback = () => {
       const orderId = crypto.randomUUID();
       
       // Cadastrar pedido
-      const { error: orderError } = await supabase
+      const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
           id: orderId,
@@ -27,11 +27,13 @@ const PaymentCallback = () => {
           payment_method: 'emis',
           payment_id: transactionId,
           reference: reference
-        });
+        })
+        .select()
+        .single();
       
       if (orderError) {
         console.error('Erro ao cadastrar pedido:', orderError);
-        return false;
+        return;
       }
       
       // Cadastrar itens do pedido
@@ -73,10 +75,8 @@ const PaymentCallback = () => {
       }
       
       console.log('Pedido e fatura registrados com sucesso!');
-      return true;
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
-      return false;
     }
   };
   
@@ -116,45 +116,30 @@ const PaymentCallback = () => {
           reference: reference || ''
         });
         
-        // Verify payment status (simulation in this case)
-        const paymentVerified = await verifyPaymentStatus(reference || '', 'emis');
-        
         // In emergency case or successful payment
-        if ((hasEmergencyReference || status === 'SUCCESS') && paymentVerified) {
+        if (hasEmergencyReference || status === 'SUCCESS') {
           // Save order to database
-          const savedToDb = await saveOrderToDatabase(
+          await saveOrderToDatabase(
             userId, 
             reference || '', 
             transactionId || `DIRECT-${Date.now()}`
           );
           
-          if (savedToDb) {
-            // Update payment info in the context
-            setPaymentInfo({
-              method: 'emis',
-              status: 'completed',
-              transactionId: transactionId || `DIRECT-${Date.now()}`,
-              reference: reference || ''
-            });
-            
-            // Show success toast
-            toast.success('Pagamento confirmado com sucesso!');
-            
-            // Clear cart after successful payment
-            clearCart();
-            
-            // Redirect to the success page
-            navigate('/payment/success', {
-              state: {
-                amount: getTotalPrice(),
-                reference: reference,
-                description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`
-              }
-            });
-          } else {
-            toast.error('Erro ao processar pedido. Por favor, entre em contato com o suporte.');
-            navigate('/checkout?status=error');
-          }
+          // Update payment info in the context
+          setPaymentInfo({
+            method: 'emis',
+            status: 'completed',
+            transactionId: transactionId || `DIRECT-${Date.now()}`,
+            reference: reference || ''
+          });
+          
+          // Show success toast
+          toast.success('Pagamento confirmado com sucesso!');
+          
+          // Redirect to the success page
+          setTimeout(() => {
+            navigate('/payment/success');
+          }, 1500);
         } else {
           // Handle failed payment
           toast.error('O pagamento falhou ou foi cancelado.');
@@ -168,7 +153,7 @@ const PaymentCallback = () => {
     };
     
     processPayment();
-  }, [navigate, setPaymentInfo, items, getTotalPrice, clearCart]);
+  }, [navigate, setPaymentInfo, items, getTotalPrice]);
   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

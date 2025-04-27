@@ -4,33 +4,26 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, ChevronRight, FileText, Home } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
 
 const PaymentSuccess = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { paymentInfo } = useCart();
   
-  // Get payment details from state or from context
-  const paymentDetails = location.state || 
-    (paymentInfo ? {
-      amount: paymentInfo.amount || 0,
-      reference: paymentInfo.reference || '',
-      description: 'Seu pedido foi processado com sucesso'
-    } : null);
+  // Get payment details from state
+  const paymentDetails = location.state;
   
   // If no payment details, redirect to home
   useEffect(() => {
-    if (!paymentDetails && !paymentInfo) {
+    if (!paymentDetails) {
       navigate('/');
     }
-  }, [paymentDetails, paymentInfo, navigate]);
+  }, [paymentDetails, navigate]);
   
-  if (!paymentDetails && !paymentInfo) {
+  if (!paymentDetails) {
     return null;
   }
   
-  const { amount, reference, description } = paymentDetails || {};
+  const { amount, reference, description } = paymentDetails;
   
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-AO', {
@@ -56,24 +49,18 @@ const PaymentSuccess = () => {
         <CardContent className="pt-6 pb-2">
           <div className="space-y-4">
             <div className="border rounded-md p-4 bg-gray-50">
-              {amount && (
-                <div className="flex justify-between mb-1">
-                  <span className="text-gray-600">Valor Pago:</span>
-                  <span className="font-bold text-lg">{formatCurrency(amount)}</span>
-                </div>
-              )}
-              {description && (
-                <div className="flex justify-between mb-1">
-                  <span className="text-gray-600">Descrição:</span>
-                  <span className="font-medium">{description}</span>
-                </div>
-              )}
-              {reference && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Referência:</span>
-                  <span className="font-medium">{reference}</span>
-                </div>
-              )}
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">Valor Pago:</span>
+                <span className="font-bold text-lg">{formatCurrency(amount)}</span>
+              </div>
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">Descrição:</span>
+                <span className="font-medium">{description}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Referência:</span>
+                <span className="font-medium">{reference}</span>
+              </div>
             </div>
             
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">

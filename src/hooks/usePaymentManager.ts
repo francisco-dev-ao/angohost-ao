@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
-import { useAccountBalance } from '@/hooks/useAccountBalance';
 
 export const usePaymentManager = () => {
   const navigate = useNavigate();
@@ -15,10 +14,7 @@ export const usePaymentManager = () => {
     setPaymentInfo, 
     generateOrderReference,
     selectedContactProfileId,
-    clearCart
   } = useCart();
-  
-  const { deductFunds } = useAccountBalance();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentFrame, setShowPaymentFrame] = useState(false);
@@ -40,7 +36,7 @@ export const usePaymentManager = () => {
       
       if (orderError) {
         console.error('Erro ao cadastrar pedido:', orderError);
-        return false;
+        return;
       }
       
       const orderItems = items.map(item => ({
@@ -59,7 +55,6 @@ export const usePaymentManager = () => {
       
       if (itemsError) {
         console.error('Erro ao cadastrar itens do pedido:', itemsError);
-        return false;
       }
       
       const invoiceNumber = `INV-${orderReference}`;
@@ -76,13 +71,10 @@ export const usePaymentManager = () => {
       
       if (invoiceError) {
         console.error('Erro ao gerar fatura:', invoiceError);
-        return false;
       }
       
-      return true;
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
-      return false;
     }
   };
 
@@ -91,39 +83,23 @@ export const usePaymentManager = () => {
     if (!user) return;
     
     const orderId = crypto.randomUUID();
-    const savedToDb = await saveOrderToDatabase(orderId, user.id);
-    
-    if (!savedToDb) {
-      toast.error("Erro ao processar pedido. Por favor, tente novamente.");
-      return;
-    }
+    await saveOrderToDatabase(orderId, user.id);
     
     setPaymentInfo({
-      method: paymentMethod || 'emis',
+      method: 'emis',
       status: 'completed',
       transactionId,
-      reference: orderReference,
-      amount: getTotalPrice()
+      reference: orderReference
     });
     
     toast.success('Pagamento processado com sucesso!');
-    
-    // Clear cart after successful payment
-    clearCart();
-    
-    navigate('/payment/success', {
-      state: {
-        amount: getTotalPrice(),
-        reference: orderReference,
-        description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`
-      }
-    });
+    navigate('/payment/success');
   };
   
   const handlePaymentError = (error: string) => {
     toast.error(`Erro no pagamento: ${error}`);
     setPaymentInfo({
-      method: paymentMethod || 'emis',
+      method: 'emis',
       status: 'failed',
       reference: orderReference
     });
@@ -157,96 +133,21 @@ export const usePaymentManager = () => {
     const ref = generateOrderReference();
     setOrderReference(ref);
     
-    // Save order to database first
-    const orderId = crypto.randomUUID();
-    const totalAmount = getTotalPrice();
-    
-    if (paymentMethod === 'account_balance') {
-      // Try to deduct from account balance
-      const success = await deductFunds(totalAmount, `Pagamento de pedido #${ref}`);
-      
-      if (success) {
-        // Update the payment info with success status
-        const savedToDb = await saveOrderToDatabase(orderId, user.id);
-        
-        if (savedToDb) {
-          // Update order status to completed
-          await supabase
-            .from('orders')
-            .update({ 
-              status: 'completed',
-              payment_method: 'account_balance' 
-            })
-            .eq('id', orderId);
-            
-          // Update invoice status to paid
-          await supabase
-            .from('invoices')
-            .update({ 
-              status: 'paid',
-              paid_date: new Date().toISOString() 
-            })
-            .eq('order_id', orderId);
-            
-          setPaymentInfo({
-            method: 'account_balance',
-            status: 'completed',
-            reference: ref,
-            amount: totalAmount
-          });
-          
-          toast.success('Pagamento processado com sucesso!');
-          
-          // Clear cart after successful payment
-          clearCart();
-          
-          navigate('/payment/success', {
-            state: {
-              amount: totalAmount,
-              reference: ref,
-              description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`
-            }
-          });
-        } else {
-          toast.error('Erro ao registrar pedido. Tente novamente.');
-        }
-      } else {
-        toast.error('Saldo insuficiente para completar o pagamento');
-      }
-      
-      setIsLoading(false);
-      return;
-    }
-    
-    const savedToDb = await saveOrderToDatabase(orderId, user.id);
-    
-    if (!savedToDb) {
-      toast.error('Erro ao salvar pedido. Tente novamente.');
-      setIsLoading(false);
-      return;
-    }
-    
     if (paymentMethod === 'emis') {
       setShowPaymentFrame(true);
     } else {
+      const orderId = crypto.randomUUID();
+      await saveOrderToDatabase(orderId, user.id);
+      
       setPaymentInfo({
         method: paymentMethod,
         status: 'pending',
         reference: ref,
-        hasDomain: hasDomain,
-        amount: totalAmount
+        hasDomain: hasDomain
       });
       
       toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');
-      
-      navigate('/payment/instructions', { 
-        state: { 
-          amount: totalAmount, 
-          reference: ref,
-          description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`,
-          paymentMethod: paymentMethod
-        } 
-      });
+      navigate('/payment/success');
     }
     
     setIsLoading(false);

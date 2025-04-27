@@ -1,9 +1,12 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { PaymentMethod } from '@/types/payment';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CreditCard, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import EmisPaymentFrame from '@/components/EmisPaymentFrame';
+import PaymentInstructions from '@/components/payment/frame/PaymentInstructions';
+import PaymentSummary from '@/components/payment/frame/PaymentSummary';
+import { toast } from 'sonner';
 
 interface PaymentFrameProps {
   orderReference: string;
@@ -11,7 +14,7 @@ interface PaymentFrameProps {
   onSuccess: (transactionId: string) => void;
   onError: (error: string) => void;
   onBack: () => void;
-  paymentMethod?: PaymentMethod;
+  paymentMethod?: string;
 }
 
 export const PaymentFrame: React.FC<PaymentFrameProps> = ({
@@ -20,87 +23,95 @@ export const PaymentFrame: React.FC<PaymentFrameProps> = ({
   onSuccess,
   onError,
   onBack,
-  paymentMethod
+  paymentMethod = 'emis'
 }) => {
-  // In a real app, this would contain an iframe or form to process the payment through the payment gateway
-  // For demonstration purposes, we'll just simulate a payment process
+  const [isProcessing, setIsProcessing] = useState(false);
   
-  const [loading, setLoading] = React.useState<boolean>(false);
-  
-  const handlePaymentSimulation = () => {
-    setLoading(true);
+  const handleManualPaymentSuccess = () => {
+    setIsProcessing(true);
+    toast.success('Registrando seu pagamento...');
     
-    // Simulate processing delay
     setTimeout(() => {
-      setLoading(false);
-      // Simulate successful payment - 90% success rate
-      if (Math.random() < 0.9) {
-        onSuccess(`trans-${Date.now()}`);
-      } else {
-        onError('Pagamento falhou por um erro simulado');
-      }
+      const simulatedTransactionId = `manual-${Date.now()}`;
+      onSuccess(simulatedTransactionId);
+      setIsProcessing(false);
     }, 2000);
   };
-  
+
   return (
-    <Card className="max-w-lg mx-auto">
+    <Card>
       <CardHeader>
-        <Button variant="ghost" className="w-fit p-0 mb-2" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar
-        </Button>
-        <CardTitle>Processamento de Pagamento</CardTitle>
+        <CardTitle className="flex items-center">
+          <CreditCard className="mr-2 h-5 w-5" />
+          {paymentMethod === 'emis' 
+            ? 'Pagamento Multicaixa Express' 
+            : 'Transferência Bancária'}
+        </CardTitle>
+        <CardDescription>
+          {paymentMethod === 'emis'
+            ? 'Complete seu pagamento de forma segura'
+            : 'Siga as instruções para realizar a transferência'}
+        </CardDescription>
       </CardHeader>
+      
       <CardContent>
-        <div className="space-y-6">
-          <div className="bg-gray-50 border rounded-md p-4">
-            <div className="flex justify-between mb-2">
-              <span className="text-sm text-gray-500">Referência:</span>
-              <span>{orderReference}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Método:</span>
-              <span>
-                {paymentMethod === 'emis' ? 'EMIS (Multicaixa)' : 
-                paymentMethod === 'bank-transfer' ? 'Transferência Bancária' :
-                paymentMethod === 'credit-card' ? 'Cartão de Crédito' :
-                'Desconhecido'}
-              </span>
-            </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-sm text-gray-500">Valor:</span>
-              <span className="font-bold">
-                {new Intl.NumberFormat('pt-AO', {
-                  style: 'currency',
-                  currency: 'AOA',
-                  minimumFractionDigits: 0
-                }).format(getTotalPrice())}
-              </span>
-            </div>
-          </div>
-          
-          <div className="rounded-md border p-6 text-center">
-            <p className="mb-4">
-              Este é um simulador de pagamento para fins de demonstração.
-              Em um ambiente de produção, aqui seria exibido o formulário de pagamento real do EMIS ou outro provedor.
-            </p>
-            
-            <Button 
-              onClick={handlePaymentSimulation}
-              disabled={loading}
+        <div className="mb-6">
+          <PaymentInstructions 
+            reference={orderReference}
+            amount={getTotalPrice()}
+            paymentMethod={paymentMethod}
+          />
+        </div>
+        
+        <div className="mb-6">
+          <PaymentSummary 
+            totalPrice={getTotalPrice()} 
+            orderReference={orderReference} 
+          />
+        </div>
+        
+        {paymentMethod === 'emis' ? (
+          <EmisPaymentFrame 
+            amount={getTotalPrice()}
+            reference={orderReference}
+            onSuccess={onSuccess}
+            onError={onError}
+          />
+        ) : (
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="default"
               className="w-full"
+              onClick={handleManualPaymentSuccess}
+              disabled={isProcessing}
             >
-              {loading ? (
+              {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Processando...
                 </>
               ) : (
-                'Simular Pagamento'
+                'Já realizei o pagamento'
               )}
             </Button>
+            
+            <p className="text-sm text-center text-muted-foreground">
+              Clique apenas após realizar a transferência conforme as instruções acima.
+            </p>
           </div>
-        </div>
+        )}
+        
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onBack}
+          className="mt-4 w-full"
+          disabled={isProcessing}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar aos dados de pagamento
+        </Button>
       </CardContent>
     </Card>
   );
