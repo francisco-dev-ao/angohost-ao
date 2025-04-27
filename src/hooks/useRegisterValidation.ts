@@ -20,7 +20,7 @@ export const useRegisterValidation = () => {
         return false;
       }
       
-      return !!data;
+      return data !== null;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
