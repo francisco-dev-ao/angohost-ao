@@ -50,7 +50,7 @@ export interface Customer {
 }
 
 export interface PaymentInfo {
-  method: 'credit-card' | 'bank-transfer' | 'emis' | 'account_balance';
+  method: 'credit-card' | 'bank-transfer' | 'emis';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   transactionId?: string;
   reference?: string;
@@ -82,5 +82,4 @@ export interface CartContextType {
   getContactProfiles: () => ContactProfile[];
   setSelectedContactProfile: (id: string | null) => void;
   selectedContactProfileId: string | null;
-  hasDomain?: boolean;
 }

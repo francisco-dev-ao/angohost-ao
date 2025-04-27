@@ -9,19 +9,15 @@ export const useCartItemsStorage = () => {
     const savedCart = localStorage.getItem('angohost_cart');
     if (savedCart) {
       try {
-        const parsedCart = JSON.parse(savedCart);
-        setItems(Array.isArray(parsedCart) ? parsedCart : []);
+        setItems(JSON.parse(savedCart));
       } catch (err) {
         console.error('Failed to parse cart from localStorage', err);
-        setItems([]);
       }
     }
   }, []);
 
   useEffect(() => {
-    if (items && Array.isArray(items)) {
-      localStorage.setItem('angohost_cart', JSON.stringify(items));
-    }
+    localStorage.setItem('angohost_cart', JSON.stringify(items));
   }, [items]);
 
   return { items, setItems };

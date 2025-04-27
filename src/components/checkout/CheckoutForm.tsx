@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ interface CheckoutFormProps {
   isLoading: boolean;
   onSelectPaymentMethod: (method: PaymentMethod) => void;
   onProcessPayment: () => void;
-  onCreateOrderWithoutPayment: () => void;
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({
@@ -20,7 +20,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   isLoading,
   onSelectPaymentMethod,
   onProcessPayment,
-  onCreateOrderWithoutPayment
 }) => {
   const { customer } = useCart();
   const accountBalance = customer?.account_balance || 0;
@@ -62,11 +61,11 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           accountBalance={accountBalance}
         />
         
-        <div className="mt-8 flex flex-col sm:flex-row gap-4">
+        <div className="mt-8 flex justify-end">
           <Button
             onClick={onProcessPayment}
             disabled={!paymentMethod || isLoading || (paymentMethod === 'account_balance' && !canUseAccountBalance)}
-            className="flex-1"
+            className="w-full md:w-auto"
           >
             {isLoading ? (
               <>
@@ -74,15 +73,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 Processando...
               </>
             ) : 'Processar Pagamento'}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={onCreateOrderWithoutPayment}
-            disabled={isLoading}
-            className="flex-1"
-          >
-            Criar Pedido sem Pagamento
           </Button>
         </div>
       </CardContent>

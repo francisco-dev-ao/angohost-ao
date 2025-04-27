@@ -457,10 +457,8 @@ export type Database = {
           due_date: string | null
           id: string
           invoice_number: string
-          notification_sent: boolean | null
           order_id: string
           paid_date: string | null
-          payment_deadline: string | null
           payment_method: string | null
           status: string | null
           updated_at: string
@@ -472,10 +470,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_number: string
-          notification_sent?: boolean | null
           order_id: string
           paid_date?: string | null
-          payment_deadline?: string | null
           payment_method?: string | null
           status?: string | null
           updated_at?: string
@@ -487,10 +483,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           invoice_number?: string
-          notification_sent?: boolean | null
           order_id?: string
           paid_date?: string | null
-          payment_deadline?: string | null
           payment_method?: string | null
           status?: string | null
           updated_at?: string
@@ -544,60 +538,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string | null
-          customer_id: string
-          id: string
-          message: string
-          reference_id: string | null
-          scheduled_for: string | null
-          sent_at: string | null
-          status: string | null
-          title: string
-          type: string
-        }
-        Insert: {
-          created_at?: string | null
-          customer_id: string
-          id?: string
-          message: string
-          reference_id?: string | null
-          scheduled_for?: string | null
-          sent_at?: string | null
-          status?: string | null
-          title: string
-          type: string
-        }
-        Update: {
-          created_at?: string | null
-          customer_id?: string
-          id?: string
-          message?: string
-          reference_id?: string | null
-          scheduled_for?: string | null
-          sent_at?: string | null
-          status?: string | null
-          title?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_customer"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       order_items: {
         Row: {
