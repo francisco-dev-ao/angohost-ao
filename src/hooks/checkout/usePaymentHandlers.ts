@@ -27,7 +27,7 @@ export const usePaymentHandlers = () => {
       await saveOrderToDatabase(orderId, user.id);
       
       setPaymentInfo({
-        method: 'emis',
+        method: paymentMethod || 'emis',
         status: 'completed',
         transactionId,
         reference: orderReference,
@@ -45,7 +45,7 @@ export const usePaymentHandlers = () => {
   const handlePaymentError = (error: string) => {
     toast.error(`Erro no pagamento: ${error}`);
     setPaymentInfo({
-      method: 'emis',
+      method: paymentMethod || 'emis',
       status: 'failed',
       reference: orderReference,
       hasDomain: hasDomain()
@@ -79,8 +79,12 @@ export const usePaymentHandlers = () => {
       case 'bank-transfer':
         await handleBankTransfer(orderId, orderReference);
         break;
+      case 'credit-card':
+        // Em desenvolvimento
+        toast.error('Pagamento com cartão de crédito em desenvolvimento');
+        break;
       default:
-        await handleBankTransfer(orderId, orderReference);
+        toast.error('Método de pagamento não suportado');
     }
   };
 
@@ -94,10 +98,10 @@ export const usePaymentHandlers = () => {
       return;
     }
 
-    const orderId = crypto.randomUUID();
-    const ref = orderReference;
-    
     try {
+      const orderId = crypto.randomUUID();
+      const ref = orderReference;
+      
       await saveOrderToDatabase(orderId, user.id);
       
       setPaymentInfo({
