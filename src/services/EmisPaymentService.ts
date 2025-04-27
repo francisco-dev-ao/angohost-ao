@@ -32,47 +32,77 @@ interface EmisPaymentResponse {
   error?: string;
 }
 
-// Função para realizar o pagamento via PHP bridge
+// Retentativas e timeout para solicitações
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 2000; // 2 segundos
+const REQUEST_TIMEOUT = 15000; // 15 segundos
+
+// Função para realizar o pagamento via PHP bridge com retentativas
 const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResponse> => {
-  try {
-    const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
-    console.log('Iniciando pagamento via PHP bridge:', phpEndpoint);
-    
-    const response = await fetch(phpEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        reference: data.reference,
-        amount: data.amount,
-        token: config.frameToken,
-        callbackUrl: config.callbackUrl,
-        // Importante: Não enviar dados do cliente para que o EMIS solicite no iframe
-        mobile: 'PAYMENT',  // Forçar solicitação manual do número
-        card: 'DISABLED',
-        qrCode: 'PAYMENT'
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erro no script PHP: ${response.status}`);
+  let retries = 0;
+  
+  while (retries <= MAX_RETRIES) {
+    try {
+      const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
+      console.log(`Tentativa ${retries + 1}: Iniciando pagamento via PHP bridge:`, phpEndpoint);
+      
+      // Criar uma promessa com timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Tempo limite esgotado')), REQUEST_TIMEOUT);
+      });
+      
+      // Fazer a requisição com fetch
+      const fetchPromise = fetch(phpEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        },
+        body: JSON.stringify({
+          reference: data.reference,
+          amount: data.amount,
+          token: config.frameToken,
+          callbackUrl: config.callbackUrl,
+          mobile: 'PAYMENT',
+          card: 'DISABLED',
+          qrCode: 'PAYMENT'
+        })
+      });
+      
+      // Aguardar a primeira promessa a resolver (fetch ou timeout)
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      if (!response.ok) {
+        const statusText = response.statusText;
+        const errorText = await response.text().catch(() => 'Sem detalhes do erro');
+        throw new Error(`Erro no script PHP: ${response.status} ${statusText}. ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Resposta do EMIS via PHP:', result);
+      return result;
+    } catch (error) {
+      console.error(`Tentativa ${retries + 1} falhou:`, error);
+      
+      retries++;
+      
+      if (retries <= MAX_RETRIES) {
+        console.log(`Aguardando ${RETRY_DELAY}ms antes da próxima tentativa...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      } else {
+        console.error('Todas as tentativas falharam');
+        throw error;
+      }
     }
-    
-    const result = await response.json();
-    console.log('Resposta do EMIS via PHP:', result);
-    return result;
-  } catch (error) {
-    console.error('Erro fatal no gateway de pagamento:', error);
-    throw error;
   }
+  
+  throw new Error('Erro fatal no gateway de pagamento após várias tentativas');
 };
 
 export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisPaymentResponse> {
   console.log('Iniciando pagamento EMIS com referência:', data.reference);
   
   try {
-    // Usar sempre o PHP bridge seguindo as regras do EMIS para "Compra a um tempo"
     return await useFallbackPhp(data);
   } catch (error) {
     console.error('Erro fatal no pagamento:', error);
@@ -95,9 +125,10 @@ export async function checkPhpAvailability(): Promise<boolean> {
     const response = await fetch(`${window.location.origin}/api/php-check.php?t=${timestamp}`, {
       method: 'GET',
       headers: {
-        'Cache-Control': 'no-cache, no-store'
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       },
-      cache: 'no-store'
+      cache: 'no-store',
+      credentials: 'omit'
     });
     
     if (response.ok) {

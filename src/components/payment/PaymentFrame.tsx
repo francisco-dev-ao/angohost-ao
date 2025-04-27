@@ -11,9 +11,17 @@ interface PaymentFrameDialogProps {
 }
 
 const PaymentFrameDialog = ({ isOpen, onClose, frameUrl }: PaymentFrameDialogProps) => {
+  // Função para lidar com erros do iframe
   const handleIframeError = () => {
     console.error('Erro ao carregar o iframe de pagamento');
   };
+  
+  // Logging para debug
+  React.useEffect(() => {
+    if (isOpen && frameUrl) {
+      console.log('Abrindo iframe de pagamento:', frameUrl);
+    }
+  }, [isOpen, frameUrl]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

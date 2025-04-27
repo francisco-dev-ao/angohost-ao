@@ -40,18 +40,26 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     initializePayment();
   }, []);
 
+  useEffect(() => {
+    // Abrir o modal de pagamento automaticamente quando o frameUrl estiver disponível
+    if (frameUrl && !isOpen && !errorMessage) {
+      setIsOpen(true);
+    }
+  }, [frameUrl]);
+
   const handleClose = () => {
     setIsOpen(false);
     onError('Pagamento cancelado pelo usuário');
   };
 
   const handleRetry = () => {
+    toast.info('Tentando novamente conectar ao serviço de pagamento...');
     resetPayment();
     initializePayment();
   };
 
   const handleDirectPayment = () => {
-    toast.success('Processando pagamento direto...');
+    toast.success('Processando pagamento manual...');
     const simulatedTransactionId = `direct-${Date.now()}`;
     const callbackParams = new URLSearchParams({
       reference: reference,
@@ -70,9 +78,13 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   }
 
   if (errorMessage || useDirectPayment) {
+    const errorMsg = errorMessage?.includes('PHP') 
+      ? 'Erro no script PHP: 400. O serviço de pagamento está temporariamente indisponível.'
+      : errorMessage || 'Não foi possível iniciar o pagamento EMIS automaticamente.';
+      
     return (
       <PaymentErrorState
-        errorMessage={errorMessage || 'Não foi possível iniciar o pagamento EMIS automaticamente.'}
+        errorMessage={errorMsg}
         onRetry={handleRetry}
         onDirectPayment={handleDirectPayment}
         onCancel={() => onError('Usuário cancelou após erro')}
