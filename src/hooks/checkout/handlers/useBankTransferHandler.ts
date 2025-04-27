@@ -22,7 +22,7 @@ export const useBankTransferHandler = () => {
       method: 'bank-transfer',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomain()
     });
     
     toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');

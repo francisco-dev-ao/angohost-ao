@@ -1,4 +1,3 @@
-
 export interface CartItem {
   id: string;
   type: 'domain' | 'hosting' | 'vps' | 'email' | 'office365';
@@ -73,7 +72,7 @@ export interface CartContextType {
   getItemCount: () => number;
   getRenewalTotal: () => number;
   generateOrderReference: () => string;
-  hasDomainInCart: () => boolean;
+  hasDomain: () => boolean;
   hasEmailInCart: () => boolean;
   getDomainNames: () => string[];
   addContactProfile: (profile: Omit<ContactProfile, 'id'> | ContactProfile) => string;

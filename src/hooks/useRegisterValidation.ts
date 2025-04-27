@@ -9,12 +9,13 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
-        .single();
+        .maybeSingle();
       
+      if (error) throw error;
       return Boolean(data);
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);

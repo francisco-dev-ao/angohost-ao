@@ -24,7 +24,7 @@ export const useEmisPaymentHandler = () => {
       method: 'emis',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomain()
     });
   };
 

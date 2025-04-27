@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
@@ -30,7 +31,7 @@ export const usePaymentHandlers = () => {
         status: 'completed',
         transactionId,
         reference: orderReference,
-        hasDomain: hasDomain
+        hasDomain: hasDomain()
       });
       
       toast.success('Pagamento processado com sucesso!');
@@ -46,7 +47,8 @@ export const usePaymentHandlers = () => {
     setPaymentInfo({
       method: 'emis',
       status: 'failed',
-      reference: orderReference
+      reference: orderReference,
+      hasDomain: hasDomain()
     });
   };
   
@@ -102,7 +104,7 @@ export const usePaymentHandlers = () => {
         method: 'emis',
         status: 'pending',
         reference: ref,
-        hasDomain: hasDomain
+        hasDomain: hasDomain()
       });
       
       toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');

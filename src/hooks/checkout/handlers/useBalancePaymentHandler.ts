@@ -22,7 +22,7 @@ export const useBalancePaymentHandler = () => {
       method: 'account_balance',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomain()
     });
     
     toast.success('Pedido registrado com sucesso! Processando pagamento com saldo da conta.');
