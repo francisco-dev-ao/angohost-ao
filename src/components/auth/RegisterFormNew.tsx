@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,16 @@ import { useNifSearch } from '@/hooks/useNifSearch';
 import { Customer } from '@/types/cart';
 import { Card, CardContent } from '@/components/ui/card';
 
-interface RegisterFormData extends Customer {
+interface RegisterFormData {
+  name: string;
+  email: string;
+  phone: string;
+  nif: string;
+  idNumber: string;
+  billingAddress: string;
+  city: string;
+  country: string;
+  postalCode: string;
   password: string;
 }
 
@@ -47,7 +55,6 @@ export const RegisterFormNew = () => {
     }
   });
 
-  // Get redirect URL from session storage
   useEffect(() => {
     const getRedirectUrl = () => {
       return sessionStorage.getItem('redirect_after_login') || '/dashboard';
@@ -56,7 +63,6 @@ export const RegisterFormNew = () => {
     console.log('Redirect URL after login will be:', getRedirectUrl());
   }, []);
 
-  // Check for existing account
   const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     try {
       if (field === 'email') {
@@ -82,7 +88,6 @@ export const RegisterFormNew = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validar formulário
     if (!formData.nif.trim()) {
       toast.error("O NIF ou BI é obrigatório para criar uma conta");
       return;
@@ -101,7 +106,6 @@ export const RegisterFormNew = () => {
     try {
       setLoading(true);
       
-      // Check for duplicate email
       const emailExists = await checkExistingAccount('email', formData.email);
       if (emailExists) {
         toast.error("Este email já está registrado no sistema");
@@ -109,7 +113,6 @@ export const RegisterFormNew = () => {
         return;
       }
 
-      // Check for duplicate phone
       const phoneExists = await checkExistingAccount('phone', formData.phone);
       if (phoneExists) {
         toast.error("Este número de telefone já está registrado no sistema");
@@ -117,7 +120,6 @@ export const RegisterFormNew = () => {
         return;
       }
 
-      // Check for duplicate NIF
       const nifExists = await checkExistingAccount('nif', formData.nif);
       if (nifExists) {
         toast.error("Este NIF já está registrado no sistema");
@@ -125,7 +127,6 @@ export const RegisterFormNew = () => {
         return;
       }
       
-      // Cadastro com Supabase
       const { error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -144,7 +145,6 @@ export const RegisterFormNew = () => {
       
       toast.success('Conta criada com sucesso! Verifique seu email.');
       
-      // Redirecionar para a página anterior (carrinho se estiver)
       const redirectUrl = sessionStorage.getItem('redirect_after_login');
       if (redirectUrl) {
         console.log('Redirecionando após registro para:', redirectUrl);
@@ -164,11 +164,8 @@ export const RegisterFormNew = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Para validação de telefone
     if (name === 'phone') {
-      // Remove caracteres não numéricos
       const numericValue = value.replace(/\D/g, '');
-      // Limita a 9 dígitos
       const trimmedValue = numericValue.slice(0, 9);
       setFormData(prev => ({ ...prev, [name]: trimmedValue }));
       return;
