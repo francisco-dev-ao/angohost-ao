@@ -661,6 +661,7 @@ export type Database = {
           invoice_number: string | null
           payment_id: string | null
           payment_method: string | null
+          reference: string | null
           status: string | null
           total_amount: number
           updated_at: string
@@ -672,6 +673,7 @@ export type Database = {
           invoice_number?: string | null
           payment_id?: string | null
           payment_method?: string | null
+          reference?: string | null
           status?: string | null
           total_amount: number
           updated_at?: string
@@ -683,6 +685,7 @@ export type Database = {
           invoice_number?: string | null
           payment_id?: string | null
           payment_method?: string | null
+          reference?: string | null
           status?: string | null
           total_amount?: number
           updated_at?: string

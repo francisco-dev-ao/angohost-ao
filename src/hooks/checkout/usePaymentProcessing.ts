@@ -5,11 +5,13 @@ import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ensureCustomerExists } from '@/utils/customerUtils';
 
 export const usePaymentProcessing = () => {
   const navigate = useNavigate();
   const { 
     items, 
+    customer,
     paymentInfo, 
     getTotalPrice,
     setPaymentInfo, 
@@ -26,15 +28,15 @@ export const usePaymentProcessing = () => {
     try {
       console.log('Saving order to database:', { orderId, userId });
       
-      // Get the customer ID first
-      const { data: customerData } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
+      if (!customer) {
+        throw new Error('Customer information is missing');
+      }
       
-      if (!customerData) {
-        throw new Error('Customer not found');
+      // Ensure customer exists and get their ID
+      const { id: customerId, error: customerError } = await ensureCustomerExists(userId, customer);
+      
+      if (customerError || !customerId) {
+        throw new Error('Failed to create/fetch customer');
       }
       
       // Create the order
@@ -42,7 +44,7 @@ export const usePaymentProcessing = () => {
         .from('orders')
         .insert({
           id: orderId,
-          customer_id: customerData.id,
+          customer_id: customerId,
           total_amount: getTotalPrice(),
           status: paymentMethod === 'emis' ? 'processing' : 'pending',
           payment_method: paymentMethod || 'unknown',
@@ -80,7 +82,7 @@ export const usePaymentProcessing = () => {
         .from('invoices')
         .insert({
           order_id: orderId,
-          customer_id: customerData.id,
+          customer_id: customerId,
           invoice_number: invoiceNumber,
           amount: getTotalPrice(),
           status: 'unpaid',
