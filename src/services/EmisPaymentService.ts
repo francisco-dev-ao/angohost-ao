@@ -1,3 +1,4 @@
+
 interface EmisPaymentConfig {
   frameToken: string;
   callbackUrl: string;
@@ -31,7 +32,7 @@ interface EmisPaymentResponse {
   error?: string;
 }
 
-// Função adaptada para usar o script PHP
+// Função para realizar o pagamento via PHP bridge
 const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResponse> => {
   try {
     const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
@@ -46,7 +47,11 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
         reference: data.reference,
         amount: data.amount,
         token: config.frameToken,
-        callbackUrl: config.callbackUrl
+        callbackUrl: config.callbackUrl,
+        // Importante: Não enviar dados do cliente para que o EMIS solicite no iframe
+        mobile: 'PAYMENT',  // Forçar solicitação manual do número
+        card: 'DISABLED',
+        qrCode: 'PAYMENT'
       })
     });
     
@@ -64,20 +69,10 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
 };
 
 export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisPaymentResponse> {
-  const params = {
-    reference: data.reference,
-    amount: data.amount,
-    token: config.frameToken,
-    mobile: 'PAYMENT',
-    card: 'DISABLED',
-    qrCode: 'PAYMENT',
-    callbackUrl: config.callbackUrl
-  };
-
-  console.log('Iniciando pagamento EMIS com parâmetros:', params);
+  console.log('Iniciando pagamento EMIS com referência:', data.reference);
   
   try {
-    // Em produção, sempre usar o PHP bridge
+    // Usar sempre o PHP bridge seguindo as regras do EMIS para "Compra a um tempo"
     return await useFallbackPhp(data);
   } catch (error) {
     console.error('Erro fatal no pagamento:', error);

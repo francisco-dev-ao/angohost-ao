@@ -35,6 +35,13 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       const phpAvailable = await checkPhpAvailability();
       console.log('PHP disponível:', phpAvailable);
       
+      if (!phpAvailable) {
+        toast.error("Serviço de pagamento indisponível. Tente mais tarde.");
+        setErrorMessage("Serviço PHP necessário para processamento de pagamento não está disponível.");
+        setIsLoading(false);
+        return;
+      }
+      
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       
@@ -44,17 +51,18 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       const response = await createEmisPayment({
         reference: orderRef,
         amount,
-        items: []
+        items: [] // Não enviamos dados do cliente para que sejam solicitados pelo EMIS
       });
       
       if (response.id) {
         const url = getEmisFrameUrl(response.id);
+        console.log('URL do frame EMIS:', url);
         setFrameUrl(url);
         setIsOpen(true);
         
         // Setup message listener for payment completion
         const handleMessage = (event: MessageEvent) => {
-          // Lista de origens permitidas - adicionamos mais origens permitidas
+          // Lista de origens permitidas
           const allowedOrigins = [
             'https://pagamentonline.emis.co.ao',
             window.location.origin,
@@ -64,7 +72,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
             'https://angohost-emis-simulator.netlify.app'
           ];
           
-          // Verificar se a origem é confiável - também verificamos subdomínios
+          // Verificar se a origem é confiável
           const isAllowedOrigin = allowedOrigins.some(origin => 
             event.origin === origin || 
             event.origin.includes(origin.replace('https://', '')) ||
