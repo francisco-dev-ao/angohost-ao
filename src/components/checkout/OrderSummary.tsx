@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CartItem } from '@/types/cart';
 import { formatCurrency } from '@/utils/domainPricing';
-import { Info, ShoppingCart } from 'lucide-react';
+import { Info, ShoppingCart, ArrowRight } from 'lucide-react';
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger 
 } from "@/components/ui/tooltip";
+import { Link } from 'react-router-dom';
 
 interface OrderSummaryProps {
   items: CartItem[];
@@ -19,6 +20,7 @@ interface OrderSummaryProps {
   onCheckout?: () => void;
   buttonDisabled?: boolean;
   buttonTooltip?: string;
+  showNextStepLink?: boolean;
 }
 
 export const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -26,7 +28,8 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
   getTotalPrice,
   onCheckout,
   buttonDisabled = false,
-  buttonTooltip = ''
+  buttonTooltip = '',
+  showNextStepLink = false
 }) => {
   const domains = items.filter(item => item.type === 'domain');
   const emailPlans = items.filter(item => item.type === 'email');
@@ -135,8 +138,18 @@ export const OrderSummary: React.FC<OrderSummaryProps> = ({
       </CardContent>
       
       {onCheckout && (
-        <CardFooter className="pt-0">
+        <CardFooter className="pt-0 flex flex-col gap-2">
           {renderCheckoutButton()}
+        </CardFooter>
+      )}
+      
+      {showNextStepLink && !onCheckout && (
+        <CardFooter className="pt-0">
+          <Link to="/checkout" className="w-full">
+            <Button variant="default" className="w-full bg-green-600 hover:bg-green-700">
+              Próxima Etapa <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </CardFooter>
       )}
     </Card>

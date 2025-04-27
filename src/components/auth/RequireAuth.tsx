@@ -28,14 +28,16 @@ export const RequireAuth = ({
       
       if (!data.session) {
         // Salvar o caminho atual para redirecionamento após login
-        sessionStorage.setItem('redirect_after_login', location.pathname + location.search);
-        console.log('Salvando redirecionamento após login:', location.pathname + location.search);
+        // Incluindo query params para capturar informações importantes
+        const currentPath = location.pathname + location.search;
+        sessionStorage.setItem('redirect_after_login', currentPath);
+        console.log('RequireAuth: Salvando redirecionamento após login:', currentPath);
         
         if (showToast) {
           toast.info(toastMessage);
         }
         
-        navigate(redirectTo, { state: { from: location.pathname + location.search } });
+        navigate(redirectTo);
         return;
       }
       
@@ -49,7 +51,9 @@ export const RequireAuth = ({
       (event, session) => {
         if (event === 'SIGNED_OUT') {
           setAuthenticated(false);
-          navigate(redirectTo, { state: { from: location.pathname + location.search } });
+          // Ao sair, também salvar o caminho atual
+          sessionStorage.setItem('redirect_after_login', location.pathname + location.search);
+          navigate(redirectTo);
         } else if (session) {
           setAuthenticated(true);
         }

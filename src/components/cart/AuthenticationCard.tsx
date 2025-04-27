@@ -12,8 +12,9 @@ export const AuthenticationCard = () => {
   
   const handleRedirect = (mode?: string) => {
     // Guarda o caminho atual completo, incluindo a rota e query params
-    sessionStorage.setItem('redirect_after_login', location.pathname + location.search);
-    console.log('Salvando redirecionamento após login:', location.pathname + location.search);
+    const currentPath = location.pathname + location.search;
+    sessionStorage.setItem('redirect_after_login', currentPath);
+    console.log('AuthenticationCard: Salvando redirecionamento após login:', currentPath);
     navigate(`/auth${mode ? `?mode=${mode}` : ''}`);
   };
   

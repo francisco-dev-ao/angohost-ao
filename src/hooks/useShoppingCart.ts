@@ -10,7 +10,8 @@ export const useShoppingCart = () => {
   const { 
     items, 
     selectedContactProfileId,
-    getContactProfiles 
+    getContactProfiles,
+    clearCart
   } = useCart();
   
   const [user, setUser] = useState<any>(null);
@@ -59,6 +60,8 @@ export const useShoppingCart = () => {
     
     if (!user) {
       toast.error('É necessário fazer login ou criar conta para finalizar a compra!');
+      
+      // Store current path for redirect after login
       sessionStorage.setItem('redirect_after_login', '/carrinho');
       navigate('/auth');
       return;

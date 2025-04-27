@@ -17,7 +17,8 @@ const Checkout = () => {
     getTotalPrice, 
     setPaymentInfo, 
     generateOrderReference,
-    selectedContactProfileId
+    selectedContactProfileId,
+    customer
   } = useCart();
   const navigate = useNavigate();
   
@@ -53,7 +54,75 @@ const Checkout = () => {
     }
   }, [items, navigate, paymentInfo]);
 
-  const handlePaymentSuccess = (transactionId: string) => {
+  const saveOrderToDatabase = async (orderId: string, userId: string) => {
+    try {
+      // Cadastrar pedido
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          id: orderId,
+          customer_id: userId,
+          total_amount: getTotalPrice(),
+          status: paymentMethod === 'emis' ? 'processing' : 'pending',
+          payment_method: paymentMethod || 'unknown',
+          payment_id: orderReference
+        })
+        .select()
+        .single();
+      
+      if (orderError) {
+        console.error('Erro ao cadastrar pedido:', orderError);
+        return;
+      }
+      
+      // Cadastrar itens do pedido
+      const orderItems = items.map(item => ({
+        order_id: orderId,
+        product_name: item.name,
+        product_type: item.type,
+        product_id: item.id,
+        price: item.price,
+        period: item.period,
+        details: item.details
+      }));
+      
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+      
+      if (itemsError) {
+        console.error('Erro ao cadastrar itens do pedido:', itemsError);
+      }
+      
+      // Cadastrar fatura
+      const invoiceNumber = `INV-${orderReference}`;
+      
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          order_id: orderId,
+          customer_id: userId,
+          invoice_number: invoiceNumber,
+          amount: getTotalPrice(),
+          status: 'unpaid',
+          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        });
+      
+      if (invoiceError) {
+        console.error('Erro ao gerar fatura:', invoiceError);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao salvar pedido:', error);
+    }
+  };
+
+  const handlePaymentSuccess = async (transactionId: string) => {
+    if (!user) return;
+    
+    const orderId = crypto.randomUUID();
+    await saveOrderToDatabase(orderId, user.id);
+    
     setPaymentInfo({
       method: 'emis',
       status: 'completed',
@@ -74,7 +143,7 @@ const Checkout = () => {
     });
   };
   
-  const handleProcessPayment = () => {
+  const handleProcessPayment = async () => {
     if (!paymentMethod) {
       toast.error('Por favor, selecione um método de pagamento');
       return;
@@ -103,6 +172,9 @@ const Checkout = () => {
     if (paymentMethod === 'emis') {
       setShowPaymentFrame(true);
     } else {
+      const orderId = crypto.randomUUID();
+      await saveOrderToDatabase(orderId, user.id);
+      
       setPaymentInfo({
         method: paymentMethod,
         status: 'pending',

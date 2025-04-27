@@ -121,6 +121,7 @@ const ShoppingCart = () => {
                       ? "É necessário selecionar um perfil de contato" 
                       : ""
                 }
+                showNextStepLink={items.length > 0 && user && (!hasDomain || hasOnlyHostingWithoutDomain || profileAssigned)}
               />
             </div>
           </div>
