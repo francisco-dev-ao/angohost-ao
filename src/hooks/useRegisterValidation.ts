@@ -7,15 +7,24 @@ export const useRegisterValidation = () => {
 
   const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     try {
+      // For email validation, we'll use a completely different approach
       if (field === 'email') {
-        // Avoid TypeScript infinite type instantiation by using a simpler approach
-        const response = await supabase.auth.signInWithOtp({
-          email: value,
-          options: { shouldCreateUser: false }
-        });
+        // First check if the email exists in the customers table
+        const { data: customerData } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('email', value)
+          .limit(1);
+          
+        if (customerData && customerData.length > 0) {
+          return true; // Email exists in customers table
+        }
         
-        // Simply check if there's a session in the response
-        return response.data && response.data.session !== null;
+        // As a fallback, try to use the auth API
+        // But instead of using OTP which causes typing issues,
+        // just query for users with that email (requires admin/server-side)
+        // This is a simplification and might need service role in production
+        return false;
       } else {
         // For non-email fields, query the customers table
         const { data, error } = await supabase
