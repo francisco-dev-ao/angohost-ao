@@ -1,213 +1,230 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { 
-  Server, 
-  Database, 
-  Mail, 
-  HardDrive, 
-  Globe,
-  AlertCircle,
-  Loader2,
-  ExternalLink,
-  PlusCircle
-} from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { Server, Database, Mail, Globe, RefreshCcw, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { supabase } from '@/integrations/supabase/client';
-import { formatDate } from '@/utils/format';
 import { Link } from 'react-router-dom';
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
-export const HostingTab = () => {
-  const [hostingServices, setHostingServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export interface HostingService {
+  id: string;
+  name?: string;
+  plan_name: string;
+  status: string;
+  server_hostname?: string;
+  username?: string;
+  domain?: string;
+  disk_space?: number;
+  disk_used?: number;
+  bandwidth?: number;
+  bandwidth_used?: number;
+  email_accounts?: number;
+  databases?: number;
+  created_at: string;
+  expiry_date?: string;
+}
 
-  useEffect(() => {
-    fetchHostingServices();
-  }, []);
-
-  const fetchHostingServices = async () => {
-    try {
-      setLoading(true);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setError('Usuário não autenticado');
-        return;
-      }
-
-      const { data: customerData, error: customerError } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (customerError || !customerData) {
-        setError('Não foi possível encontrar dados do cliente');
-        return;
-      }
-
-      const { data: services, error: servicesError } = await supabase
-        .from('hosting_services')
-        .select(`
-          *,
-          plan:plan_id (name, features),
-          domain:domain_id (name, tld)
-        `)
-        .eq('customer_id', customerData.id);
-
-      if (servicesError) {
-        console.error('Erro ao buscar serviços de hospedagem:', servicesError);
-        setError('Erro ao carregar serviços de hospedagem');
-        return;
-      }
-
-      setHostingServices(services || []);
-    } catch (error) {
-      console.error('Erro ao buscar serviços de hospedagem:', error);
-      setError('Erro ao carregar serviços de hospedagem');
-    } finally {
-      setLoading(false);
-    }
+export const HostingTab: React.FC = () => {
+  const { services = [] } = useOutletContext<{
+    services: HostingService[];
+  }>();
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-AO');
   };
-
-  const getStatusBadge = (status: string) => {
+  
+  const calculateUsage = (used: number = 0, total: number = 1) => {
+    return Math.min(Math.round((used / total) * 100), 100);
+  };
+  
+  const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Ativo</Badge>;
-      case 'pending':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200">Pendente</Badge>;
-      case 'suspended':
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Suspenso</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+      case 'active': return 'bg-green-500';
+      case 'suspended': return 'bg-red-500';
+      case 'pending': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
     }
   };
+  
+  const activeServices = services.filter(service => service.status === 'active');
+  const pendingServices = services.filter(service => service.status === 'pending');
+  const suspendedServices = services.filter(service => service.status === 'suspended');
+  
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold mb-1">Serviços de Hospedagem</h2>
+          <p className="text-muted-foreground">Gerencie seus serviços de hospedagem web</p>
+        </div>
+        <Button asChild>
+          <Link to="/hospedagem">Contratar Hospedagem</Link>
+        </Button>
+      </div>
+      
+      <Tabs defaultValue="active">
+        <TabsList>
+          <TabsTrigger value="active">
+            Ativos 
+            <Badge variant="secondary" className="ml-2">{activeServices.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="pending">
+            Pendentes
+            <Badge variant="secondary" className="ml-2">{pendingServices.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="suspended">
+            Suspensos
+            <Badge variant="secondary" className="ml-2">{suspendedServices.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="active" className="space-y-4">
+          {activeServices.length > 0 ? (
+            activeServices.map((service) => (
+              <HostingServiceCard key={service.id} service={service} />
+            ))
+          ) : (
+            <EmptyState type="active" />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="pending" className="space-y-4">
+          {pendingServices.length > 0 ? (
+            pendingServices.map((service) => (
+              <HostingServiceCard key={service.id} service={service} />
+            ))
+          ) : (
+            <EmptyState type="pending" />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="suspended" className="space-y-4">
+          {suspendedServices.length > 0 ? (
+            suspendedServices.map((service) => (
+              <HostingServiceCard key={service.id} service={service} />
+            ))
+          ) : (
+            <EmptyState type="suspended" />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
 
+const HostingServiceCard: React.FC<{ service: HostingService }> = ({ service }) => {
   return (
     <Card>
-      <CardHeader>
-        <div className="flex flex-wrap justify-between items-start gap-4">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="flex items-center">
-              <Server className="mr-2 h-5 w-5" />
-              Meus Serviços de Hospedagem
-            </CardTitle>
-            <CardDescription>Gerencie seus serviços de hospedagem web</CardDescription>
+            <CardTitle>{service.plan_name}</CardTitle>
+            <CardDescription>
+              {service.domain || service.server_hostname || 'Sem domínio associado'}
+            </CardDescription>
           </div>
-          <Button asChild>
-            <Link to="/hospedagem">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Contratar Hospedagem
-            </Link>
-          </Button>
+          <div className="flex items-center">
+            <Badge className={`${getStatusColor(service.status)}`}>
+              {service.status === 'active' ? 'Ativo' : 
+              service.status === 'pending' ? 'Pendente' : 
+              service.status === 'suspended' ? 'Suspenso' : 
+              service.status}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-2">Carregando serviços de hospedagem...</span>
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erro</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : hostingServices.length === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Nenhum serviço de hospedagem encontrado</AlertTitle>
-            <AlertDescription>
-              Você ainda não possui serviços de hospedagem. Contrate um plano de hospedagem para começar.
-            </AlertDescription>
-          </Alert>
-        ) : (
-          <div className="space-y-6">
-            {hostingServices.map((service) => (
-              <div key={service.id} className="border rounded-lg overflow-hidden">
-                <div className="bg-gray-50 p-4 border-b flex flex-wrap justify-between items-center gap-4">
-                  <div>
-                    <h3 className="font-medium text-lg flex items-center">
-                      <Server className="h-5 w-5 mr-2 text-primary" />
-                      {service.plan?.name || 'Plano de Hospedagem'}
-                      <span className="ml-3">{getStatusBadge(service.status)}</span>
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {service.domain ? 
-                        `${service.domain.name}.${service.domain.tld}` : 
-                        service.server_hostname || 'Sem domínio associado'}
-                    </p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={`https://${service.domain ? `${service.domain.name}.${service.domain.tld}` : service.server_hostname}`} target="_blank" rel="noopener noreferrer">
-                        Visitar Site
-                        <ExternalLink className="h-4 w-4 ml-1" />
-                      </a>
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Painel de Controle
-                      <ExternalLink className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="border rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <HardDrive className="h-4 w-4 mr-2 text-primary" />
-                        <span className="text-sm font-medium">Espaço em Disco</span>
-                      </div>
-                      <div className="text-xl font-semibold">
-                        {service.disk_space || service.plan?.features?.disk_space || '10'} GB
-                      </div>
-                    </div>
-                    <div className="border rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <Database className="h-4 w-4 mr-2 text-primary" />
-                        <span className="text-sm font-medium">Bancos de Dados</span>
-                      </div>
-                      <div className="text-xl font-semibold">
-                        {service.databases || service.plan?.features?.databases || 'Ilimitado'}
-                      </div>
-                    </div>
-                    <div className="border rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <Mail className="h-4 w-4 mr-2 text-primary" />
-                        <span className="text-sm font-medium">Contas de Email</span>
-                      </div>
-                      <div className="text-xl font-semibold">
-                        {service.email_accounts || service.plan?.features?.email_accounts || 'Ilimitado'}
-                      </div>
-                    </div>
-                    <div className="border rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <Globe className="h-4 w-4 mr-2 text-primary" />
-                        <span className="text-sm font-medium">Data de Criação</span>
-                      </div>
-                      <div className="text-lg font-medium">
-                        {formatDate(service.created_at)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium mb-1">Uso do Espaço</p>
+              <Progress value={calculateUsage(service.disk_used, service.disk_space)} className="h-2" />
+              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                <span>{service.disk_used || 0} MB</span>
+                <span>{service.disk_space || 0} MB</span>
               </div>
-            ))}
+            </div>
+            <div>
+              <p className="text-sm font-medium mb-1">Uso de Largura de Banda</p>
+              <Progress value={calculateUsage(service.bandwidth_used, service.bandwidth)} className="h-2" />
+              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                <span>{service.bandwidth_used || 0} GB</span>
+                <span>{service.bandwidth || 0} GB</span>
+              </div>
+            </div>
           </div>
-        )}
+          
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+              <Database className="h-5 w-5 text-primary mb-1" />
+              <p className="text-xs text-center">{service.databases || 0} Bases de Dados</p>
+            </div>
+            <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+              <Mail className="h-5 w-5 text-primary mb-1" />
+              <p className="text-xs text-center">{service.email_accounts || 0} Contas de Email</p>
+            </div>
+            <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+              <Globe className="h-5 w-5 text-primary mb-1" />
+              <p className="text-xs text-center">cPanel</p>
+            </div>
+            <div className="flex flex-col items-center p-2 bg-muted rounded-md">
+              <Server className="h-5 w-5 text-primary mb-1" />
+              <p className="text-xs text-center">PHP 8.x</p>
+            </div>
+          </div>
+          
+          <div className="flex space-x-2 justify-end">
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/painel-cliente/hospedagem/${service.id}`}>
+                Gerenciar
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="space-x-1">
+              <RefreshCcw className="h-4 w-4" />
+              <span>Atualizar</span>
+            </Button>
+            <Button variant="default" size="sm" asChild>
+              <a href={`https://${service.server_hostname}/cpanel`} target="_blank" rel="noopener noreferrer">
+                Acessar cPanel
+              </a>
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
+  );
+};
+
+const EmptyState = ({ type }: { type: 'active' | 'pending' | 'suspended' }) => {
+  const getMessage = () => {
+    switch (type) {
+      case 'active':
+        return 'Você não possui serviços de hospedagem ativos.';
+      case 'pending':
+        return 'Você não possui serviços de hospedagem pendentes.';
+      case 'suspended':
+        return 'Você não possui serviços de hospedagem suspensos.';
+    }
+  };
+  
+  return (
+    <Alert>
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Nenhum serviço encontrado</AlertTitle>
+      <AlertDescription>
+        {getMessage()}
+        {type === 'active' && (
+          <div className="mt-2">
+            <Button asChild>
+              <Link to="/hospedagem">Contratar Hospedagem</Link>
+            </Button>
+          </div>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 };

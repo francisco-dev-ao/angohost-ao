@@ -9,10 +9,18 @@ import { EmptyCart } from '@/components/cart/EmptyCart';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, removeItem, getTotalPrice } = useCart();
+  const { items, removeItem, getTotalPrice, generateOrderReference } = useCart();
 
   const handleCheckout = () => {
-    navigate('/checkout');
+    // Generate payment details to pass to the checkout page
+    const paymentDetails = {
+      amount: getTotalPrice(),
+      reference: generateOrderReference(),
+      description: `Pedido com ${items.length} ${items.length === 1 ? 'item' : 'itens'}`
+    };
+    
+    // Navigate to checkout with payment details
+    navigate('/checkout', { state: paymentDetails });
   };
 
   // Provide a dummy implementation for getContactProfileById

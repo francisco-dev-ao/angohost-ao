@@ -14,6 +14,7 @@ export const usePaymentManager = () => {
     setPaymentInfo, 
     generateOrderReference,
     selectedContactProfileId,
+    clearCart
   } = useCart();
   
   const [isLoading, setIsLoading] = useState(false);
@@ -73,8 +74,10 @@ export const usePaymentManager = () => {
         console.error('Erro ao gerar fatura:', invoiceError);
       }
       
+      return true;
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
+      return false;
     }
   };
 
@@ -86,20 +89,30 @@ export const usePaymentManager = () => {
     await saveOrderToDatabase(orderId, user.id);
     
     setPaymentInfo({
-      method: 'emis',
+      method: paymentMethod || 'emis',
       status: 'completed',
       transactionId,
       reference: orderReference
     });
     
     toast.success('Pagamento processado com sucesso!');
-    navigate('/payment/success');
+    
+    // Clear cart after successful payment
+    clearCart();
+    
+    navigate('/payment/success', {
+      state: {
+        amount: getTotalPrice(),
+        reference: orderReference,
+        description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`
+      }
+    });
   };
   
   const handlePaymentError = (error: string) => {
     toast.error(`Erro no pagamento: ${error}`);
     setPaymentInfo({
-      method: 'emis',
+      method: paymentMethod || 'emis',
       status: 'failed',
       reference: orderReference
     });
@@ -133,12 +146,19 @@ export const usePaymentManager = () => {
     const ref = generateOrderReference();
     setOrderReference(ref);
     
+    // Save order to database first
+    const orderId = crypto.randomUUID();
+    const savedToDb = await saveOrderToDatabase(orderId, user.id);
+    
+    if (!savedToDb) {
+      toast.error('Erro ao salvar pedido. Tente novamente.');
+      setIsLoading(false);
+      return;
+    }
+    
     if (paymentMethod === 'emis') {
       setShowPaymentFrame(true);
     } else {
-      const orderId = crypto.randomUUID();
-      await saveOrderToDatabase(orderId, user.id);
-      
       setPaymentInfo({
         method: paymentMethod,
         status: 'pending',
@@ -147,7 +167,15 @@ export const usePaymentManager = () => {
       });
       
       toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');
-      navigate('/payment/success');
+      
+      navigate('/payment/instructions', { 
+        state: { 
+          amount: getTotalPrice(), 
+          reference: ref,
+          description: `Pedido de ${items.length} ${items.length === 1 ? 'item' : 'itens'}`,
+          paymentMethod: paymentMethod
+        } 
+      });
     }
     
     setIsLoading(false);

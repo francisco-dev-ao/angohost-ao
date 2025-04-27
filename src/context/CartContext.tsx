@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, FC } from 'react';
 import { CartContextType, CartItem, Customer, PaymentInfo, ContactProfile } from '../types/cart';
 import { useCartStorage } from '../hooks/useCartStorage';
@@ -57,6 +58,7 @@ export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
   const clearCart = () => {
     setItems([]);
     setPaymentInfo(null);
+    localStorage.removeItem('angohost_cart');
     localStorage.removeItem('angohost_payment');
   };
   
