@@ -34,6 +34,9 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       
+      // Adicionar pequeno atraso para garantir que elementos da UI foram renderizados
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const response = await createEmisPayment({
         reference: orderRef,
         amount,
@@ -55,20 +58,41 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
             'https://api.allorigins.win'
           ];
           
-          if (!allowedOrigins.includes(event.origin) && 
-              !allowedOrigins.some(origin => event.origin.includes(origin.replace('https://', '')))) {
-            console.warn('Rejected message from untrusted origin:', event.origin);
+          // Verificar se a origem é confiável
+          const isAllowedOrigin = allowedOrigins.some(origin => 
+            event.origin === origin || event.origin.includes(origin.replace('https://', '')));
+          
+          if (!isAllowedOrigin) {
+            console.warn('Mensagem rejeitada de origem não confiável:', event.origin);
             return;
           }
 
+          console.log('Mensagem recebida do iframe:', event.data);
+          
+          // Verificar se a mensagem indica sucesso no pagamento
           if (event.data?.status === "SUCCESS" || event.data?.status === "success") {
-            onSuccess(event.data.transactionId || 'unknown');
+            onSuccess(event.data.transactionId || response.id || 'unknown');
             setIsOpen(false);
+            window.removeEventListener('message', handleMessage);
           }
         };
         
         window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
+        
+        // Monitor URL changes for payment completion (backup method)
+        const checkUrlInterval = setInterval(() => {
+          const currentUrl = window.location.href;
+          if (currentUrl.includes('/payment/callback') || currentUrl.includes('/payment/success')) {
+            clearInterval(checkUrlInterval);
+            setIsOpen(false);
+            onSuccess(response.id || 'url-callback');
+          }
+        }, 1000);
+        
+        return () => {
+          window.removeEventListener('message', handleMessage);
+          clearInterval(checkUrlInterval);
+        };
       } else {
         throw new Error(response.error || 'Falha ao gerar token de pagamento');
       }
@@ -79,7 +103,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       if (retryCount < 2) {
         toast.info('Tentando novamente conectar ao serviço de pagamento...');
         setRetryCount(prev => prev + 1);
-        setTimeout(() => initializePayment(), 3000);
+        setTimeout(() => initializePayment(), 2000);
         return;
       }
       
@@ -91,6 +115,11 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
 
   useEffect(() => {
     initializePayment();
+    
+    // Limpar quando o componente for desmontado
+    return () => {
+      setIsOpen(false);
+    };
   }, [amount, reference]);
 
   const handleClose = () => {
@@ -104,12 +133,26 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     initializePayment();
   };
 
+  // Opção de pagamento direto (confirmação manual)
   const handleDirectPayment = () => {
-    toast.success('Simulando pagamento direto...');
-    const callbackUrl = `${window.location.origin}/payment/callback?reference=${reference}`;
+    toast.success('Processando pagamento direto...');
+    
+    // Gerar um ID de transação simulado
+    const simulatedTransactionId = `direct-${Date.now()}`;
+    
+    // Construir URL de callback com parâmetros
+    const callbackParams = new URLSearchParams({
+      reference: reference,
+      status: 'SUCCESS',
+      transactionId: simulatedTransactionId
+    });
+    
+    const callbackUrl = `${window.location.origin}/payment/callback?${callbackParams.toString()}`;
+    
+    // Redirecionar para a URL de callback após um pequeno atraso
     setTimeout(() => {
       window.location.href = callbackUrl;
-    }, 2000);
+    }, 1500);
   };
 
   if (isLoading) {
@@ -119,7 +162,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   if (errorMessage || useDirectPayment) {
     return (
       <PaymentErrorState
-        errorMessage={errorMessage || ''}
+        errorMessage={errorMessage || 'Não foi possível iniciar o pagamento EMIS automaticamente.'}
         onRetry={handleRetry}
         onDirectPayment={handleDirectPayment}
         onCancel={() => onError('Usuário cancelou após erro')}

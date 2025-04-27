@@ -11,6 +11,11 @@ interface PaymentFrameDialogProps {
 }
 
 const PaymentFrameDialog = ({ isOpen, onClose, frameUrl }: PaymentFrameDialogProps) => {
+  // Função para lidar com erros do iframe
+  const handleIframeError = () => {
+    console.error('Erro ao carregar o iframe de pagamento');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] h-[600px]">
@@ -30,6 +35,7 @@ const PaymentFrameDialog = ({ isOpen, onClose, frameUrl }: PaymentFrameDialogPro
               title="EMIS Payment"
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
+              onError={handleIframeError}
             />
           )}
         </div>
