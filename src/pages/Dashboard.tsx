@@ -17,10 +17,19 @@ const Dashboard = () => {
   const { items } = useCart();
   useNotifications(user?.id);
 
-  // Ensure cart is loaded by logging it
+  // Garantir que o carrinho seja inicializado
   useEffect(() => {
-    console.log("Dashboard - Cart items:", items);
-  }, [items]);
+    try {
+      const savedCart = localStorage.getItem('angohost_cart');
+      if (savedCart) {
+        console.log("Dashboard - Cart loaded from storage");
+      } else {
+        console.log("Dashboard - No cart in storage");
+      }
+    } catch (error) {
+      console.error("Error accessing cart:", error);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

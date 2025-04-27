@@ -36,7 +36,7 @@ export const CartItemsList: React.FC<CartItemsListProps> = ({
   };
 
   // Check if there are any items to display
-  if (items.length === 0) {
+  if (!Array.isArray(items) || items.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="p-6">

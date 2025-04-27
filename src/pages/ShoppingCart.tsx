@@ -27,6 +27,8 @@ const ShoppingCart = () => {
     getContactProfiles
   } = useCart();
   
+  const [carregando, setCarregando] = useState(true);
+  
   const {
     user,
     isAdmin,
@@ -40,11 +42,23 @@ const ShoppingCart = () => {
   } = useShoppingCart();
   
   const getContactProfileById = (id: string) => {
-    return contactProfiles.find(profile => profile.id === id);
+    const profiles = contactProfiles || [];
+    return profiles.find(profile => profile.id === id);
   };
+
+  // Garantir que os dados do carrinho estejam carregados
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCarregando(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Check if hosting plans need domain configuration
   useEffect(() => {
+    if (!items || !Array.isArray(items)) return;
+    
     // If we have hosting plans but no domains
     const hasHostingPlans = items.some(item => 
       item.type === 'hosting' && !item.details.existingDomain
@@ -68,7 +82,7 @@ const ShoppingCart = () => {
     }
   }, [items, hasDomain, hasOnlyHostingWithoutDomain, navigate]);
 
-  if (loading) {
+  if (loading || carregando) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4">
         <div className="container max-w-6xl mx-auto">
@@ -99,6 +113,8 @@ const ShoppingCart = () => {
     );
   }
 
+  const safeItems = Array.isArray(items) ? items : [];
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="container max-w-6xl mx-auto">
@@ -114,13 +130,13 @@ const ShoppingCart = () => {
           )}
         </div>
         
-        {items.length === 0 ? (
+        {(!safeItems.length) ? (
           <EmptyCart />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <CartItemsList 
-                items={items}
+                items={safeItems}
                 onRemoveItem={removeItem}
                 getContactProfileById={getContactProfileById}
                 isAdmin={isAdmin}
@@ -130,7 +146,7 @@ const ShoppingCart = () => {
               
               {user && hasDomain && !hasOnlyHostingWithoutDomain && (
                 <ContactProfileCard
-                  profiles={contactProfiles}
+                  profiles={contactProfiles || []}
                   selectedProfileId={selectedContactProfileId}
                   onSelectProfile={setSelectedContactProfile}
                 />
@@ -140,7 +156,7 @@ const ShoppingCart = () => {
                 onAddPlan={addItem}
                 hasDomain={hasDomain}
                 hasEmailPlan={hasEmailPlan}
-                getDomainNames={() => items
+                getDomainNames={() => safeItems
                   .filter(item => item.type === 'domain')
                   .map(item => item.details.domainName as string)}
               />
@@ -148,7 +164,7 @@ const ShoppingCart = () => {
             
             <div className="lg:col-span-1">
               <OrderSummary 
-                items={items}
+                items={safeItems}
                 getTotalPrice={getTotalPrice}
                 onCheckout={handleCheckout}
                 buttonDisabled={!user || (hasDomain && !hasOnlyHostingWithoutDomain && !profileAssigned)}
@@ -159,7 +175,7 @@ const ShoppingCart = () => {
                       ? "É necessário selecionar um perfil de contato" 
                       : ""
                 }
-                showNextStepLink={items.length > 0 && user && (!hasDomain || hasOnlyHostingWithoutDomain || profileAssigned)}
+                showNextStepLink={safeItems.length > 0 && user && (!hasDomain || hasOnlyHostingWithoutDomain || profileAssigned)}
               />
             </div>
           </div>

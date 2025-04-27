@@ -9,15 +9,14 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Avoid letting TypeScript infer complicated nested types by not explicitly typing the response
-      const { data } = await supabase
+      const result = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
         .limit(1);
       
-      // Simplified check to avoid type complexity
-      return Array.isArray(data) && data.length > 0;
+      // Simplificado para evitar problemas de tipagem
+      return Boolean(result.data && result.data.length > 0);
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
