@@ -9,7 +9,7 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Use explicit type annotation for the query response
+      // Use simpler type handling
       const { data, error } = await supabase
         .from('customers')
         .select('id')
@@ -21,8 +21,8 @@ export const useRegisterValidation = () => {
         return false;
       }
       
-      // Simplified boolean check that avoids complex type inference
-      return data !== null;
+      // Boolean conversion without complex type inference
+      return Boolean(data);
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
