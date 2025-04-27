@@ -57,7 +57,7 @@ function App() {
             <Route path="notificacoes" element={<NotificationsTab />} />
             <Route path="hospedagem" element={<HostingTab />} />
             <Route path="perfis-de-contato" element={<ContactProfilesTab />} />
-            <Route path="dados-pessoais" element={<PersonalDataTab />} />
+            <Route path="dados-pessoais" element={<PersonalDataTab userData={{}} />} />
             <Route index element={<Navigate to="visao-geral" replace />} />
           </Route>
 
