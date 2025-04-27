@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -28,41 +27,14 @@ const ClientPanel = () => {
   const [notificationsCount, setNotificationsCount] = useState(0);
 
   useEffect(() => {
-    // Fetch notifications count
-    const fetchNotificationsCount = async () => {
-      try {
-        const { data: session } = await supabase.auth.getSession();
-        
-        if (!session?.session?.user) return;
-        
-        const { data } = await supabase
-          .from('notifications')
-          .select('count', { count: 'exact', head: true })
-          .eq('user_id', session.session.user.id)
-          .eq('read', false);
-          
-        setNotificationsCount(data || 0);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
-    };
+    // For now, we'll just use a dummy notification count
+    // since the 'notifications' table doesn't exist in the database yet
+    setNotificationsCount(3);
     
-    fetchNotificationsCount();
-    
-    // Setup notification listener
+    // This is a simplified version that doesn't rely on the notification table
+    // We'll establish a channel for future notifications
     const channel = supabase
-      .channel('notifications-channel')
-      .on('postgres_changes', 
-        {
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'notifications',
-          filter: `user_id=eq.${userData?.id}`
-        },
-        () => {
-          setNotificationsCount(prev => prev + 1);
-          fetchNotificationsCount();
-        })
+      .channel('client-notifications')
       .subscribe();
       
     return () => {
