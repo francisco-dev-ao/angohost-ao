@@ -1,62 +1,308 @@
 
-import React from 'react';
-import { OrderSummary } from '@/components/checkout/OrderSummary';
-import { CheckoutForm } from '@/components/checkout/CheckoutForm';
-import { PaymentFrame } from '@/components/checkout/PaymentFrame';
-import { useCart } from '@/context/CartContext';
-import { RequireAuth } from '@/components/auth/RequireAuth';
-import { usePaymentManager } from '@/hooks/usePaymentManager';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { toast } from 'sonner';
+import { Loader2, CreditCard, BuildingBank, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PageHeader } from '@/components/common/PageHeader';
+
+type PaymentMethod = 'emis' | 'bank-transfer';
 
 const Checkout = () => {
-  const { items, getTotalPrice } = useCart();
-  const {
-    isLoading,
-    showPaymentFrame,
-    orderReference,
-    paymentMethod,
-    setPaymentMethod,
-    handlePaymentSuccess,
-    handlePaymentError,
-    handleProcessPayment,
-    setShowPaymentFrame
-  } = usePaymentManager();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('emis');
+  const [loading, setLoading] = useState(false);
+  const [isAuth, setIsAuth] = useState(false);
+  const [showPaymentFrame, setShowPaymentFrame] = useState(false);
+  
+  // Get payment details from state
+  const paymentDetails = location.state;
+  
+  // If no payment details, redirect to home
+  useEffect(() => {
+    if (!paymentDetails) {
+      toast.error('Informações de pagamento não encontradas');
+      navigate('/');
+      return;
+    }
+    
+    // Check authentication
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error('Por favor, faça login para continuar');
+        navigate('/auth', { state: { returnTo: location.pathname } });
+        return;
+      }
+      setIsAuth(true);
+    };
+    
+    checkAuth();
+  }, [location, navigate, paymentDetails]);
+  
+  if (!paymentDetails) {
+    return null;
+  }
+  
+  const { amount, description, reference } = paymentDetails;
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+  
+  const handlePayment = async () => {
+    setLoading(true);
+    
+    try {
+      if (paymentMethod === 'emis') {
+        // In a real app, this would connect to EMIS payment gateway
+        setShowPaymentFrame(true);
+        
+        // Simulate payment process
+        setTimeout(() => {
+          handlePaymentSuccess();
+        }, 2000);
+      } else {
+        // Bank transfer - generate payment instructions
+        await updatePaymentMethod('bank-transfer');
+        navigate('/payment/instructions', { 
+          state: { 
+            amount, 
+            reference,
+            description,
+            paymentMethod: 'bank-transfer' 
+          } 
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao processar pagamento:', error);
+      toast.error('Erro ao processar pagamento');
+      setLoading(false);
+    }
+  };
+  
+  const updatePaymentMethod = async (method: string) => {
+    try {
+      // Update order with payment method
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return false;
+      
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (!customerData) return false;
+      
+      // Find the order by reference
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('payment_id', reference)
+        .eq('customer_id', customerData.id)
+        .single();
+        
+      if (orderData) {
+        // Update the payment method
+        await supabase
+          .from('orders')
+          .update({
+            payment_method: method
+          })
+          .eq('id', orderData.id);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar método de pagamento:', error);
+      return false;
+    }
+  };
+  
+  const handlePaymentSuccess = async () => {
+    try {
+      // Update payment status
+      await updatePaymentMethod('emis');
+      
+      // Find the order by reference
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+      
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (!customerData) return;
+      
+      // Find order
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('payment_id', reference)
+        .eq('customer_id', customerData.id)
+        .single();
+        
+      if (orderData) {
+        // Update order status
+        await supabase
+          .from('orders')
+          .update({
+            status: 'completed'
+          })
+          .eq('id', orderData.id);
+          
+        // Update invoice status
+        await supabase
+          .from('invoices')
+          .update({
+            status: 'pago',
+            paid_date: new Date().toISOString()
+          })
+          .eq('order_id', orderData.id);
+      }
+      
+      // Navigate to success page
+      navigate('/payment/success', { state: { amount, reference, description } });
+      
+    } catch (error) {
+      console.error('Erro ao processar sucesso do pagamento:', error);
+      toast.error('Erro ao finalizar pagamento');
+      setShowPaymentFrame(false);
+      setLoading(false);
+    }
+  };
 
   return (
-    <RequireAuth redirectTo="/auth" toastMessage="É necessário fazer login para finalizar a compra">
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="container max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Finalizar Compra</h1>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              {!showPaymentFrame ? (
-                <CheckoutForm 
-                  paymentMethod={paymentMethod}
-                  isLoading={isLoading}
-                  onSelectPaymentMethod={setPaymentMethod}
-                  onProcessPayment={handleProcessPayment}
-                />
-              ) : (
-                <PaymentFrame
-                  orderReference={orderReference}
-                  getTotalPrice={getTotalPrice}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentError}
-                  onBack={() => setShowPaymentFrame(false)}
-                />
-              )}
-            </div>
+    <div className="container max-w-3xl mx-auto py-8 px-4">
+      <PageHeader
+        title="Finalizar Pagamento"
+        description="Complete sua transação escolhendo o método de pagamento"
+      />
+    
+      {showPaymentFrame ? (
+        <div className="mt-8">
+          <Card className="border-2 border-primary">
+            <CardHeader className="bg-primary/5">
+              <CardTitle className="text-center">Processando Pagamento EMIS</CardTitle>
+              <CardDescription className="text-center">
+                Aguarde enquanto processamos seu pagamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="py-8 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p>Conectando ao gateway de pagamento...</p>
+                <p className="text-sm text-muted-foreground">Não feche esta janela</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid gap-8 md:grid-cols-5">
+          <div className="md:col-span-3 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Método de Pagamento</CardTitle>
+                <CardDescription>Escolha como você deseja pagar</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
+                  <div className="flex items-center space-x-2 border rounded-md p-4 mb-4 cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="emis" id="emis" />
+                    <Label htmlFor="emis" className="flex items-center cursor-pointer flex-1">
+                      <CreditCard className="h-5 w-5 mr-3 text-primary" />
+                      <div>
+                        <p className="font-medium">Multicaixa Express</p>
+                        <p className="text-sm text-gray-500">Pagamento instantâneo via EMIS</p>
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 border rounded-md p-4 cursor-pointer hover:bg-gray-50">
+                    <RadioGroupItem value="bank-transfer" id="bank-transfer" />
+                    <Label htmlFor="bank-transfer" className="flex items-center cursor-pointer flex-1">
+                      <BuildingBank className="h-5 w-5 mr-3 text-primary" />
+                      <div>
+                        <p className="font-medium">Transferência Bancária</p>
+                        <p className="text-sm text-gray-500">Pagamento manual por transferência bancária</p>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </CardContent>
+            </Card>
             
-            <div className="lg:col-span-1">
-              <OrderSummary 
-                items={items}
-                getTotalPrice={getTotalPrice}
-              />
-            </div>
+            {paymentMethod === 'bank-transfer' && (
+              <Alert variant="warning">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Atenção</AlertTitle>
+                <AlertDescription>
+                  Pagamentos por transferência bancária podem levar até 24 horas para serem processados após a confirmação do pagamento.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Resumo do Pedido</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Descrição:</span>
+                    <span className="font-medium">{description}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Referência:</span>
+                    <span className="font-medium">{reference}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Valor Total:</span>
+                    <span className="font-bold text-lg">{formatCurrency(amount)}</span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  size="lg" 
+                  disabled={loading || !isAuth}
+                  onClick={handlePayment}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Processando...
+                    </>
+                  ) : (
+                    `Pagar ${formatCurrency(amount)}`
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </div>
-      </div>
-    </RequireAuth>
+      )}
+    </div>
   );
 };
 

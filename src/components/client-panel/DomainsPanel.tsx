@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, Search, RefreshCw, ArrowRightLeft, PlusCircle, Settings, ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Search, Globe, RefreshCw, Lock, Settings, ExternalLink } from "lucide-react";
 import { toast } from 'sonner';
 
 type ClientPanelContext = {
@@ -18,22 +18,21 @@ type ClientPanelContext = {
 };
 
 export const DomainsPanel = () => {
-  const { domains } = useOutletContext<ClientPanelContext>();
+  const { domains = [] } = useOutletContext<ClientPanelContext>();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const navigate = useNavigate();
   
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch(status.toLowerCase()) {
       case 'active':
       case 'ativo':
         return 'bg-green-100 text-green-800';
+      case 'pending':
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800';
       case 'expired':
       case 'expirado':
         return 'bg-red-100 text-red-800';
-      case 'pending':
-      case 'pendente':
-        return 'bg-amber-100 text-amber-800';
       case 'transferring':
       case 'transferindo':
         return 'bg-blue-100 text-blue-800';
@@ -42,95 +41,65 @@ export const DomainsPanel = () => {
     }
   };
   
+  // Default domains if none are available
   const mockDomains = [
     {
       id: '1',
-      name: 'meusite',
-      tld: 'ao',
-      registration_date: '2023-04-01T10:00:00Z',
-      expiry_date: '2024-04-01T10:00:00Z',
+      name: 'exemplo',
+      tld: '.ao',
+      status: 'active',
+      registration_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      expiry_date: new Date(Date.now() + 335 * 24 * 60 * 60 * 1000).toISOString(),
       auto_renew: true,
-      status: 'ativo',
-      nameservers: ['ns1.angohost.ao', 'ns2.angohost.ao']
+      ns1: 'ns1.angohost.ao',
+      ns2: 'ns2.angohost.ao',
     },
     {
       id: '2',
-      name: 'minhaempresa',
-      tld: 'co.ao',
-      registration_date: '2023-05-15T14:30:00Z',
-      expiry_date: '2024-05-15T14:30:00Z',
-      auto_renew: false,
-      status: 'ativo',
-      nameservers: ['ns1.angohost.ao', 'ns2.angohost.ao']
-    },
-    {
-      id: '3',
-      name: 'meudominio',
-      tld: 'com',
-      registration_date: '2022-11-10T09:15:00Z',
-      expiry_date: '2023-11-10T09:15:00Z',
+      name: 'meusite',
+      tld: '.ao',
+      status: 'pending',
+      registration_date: new Date().toISOString(),
+      expiry_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       auto_renew: true,
-      status: 'expirado',
-      nameservers: ['ns1.angohost.ao', 'ns2.angohost.ao']
+      ns1: 'ns1.angohost.ao',
+      ns2: 'ns2.angohost.ao',
     }
   ];
-
+  
   const allDomains = domains.length > 0 ? domains : mockDomains;
-
+  
   const filteredDomains = allDomains.filter(domain => {
-    const fullDomainName = `${domain.name}.${domain.tld}`.toLowerCase();
-    const matchesSearch = fullDomainName.includes(searchTerm.toLowerCase());
+    const fullDomainName = `${domain.name}${domain.tld}`;
+    const matchesSearch = fullDomainName.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'active') return matchesSearch && (domain.status === 'ativo' || domain.status === 'active');
-    if (activeTab === 'expired') return matchesSearch && (domain.status === 'expirado' || domain.status === 'expired');
-    if (activeTab === 'pending') return matchesSearch && (domain.status === 'pendente' || domain.status === 'pending');
+    if (activeTab === 'active') return matchesSearch && (domain.status === 'active' || domain.status === 'ativo');
+    if (activeTab === 'pending') return matchesSearch && (domain.status === 'pending' || domain.status === 'pendente');
+    if (activeTab === 'expired') return matchesSearch && (domain.status === 'expired' || domain.status === 'expirado');
     
     return matchesSearch;
   });
   
-  const handleRenewDomain = (domain: any) => {
-    navigate('/checkout', { 
-      state: { 
-        paymentType: 'domain_renewal', 
-        domainId: domain.id,
-        domainName: `${domain.name}.${domain.tld}`,
-      } 
-    });
-  };
-  
-  const handleTransferDomain = () => {
-    navigate('/dominios/transferir');
-  };
-  
-  const handleRegisterDomain = () => {
-    navigate('/dominios/registrar');
-  };
-  
-  const handleManageDomain = (domain: any) => {
-    navigate('/dominios/configurar', { 
-      state: { 
-        domainId: domain.id,
-        domainName: `${domain.name}.${domain.tld}`,
-      } 
-    });
-  };
-  
-  const handleManageDNS = (domain: any) => {
-    toast.info(`Abrindo gerenciador de DNS para ${domain.name}.${domain.tld}...`);
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString('pt-BR');
   };
   
-  const getDaysUntilExpiry = (expiryDateString: string) => {
-    const today = new Date();
-    const expiryDate = new Date(expiryDateString);
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  const handleDomainAction = (action: string, domainId: string, domainName: string) => {
+    switch(action) {
+      case 'dns':
+        toast.info(`Redirecionando para configuração de DNS de ${domainName}...`);
+        break;
+      case 'nameservers':
+        toast.info(`Redirecionando para configuração de nameservers de ${domainName}...`);
+        break;
+      case 'renew':
+        toast.info(`Redirecionando para renovação de ${domainName}...`);
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -141,12 +110,11 @@ export const DomainsPanel = () => {
           Gerenciamento de Domínios
         </CardTitle>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={handleTransferDomain}>
-            <ArrowRightLeft className="mr-2 h-4 w-4" />
-            Transferir Domínio
+          <Button variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Atualizar
           </Button>
-          <Button size="sm" onClick={handleRegisterDomain}>
-            <PlusCircle className="mr-2 h-4 w-4" />
+          <Button size="sm">
             Registrar Novo Domínio
           </Button>
         </div>
@@ -158,8 +126,8 @@ export const DomainsPanel = () => {
             <TabsList>
               <TabsTrigger value="all">Todos</TabsTrigger>
               <TabsTrigger value="active">Ativos</TabsTrigger>
-              <TabsTrigger value="expired">Expirados</TabsTrigger>
               <TabsTrigger value="pending">Pendentes</TabsTrigger>
+              <TabsTrigger value="expired">Expirados</TabsTrigger>
             </TabsList>
             
             <div className="relative w-full md:max-w-xs">
@@ -180,10 +148,10 @@ export const DomainsPanel = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Domínio</TableHead>
-                      <TableHead>Data de Registro</TableHead>
-                      <TableHead>Expira em</TableHead>
+                      <TableHead>Registro</TableHead>
+                      <TableHead>Expiração</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Auto-Renovação</TableHead>
+                      <TableHead>Renovação</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -191,17 +159,10 @@ export const DomainsPanel = () => {
                     {filteredDomains.map((domain) => (
                       <TableRow key={domain.id}>
                         <TableCell className="font-medium">
-                          {domain.name}.{domain.tld}
+                          {domain.name}{domain.tld}
                         </TableCell>
                         <TableCell>{formatDate(domain.registration_date)}</TableCell>
-                        <TableCell>
-                          {formatDate(domain.expiry_date)}
-                          {domain.status !== 'expirado' && domain.status !== 'expired' && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {getDaysUntilExpiry(domain.expiry_date)} dias restantes
-                            </div>
-                          )}
-                        </TableCell>
+                        <TableCell>{formatDate(domain.expiry_date)}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(domain.status)}>
                             {domain.status}
@@ -210,38 +171,36 @@ export const DomainsPanel = () => {
                         <TableCell>
                           {domain.auto_renew ? (
                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                              Ativada
+                              Auto
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                              Desativada
+                            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                              Manual
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
-                            {(domain.status === 'expirado' || domain.status === 'expired') && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleRenewDomain(domain)}
-                              >
-                                <RefreshCw className="h-4 w-4 mr-1" />
-                                Renovar
-                              </Button>
-                            )}
                             <Button 
-                              size="icon" 
-                              variant="ghost"
-                              onClick={() => handleManageDNS(domain)}
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleDomainAction('dns', domain.id, `${domain.name}${domain.tld}`)}
                             >
-                              <ExternalLink className="h-4 w-4" />
+                              DNS
                             </Button>
                             <Button 
                               size="icon" 
-                              variant="ghost" 
-                              onClick={() => handleManageDomain(domain)}
+                              variant="ghost"
+                              onClick={() => handleDomainAction('nameservers', domain.id, `${domain.name}${domain.tld}`)}
                             >
                               <Settings className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost"
+                              onClick={() => window.open(`http://${domain.name}${domain.tld}`, '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -255,15 +214,13 @@ export const DomainsPanel = () => {
                 <Globe className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-lg font-medium text-gray-900">Nenhum domínio encontrado</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Você não possui nenhum domínio registrado no momento.
+                  Não existem domínios correspondentes aos seus critérios de busca.
                 </p>
-                <Button 
-                  className="mt-4" 
-                  onClick={handleRegisterDomain}
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Registrar Novo Domínio
-                </Button>
+                <div className="mt-6">
+                  <Button>
+                    Registrar Novo Domínio
+                  </Button>
+                </div>
               </div>
             )}
           </TabsContent>
@@ -272,12 +229,12 @@ export const DomainsPanel = () => {
             {/* Same table structure for active domains */}
           </TabsContent>
           
-          <TabsContent value="expired" className="m-0">
-            {/* Same table structure for expired domains */}
-          </TabsContent>
-          
           <TabsContent value="pending" className="m-0">
             {/* Same table structure for pending domains */}
+          </TabsContent>
+          
+          <TabsContent value="expired" className="m-0">
+            {/* Same table structure for expired domains */}
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -7,7 +7,6 @@ import { DomainsSummary } from './dashboard/DomainsSummary';
 import { InvoicesSummary } from './dashboard/InvoicesSummary';
 import { TicketsSummary } from './dashboard/TicketsSummary';
 import { AnnouncementsSummary } from './dashboard/AnnouncementsSummary';
-import { DashboardOverviewProps } from './dashboard/types';
 
 type ClientPanelContext = {
   userData: any;

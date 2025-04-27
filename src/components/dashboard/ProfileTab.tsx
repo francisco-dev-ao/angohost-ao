@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Clock, User, Mail, Phone, Home, MapPin, FileText } from 'lucide-react';
+import { CreditCard, Clock, User, Mail, Phone, Home, MapPin, FileText, Save, Loader2 } from 'lucide-react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { ContactProfilesList } from '../client-panel/ContactProfilesList';
 import { PasswordChangeTab } from './PasswordChangeTab';
@@ -11,12 +11,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useClientPanel } from '@/hooks/useClientPanel';
 
 interface ProfileTabProps {
   user: SupabaseUser | null;
 }
 
 export const ProfileTab = ({ user }: ProfileTabProps) => {
+  const { updateUserProfile } = useClientPanel();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState({
@@ -26,6 +28,19 @@ export const ProfileTab = ({ user }: ProfileTabProps) => {
     city: user?.user_metadata?.city || '',
     nif: user?.user_metadata?.nif || ''
   });
+
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        fullName: user.user_metadata?.full_name || '',
+        phone: user.user_metadata?.phone || '',
+        address: user.user_metadata?.billing_address || '',
+        city: user.user_metadata?.city || '',
+        nif: user.user_metadata?.nif || ''
+      });
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,37 +52,11 @@ export const ProfileTab = ({ user }: ProfileTabProps) => {
     try {
       setLoading(true);
       
-      // Update user metadata
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          full_name: userData.fullName,
-          phone: userData.phone,
-          billing_address: userData.address,
-          city: userData.city,
-          nif: userData.nif
-        }
-      });
+      const success = await updateUserProfile(userData);
       
-      if (error) throw error;
-      
-      // Also update customer table
-      if (user) {
-        const { error: customerError } = await supabase
-          .from('customers')
-          .update({
-            name: userData.fullName,
-            phone: userData.phone,
-            billing_address: userData.address,
-            city: userData.city,
-            nif: userData.nif
-          })
-          .eq('user_id', user.id);
-          
-        if (customerError) throw customerError;
+      if (success) {
+        setEditing(false);
       }
-      
-      toast.success('Perfil atualizado com sucesso');
-      setEditing(false);
     } catch (error: any) {
       toast.error('Erro ao atualizar perfil: ' + error.message);
     } finally {
@@ -200,10 +189,15 @@ export const ProfileTab = ({ user }: ProfileTabProps) => {
               <Button type="submit" disabled={loading}>
                 {loading ? (
                   <>
-                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Salvando...
                   </>
-                ) : "Salvar Alterações"}
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Alterações
+                  </>
+                )}
               </Button>
             </form>
           )}

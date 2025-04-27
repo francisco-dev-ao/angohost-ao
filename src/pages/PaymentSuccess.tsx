@@ -1,112 +1,91 @@
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import { Card, CardContent } from '@/components/ui/card';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, ChevronRight, FileText, Home } from 'lucide-react';
 
 const PaymentSuccess = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { paymentInfo, clearCart } = useCart();
   
-  // If no payment info, redirect to home
+  // Get payment details from state
+  const paymentDetails = location.state;
+  
+  // If no payment details, redirect to home
   useEffect(() => {
-    if (!paymentInfo || paymentInfo.status !== 'completed') {
+    if (!paymentDetails) {
       navigate('/');
     }
-  }, [paymentInfo, navigate]);
+  }, [paymentDetails, navigate]);
   
-  const handleContinueShopping = () => {
-    clearCart();
-    navigate('/');
-  };
-  
-  const handleAccessPanel = () => {
-    clearCart();
-    navigate('/painel-cliente');
-  };
-  
-  if (!paymentInfo) {
+  if (!paymentDetails) {
     return null;
   }
   
+  const { amount, reference, description } = paymentDetails;
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
-      <div className="container max-w-md mx-auto text-center bg-white rounded-lg shadow-sm p-8">
-        <div className="flex justify-center mb-6">
-          <CheckCircle className="h-20 w-20 text-green-500" />
-        </div>
-        
-        <h1 className="text-2xl font-bold mb-4">Pagamento Confirmado!</h1>
-        
-        <p className="text-gray-600 mb-6">
-          Seu pagamento foi processado com sucesso. Obrigado por escolher a AngoHost!
-        </p>
-        
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <div className="flex justify-between mb-2">
-            <span className="font-medium">Referência:</span>
-            <span>{paymentInfo.reference}</span>
+    <div className="container max-w-2xl mx-auto py-12 px-4">
+      <Card className="border-2 border-green-500">
+        <CardHeader className="bg-green-50 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-4">
+            <CheckCircle2 className="h-12 w-12 text-green-500" />
           </div>
-          <div className="flex justify-between mb-2">
-            <span className="font-medium">Transação:</span>
-            <span>{paymentInfo.transactionId}</span>
-          </div>
-          <div className="flex justify-between mb-2">
-            <span className="font-medium">Status:</span>
-            <span className="text-green-600 font-medium">Confirmado</span>
-          </div>
-        </div>
-        
-        {paymentInfo.hasDomain && (
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-2">Informações DNS</h3>
-              <div className="text-sm text-gray-600 text-left space-y-1">
-                <p>Nameserver 1: <span className="font-mono">ns1.angohost.co.ao</span></p>
-                <p>Nameserver 2: <span className="font-mono">ns2.angohost.co.ao</span></p>
-                <p>Nameserver 3: <span className="font-mono">ns3.angohost.co.ao</span></p>
-                <p>Nameserver 4: <span className="font-mono">ns4.angohost.co.ao</span></p>
+          <CardTitle className="text-center text-2xl text-green-700">Pagamento Bem Sucedido!</CardTitle>
+          <CardDescription className="text-center text-green-600">
+            Seu pagamento foi processado com sucesso.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6 pb-2">
+          <div className="space-y-4">
+            <div className="border rounded-md p-4 bg-gray-50">
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">Valor Pago:</span>
+                <span className="font-bold text-lg">{formatCurrency(amount)}</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {paymentInfo.hasEmail && (
-          <Card className="mb-6">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-2">Configuração de Email</h3>
-              <div className="text-sm text-gray-600 text-left space-y-1">
-                <p>Servidor SMTP: <span className="font-mono">smtp.angohost.co.ao</span></p>
-                <p>Servidor POP3: <span className="font-mono">pop3.angohost.co.ao</span></p>
-                <p>Servidor IMAP: <span className="font-mono">imap.angohost.co.ao</span></p>
+              <div className="flex justify-between mb-1">
+                <span className="text-gray-600">Descrição:</span>
+                <span className="font-medium">{description}</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        <p className="text-sm text-gray-600 mb-8">
-          Você receberá um email com os detalhes da sua compra e instruções de acesso.
-        </p>
-        
-        <div className="space-y-4">
-          <Button
-            className="w-full bg-primary hover:bg-primary/90"
-            onClick={handleContinueShopping}
-          >
-            Continuar Comprando
+              <div className="flex justify-between">
+                <span className="text-gray-600">Referência:</span>
+                <span className="font-medium">{reference}</span>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+              <p className="text-blue-700 text-sm">
+                Um recibo foi enviado para o seu endereço de email. Você também pode acessar seus recibos e faturas a qualquer momento em seu painel de cliente.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2 pt-2">
+          <Button asChild className="w-full">
+            <Link to="/painel-cliente/faturas">
+              <FileText className="mr-2 h-4 w-4" />
+              Ver Minhas Faturas
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
-          
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleAccessPanel}
-          >
-            Acessar Painel do Cliente
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/painel-cliente">
+              <Home className="mr-2 h-4 w-4" />
+              Voltar ao Painel
+            </Link>
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
