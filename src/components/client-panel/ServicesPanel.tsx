@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +13,7 @@ import { ServicesPanelProps } from './dashboard/types';
 export const ServicesPanel = ({ services = [] }: ServicesPanelProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const services = [
+  const mockServices = [
     {
       id: '1',
       name: 'Hospedagem cPanel',
@@ -37,9 +36,11 @@ export const ServicesPanel = ({ services = [] }: ServicesPanelProps) => {
     }
   ];
   
-  const filteredServices = services.filter(service => 
+  const displayServices = services.length > 0 ? services : mockServices;
+  
+  const filteredServices = displayServices.filter(service => 
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    service.domain.toLowerCase().includes(searchTerm.toLowerCase())
+    (service.domain && service.domain.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   const getStatusBadge = (status: string) => {
