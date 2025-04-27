@@ -22,6 +22,16 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
+  // Verificar se a referência é válida
+  useEffect(() => {
+    if (!reference || reference.trim() === '') {
+      console.error('Referência inválida passada para EmisPaymentFrame:', reference);
+      onError('Referência de pagamento inválida');
+      return;
+    }
+    console.log('EmisPaymentFrame inicializado com referência:', reference);
+  }, [reference, onError]);
+  
   const {
     isLoading,
     frameUrl,
@@ -31,7 +41,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     resetPayment
   } = useEmisPayment({
     amount,
-    reference,
+    reference, // Garantir que a referência seja passada
     onSuccess,
     onError
   });
@@ -39,15 +49,20 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   useEffect(() => {
     const startPayment = async () => {
       try {
-        console.log('Inicializando pagamento...');
+        console.log('Inicializando pagamento com referência:', reference);
         await initializePayment();
       } catch (error) {
         console.error('Erro ao iniciar pagamento:', error);
       }
     };
     
-    startPayment();
-  }, []);
+    // Só iniciar se a referência for válida
+    if (reference && reference.trim() !== '') {
+      startPayment();
+    } else {
+      onError('Referência de pagamento inválida');
+    }
+  }, [reference]);
 
   useEffect(() => {
     // Abrir o modal de pagamento automaticamente quando o frameUrl estiver disponível

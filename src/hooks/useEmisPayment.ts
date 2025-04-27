@@ -56,6 +56,15 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
         return;
       }
       
+      // Garantir que temos uma referência válida
+      if (!reference || reference.trim() === '') {
+        console.error('Referência de pedido inválida:', reference);
+        setErrorMessage("Referência de pedido inválida ou vazia");
+        setIsLoading(false);
+        setUseDirectPayment(true);
+        return;
+      }
+      
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       
@@ -66,6 +75,12 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
       toast.info('Conectando ao serviço de pagamento EMIS...');
       
       try {
+        console.log('Enviando dados para pagamento:', {
+          reference: orderRef,
+          amount: amount
+        });
+        
+        // Garantindo que a referência é passada corretamente
         const response = await createEmisPayment({
           reference: orderRef,
           amount,
@@ -85,7 +100,8 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
         // Verificar se é um erro específico de PHP
         const errorMsg = error instanceof Error ? error.message : 'Erro ao iniciar pagamento';
         const isPhpError = typeof errorMsg === 'string' && 
-          (errorMsg.toLowerCase().includes('php') || errorMsg.toLowerCase().includes('400'));
+          (errorMsg.toLowerCase().includes('php') || errorMsg.toLowerCase().includes('400') || 
+           errorMsg.toLowerCase().includes('reference'));
         
         console.error(`Erro ao inicializar pagamento (Tentativa ${retryCount + 1}/${maxRetries}):`, error);
         setErrorMessage(errorMsg);

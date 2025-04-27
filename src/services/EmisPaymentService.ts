@@ -45,6 +45,12 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
     try {
       const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
       console.log(`Tentativa ${retries + 1}: Iniciando pagamento via PHP bridge:`, phpEndpoint);
+      console.log('Dados enviados para o PHP:', {
+        reference: data.reference, // Garantir que a referência esteja presente
+        amount: data.amount,
+        token: config.frameToken,
+        callbackUrl: config.callbackUrl
+      });
       
       // Criar uma promessa com timeout
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -55,6 +61,24 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
       const timestamp = new Date().getTime();
       const fetchUrl = `${phpEndpoint}?t=${timestamp}`;
       
+      // Garantir que a referência esteja definida e não vazia
+      if (!data.reference || data.reference.trim() === '') {
+        throw new Error('Referência de pedido inválida ou vazia');
+      }
+      
+      // Objeto de dados para enviar, garantindo que todos os campos obrigatórios estejam presentes
+      const paymentData = {
+        reference: data.reference.trim(),  // Garantir que não há espaços extras
+        amount: data.amount,
+        token: config.frameToken,
+        callbackUrl: config.callbackUrl,
+        mobile: 'PAYMENT',
+        card: 'DISABLED',
+        qrCode: 'PAYMENT'
+      };
+      
+      console.log('Enviando dados para o PHP:', JSON.stringify(paymentData));
+      
       // Fazer a requisição com fetch
       const fetchPromise = fetch(fetchUrl, {
         method: 'POST',
@@ -64,15 +88,7 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        body: JSON.stringify({
-          reference: data.reference,
-          amount: data.amount,
-          token: config.frameToken,
-          callbackUrl: config.callbackUrl,
-          mobile: 'PAYMENT',
-          card: 'DISABLED',
-          qrCode: 'PAYMENT'
-        })
+        body: JSON.stringify(paymentData)
       });
       
       // Aguardar a primeira promessa a resolver (fetch ou timeout)
@@ -121,6 +137,12 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
 
 export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisPaymentResponse> {
   console.log('Iniciando pagamento EMIS com referência:', data.reference);
+  
+  // Validar dados antes de enviar
+  if (!data.reference || data.reference.trim() === '') {
+    console.error('Erro: Referência de pedido vazia ou inválida');
+    throw new Error('A referência do pedido é obrigatória');
+  }
   
   try {
     return await useFallbackPhp(data);
