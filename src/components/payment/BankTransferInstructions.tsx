@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Info, Copy, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -105,7 +104,7 @@ const BankTransferInstructions = ({ reference, amount }: BankTransferInstruction
         </div>
       </div>
       
-      <Alert variant="warning">
+      <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Importante</AlertTitle>
         <AlertDescription>

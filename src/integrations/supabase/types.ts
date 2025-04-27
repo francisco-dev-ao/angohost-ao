@@ -459,6 +459,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          expiring_services: boolean
+          id: string
+          invoices: boolean
+          marketing: boolean
+          product_updates: boolean
+          support: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          expiring_services?: boolean
+          id?: string
+          invoices?: boolean
+          marketing?: boolean
+          product_updates?: boolean
+          support?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          expiring_services?: boolean
+          id?: string
+          invoices?: boolean
+          marketing?: boolean
+          product_updates?: boolean
+          support?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string

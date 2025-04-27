@@ -6,14 +6,18 @@ import { Bell, Loader2 } from 'lucide-react';
 import { NotificationPreferences } from './notifications/NotificationPreferences';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Tables } from '@/types/supabase';
 
 export const NotificationsTab = () => {
-  const [emailNotifications, setEmailNotifications] = useState({
+  const [emailNotifications, setEmailNotifications] = useState<Tables<'notification_preferences'>>({
+    id: '',
+    user_id: '',
     invoices: true,
     support: true,
     marketing: false,
-    productUpdates: true,
-    expiringServices: true
+    product_updates: true,
+    expiring_services: true,
+    updated_at: new Date().toISOString()
   });
   
   const [loading, setLoading] = useState(false);
@@ -35,13 +39,7 @@ export const NotificationsTab = () => {
         if (error) throw error;
         
         if (data) {
-          setEmailNotifications({
-            invoices: data.invoices || true,
-            support: data.support || true,
-            marketing: data.marketing || false,
-            productUpdates: data.product_updates || true,
-            expiringServices: data.expiring_services || true,
-          });
+          setEmailNotifications(data);
         }
       } catch (error) {
         console.error('Error fetching notification preferences:', error);
@@ -53,7 +51,7 @@ export const NotificationsTab = () => {
     fetchPreferences();
   }, []);
 
-  const handlePreferenceChange = (key: string, value: boolean) => {
+  const handlePreferenceChange = (key: keyof Tables<'notification_preferences'>, value: boolean) => {
     setEmailNotifications(prev => ({
       ...prev,
       [key]: value
@@ -73,11 +71,7 @@ export const NotificationsTab = () => {
         .from('notification_preferences')
         .upsert({
           user_id: user.id,
-          invoices: emailNotifications.invoices,
-          support: emailNotifications.support,
-          marketing: emailNotifications.marketing,
-          product_updates: emailNotifications.productUpdates,
-          expiring_services: emailNotifications.expiringServices,
+          ...emailNotifications,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id'
@@ -108,7 +102,13 @@ export const NotificationsTab = () => {
         ) : (
           <>
             <NotificationPreferences 
-              preferences={emailNotifications}
+              preferences={{
+                invoices: emailNotifications.invoices,
+                support: emailNotifications.support,
+                marketing: emailNotifications.marketing,
+                productUpdates: emailNotifications.product_updates,
+                expiringServices: emailNotifications.expiring_services,
+              }}
               onPreferenceChange={handlePreferenceChange}
             />
             <Button 
