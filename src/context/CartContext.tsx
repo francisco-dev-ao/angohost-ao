@@ -99,7 +99,7 @@ export const CartProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
     getItemCount: () => items.length,
     getRenewalTotal: () => calculateRenewalTotal(items),
     generateOrderReference: generateOrderRef,
-    hasDomainInCart: () => checkDomainInCart(items),
+    hasDomain: () => checkDomainInCart(items),
     hasEmailInCart: () => checkEmailInCart(items),
     getDomainNames: () => getDomainNamesFromCart(items),
     addContactProfile,
