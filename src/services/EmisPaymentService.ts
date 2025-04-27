@@ -33,9 +33,9 @@ interface EmisPaymentResponse {
 }
 
 // Retentativas e timeout para solicitações
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 segundos
-const REQUEST_TIMEOUT = 15000; // 15 segundos
+const REQUEST_TIMEOUT = 20000; // 20 segundos
 
 // Função para realizar o pagamento via PHP bridge com retentativas
 const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResponse> => {
@@ -51,12 +51,18 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
         setTimeout(() => reject(new Error('Tempo limite esgotado')), REQUEST_TIMEOUT);
       });
       
+      // Adicionar um timestamp para evitar cache
+      const timestamp = new Date().getTime();
+      const fetchUrl = `${phpEndpoint}?t=${timestamp}`;
+      
       // Fazer a requisição com fetch
-      const fetchPromise = fetch(phpEndpoint, {
+      const fetchPromise = fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         body: JSON.stringify({
           reference: data.reference,
@@ -74,11 +80,25 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
       
       if (!response.ok) {
         const statusText = response.statusText;
-        const errorText = await response.text().catch(() => 'Sem detalhes do erro');
+        let errorText = 'Sem detalhes do erro';
+        
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          console.error('Não foi possível ler o texto da resposta de erro:', e);
+        }
+        
         throw new Error(`Erro no script PHP: ${response.status} ${statusText}. ${errorText}`);
       }
       
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (e) {
+        console.error('Erro ao processar JSON da resposta:', e);
+        throw new Error('Resposta inválida do servidor de pagamento');
+      }
+      
       console.log('Resposta do EMIS via PHP:', result);
       return result;
     } catch (error) {
@@ -87,8 +107,8 @@ const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResp
       retries++;
       
       if (retries <= MAX_RETRIES) {
-        console.log(`Aguardando ${RETRY_DELAY}ms antes da próxima tentativa...`);
-        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        console.log(`Aguardando ${RETRY_DELAY * retries}ms antes da próxima tentativa...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * retries));
       } else {
         console.error('Todas as tentativas falharam');
         throw error;
@@ -125,20 +145,29 @@ export async function checkPhpAvailability(): Promise<boolean> {
     const response = await fetch(`${window.location.origin}/api/php-check.php?t=${timestamp}`, {
       method: 'GET',
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
       cache: 'no-store',
       credentials: 'omit'
     });
     
-    if (response.ok) {
+    // Verificar se a resposta é válida
+    if (!response.ok) {
+      console.log('PHP não disponível, status:', response.status);
+      return false;
+    }
+    
+    try {
       const data = await response.json();
       console.log('PHP disponível, versão:', data.php_version);
       return true;
+    } catch (e) {
+      console.error('Erro ao processar resposta JSON do PHP check:', e);
+      return false;
     }
     
-    console.log('PHP não disponível, status:', response.status);
-    return false;
   } catch (error) {
     console.log('PHP não disponível:', error);
     return false;

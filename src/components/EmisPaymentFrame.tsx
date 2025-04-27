@@ -37,7 +37,16 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   });
 
   useEffect(() => {
-    initializePayment();
+    const startPayment = async () => {
+      try {
+        console.log('Inicializando pagamento...');
+        await initializePayment();
+      } catch (error) {
+        console.error('Erro ao iniciar pagamento:', error);
+      }
+    };
+    
+    startPayment();
   }, []);
 
   useEffect(() => {
@@ -74,17 +83,13 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   };
 
   if (isLoading) {
-    return <PaymentLoadingState />;
+    return <PaymentLoadingState message="Conectando ao serviço de pagamento..." />;
   }
 
   if (errorMessage || useDirectPayment) {
-    const errorMsg = errorMessage?.includes('PHP') 
-      ? 'Erro no script PHP: 400. O serviço de pagamento está temporariamente indisponível.'
-      : errorMessage || 'Não foi possível iniciar o pagamento EMIS automaticamente.';
-      
     return (
       <PaymentErrorState
-        errorMessage={errorMsg}
+        errorMessage={errorMessage || 'Não foi possível iniciar o pagamento EMIS automaticamente.'}
         onRetry={handleRetry}
         onDirectPayment={handleDirectPayment}
         onCancel={() => onError('Usuário cancelou após erro')}

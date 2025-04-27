@@ -17,6 +17,7 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
   const [retryCount, setRetryCount] = useState(0);
   const [useDirectPayment, setUseDirectPayment] = useState(false);
   const [phpCheckComplete, setPhpCheckComplete] = useState(false);
+  const maxRetries = 3;
 
   // Verifica a disponibilidade do PHP e reseta o status se necessário
   useEffect(() => {
@@ -64,33 +65,53 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
       // Mostrando toast para informar que está tentando conectar
       toast.info('Conectando ao serviço de pagamento EMIS...');
       
-      const response = await createEmisPayment({
-        reference: orderRef,
-        amount,
-        items: []
-      });
-      
-      if (response.id) {
-        const url = getEmisFrameUrl(response.id);
-        console.log('URL do frame EMIS:', url);
-        setFrameUrl(url);
-        toast.info('Serviço de pagamento conectado com sucesso!');
-        return url;
-      } else {
-        throw new Error(response.error || 'Falha ao gerar token de pagamento');
-      }
-    } catch (error) {
-      console.error('Erro ao inicializar pagamento:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Erro ao iniciar pagamento';
-      setErrorMessage(errorMsg);
-      
-      if (retryCount < 2) {
-        toast.info('Tentando novamente conectar ao serviço de pagamento...');
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => initializePayment(), 2000);
+      try {
+        const response = await createEmisPayment({
+          reference: orderRef,
+          amount,
+          items: []
+        });
+        
+        if (response.id) {
+          const url = getEmisFrameUrl(response.id);
+          console.log('URL do frame EMIS:', url);
+          setFrameUrl(url);
+          toast.info('Serviço de pagamento conectado com sucesso!');
+          return url;
+        } else {
+          throw new Error(response.error || 'Falha ao gerar token de pagamento');
+        }
+      } catch (error: any) {
+        // Verificar se é um erro específico de PHP
+        const errorMsg = error instanceof Error ? error.message : 'Erro ao iniciar pagamento';
+        const isPhpError = typeof errorMsg === 'string' && 
+          (errorMsg.toLowerCase().includes('php') || errorMsg.toLowerCase().includes('400'));
+        
+        console.error(`Erro ao inicializar pagamento (Tentativa ${retryCount + 1}/${maxRetries}):`, error);
+        setErrorMessage(errorMsg);
+        
+        if (retryCount < maxRetries - 1) {
+          const retryDelay = (retryCount + 1) * 1500; // Aumentar o tempo entre tentativas
+          toast.info(`Tentativa ${retryCount + 1}/${maxRetries}: Reconectando ao serviço de pagamento...`);
+          setRetryCount(prev => prev + 1);
+          
+          // Aguardar antes de tentar novamente
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return initializePayment();
+        }
+        
+        if (isPhpError) {
+          toast.error('Não foi possível conectar ao serviço de pagamento após várias tentativas.');
+          console.error('Erro de conexão com PHP após todas as tentativas:', errorMsg);
+        }
+        
+        setUseDirectPayment(true);
         return null;
       }
-      
+    } catch (error) {
+      console.error('Erro fatal ao inicializar pagamento:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Erro desconhecido ao iniciar pagamento';
+      setErrorMessage(errorMsg);
       setUseDirectPayment(true);
       return null;
     } finally {
