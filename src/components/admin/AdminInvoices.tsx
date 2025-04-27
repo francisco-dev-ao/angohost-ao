@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,13 +31,12 @@ export const AdminInvoices = () => {
     { name: 'PayPal', valor: 150000 },
   ];
   
-  // Adicionando alguns exemplos com desconto
   const recentInvoices = [
     { id: 'INV-001', customer: 'Carlos Silva', service: 'Hospedagem WordPress', amount: 15000, status: 'paid', date: '2023-08-15', dueDate: '2023-09-15' },
     { id: 'INV-002', customer: 'Maria Santos', service: 'Domínio .ao', amount: 5000, status: 'pending', date: '2023-08-14', dueDate: '2023-09-14' },
-    { id: 'INV-003', customer: 'João Pereira', service: 'Email Profissional', amount: 8000, originalAmount: 10000, discount: 20, status: 'overdue', date: '2023-08-13', dueDate: '2023-08-30' },
+    { id: 'INV-003', customer: 'João Pereira', service: 'Email Profissional', amount: 8000, status: 'overdue', date: '2023-08-13', dueDate: '2023-08-30' },
     { id: 'INV-004', customer: 'Ana Costa', service: 'Hospedagem cPanel', amount: 12000, status: 'paid', date: '2023-08-12', dueDate: '2023-09-12' },
-    { id: 'INV-005', customer: 'Pedro Nunes', service: 'Servidor VPS', amount: 25000, originalAmount: 30000, discount: 15, status: 'cancelled', date: '2023-08-11', dueDate: '2023-09-11' },
+    { id: 'INV-005', customer: 'Pedro Nunes', service: 'Servidor VPS', amount: 25000, status: 'cancelled', date: '2023-08-11', dueDate: '2023-09-11' },
   ];
   
   const refreshData = () => {
@@ -103,15 +101,15 @@ export const AdminInvoices = () => {
         </TabsContent>
         
         <TabsContent value="pending">
-          <InvoicesTable invoices={recentInvoices.filter(invoice => invoice.status === 'pending')} />
+          {/* Conteúdo para faturas pendentes */}
         </TabsContent>
         
         <TabsContent value="paid">
-          <InvoicesTable invoices={recentInvoices.filter(invoice => invoice.status === 'paid')} />
+          {/* Conteúdo para faturas pagas */}
         </TabsContent>
         
         <TabsContent value="overdue">
-          <InvoicesTable invoices={recentInvoices.filter(invoice => invoice.status === 'overdue')} />
+          {/* Conteúdo para faturas vencidas */}
         </TabsContent>
       </Tabs>
     </div>

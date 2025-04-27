@@ -32,15 +32,15 @@ export const EmailQuantityDialog: React.FC<QuantityDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader className="space-y-2">
-          <DialogTitle>{selectedPlan.title}</DialogTitle>
-          <DialogDescription className="text-sm">
-            Selecione a quantidade de contas
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Selecione a Quantidade</DialogTitle>
+          <DialogDescription>
+            Configure o número de contas para o {selectedPlan.title}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-3 space-y-4">
+        <div className="py-4">
           <QuantitySelector
             quantity={quantity}
             selectedPlan={selectedPlan}
@@ -62,11 +62,11 @@ export const EmailQuantityDialog: React.FC<QuantityDialogProps> = ({
           />
         </div>
 
-        <DialogFooter className="flex justify-between">
+        <DialogFooter className="sm:justify-between">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={onConfirm}>
+          <Button type="button" onClick={onConfirm}>
             Continuar
           </Button>
         </DialogFooter>

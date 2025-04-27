@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from 'lucide-react';
@@ -8,7 +8,6 @@ import type { Order } from '../types';
 import { OrderStatusBadge } from './orders/OrderStatusBadge';
 import { OrderItemsList } from './orders/OrderItemsList';
 import { OrdersLoadingError } from './orders/OrdersLoadingError';
-import { toast } from 'sonner';
 
 interface OrdersContentProps {
   orders: Order[];
@@ -18,21 +17,9 @@ interface OrdersContentProps {
 }
 
 export const OrdersContent = ({ orders, loading, error, fetchOrders }: OrdersContentProps) => {
-  const [renewingOrder, setRenewingOrder] = useState<string | null>(null);
-  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('pt-BR').format(date);
-  };
-
-  const handleRenewOrder = (orderId: string) => {
-    setRenewingOrder(orderId);
-    
-    // Simulando uma requisição de renovação
-    setTimeout(() => {
-      toast.success("Pedido de renovação iniciado com sucesso! Você receberá uma fatura em breve.");
-      setRenewingOrder(null);
-    }, 1500);
   };
 
   return (
@@ -78,33 +65,11 @@ export const OrdersContent = ({ orders, loading, error, fetchOrders }: OrdersCon
                   
                   <OrderItemsList items={order.items} />
                   
-                  <div className="flex justify-between items-center mt-4">
-                    {order.payment_method && (
-                      <p className="text-sm text-muted-foreground">
-                        Método de pagamento: {order.payment_method}
-                      </p>
-                    )}
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRenewOrder(order.id)}
-                      disabled={order.status === 'cancelled' || renewingOrder === order.id}
-                      className="ml-auto"
-                    >
-                      {renewingOrder === order.id ? (
-                        <>
-                          <RefreshCcw className="h-4 w-4 animate-spin mr-2" />
-                          Processando...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCcw className="h-4 w-4 mr-2" />
-                          Renovar Serviço
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  {order.payment_method && (
+                    <p className="text-sm text-right mt-2">
+                      Método de pagamento: {order.payment_method}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

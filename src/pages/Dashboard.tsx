@@ -12,39 +12,24 @@ import { TicketsTab } from '@/components/dashboard/TicketsTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase.auth.getUser();
-        
-        if (error || !data?.user) {
-          navigate('/auth', { state: { from: location.pathname } });
-          return;
-        }
-        
-        setUser(data.user);
-        
-        // Verificar se é admin
-        const { data: adminData } = await supabase.rpc('is_admin');
-        setIsAdmin(!!adminData);
-        
-      } catch (error) {
-        console.error('Erro ao buscar usuário:', error);
-        toast.error('Erro ao carregar dados do usuário');
-      } finally {
-        setLoading(false);
+      const { data, error } = await supabase.auth.getUser();
+      
+      if (error || !data?.user) {
+        navigate('/auth', { state: { from: location.pathname } });
+        return;
       }
+      
+      setUser(data.user);
+      setLoading(false);
     };
     
     getUser();
@@ -55,10 +40,6 @@ const Dashboard = () => {
           navigate('/auth', { state: { from: location.pathname } });
         } else if (session?.user) {
           setUser(session.user);
-          // Verificar status de admin ao mudar autenticação
-          supabase.rpc('is_admin').then(({ data }) => {
-            setIsAdmin(!!data);
-          });
         }
       }
     );
@@ -70,18 +51,15 @@ const Dashboard = () => {
     try {
       await supabase.auth.signOut();
       navigate('/auth');
-      toast.success('Sessão encerrada com sucesso');
     } catch (error: any) {
-      console.error('Erro ao sair:', error);
-      toast.error('Erro ao encerrar sessão');
+      console.error('Error signing out:', error);
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-        <span>Carregando painel do cliente...</span>
+        <p>Carregando painel do cliente...</p>
       </div>
     );
   }
@@ -97,7 +75,7 @@ const Dashboard = () => {
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex gap-2">
-            {isAdmin && (
+            {user?.app_metadata?.is_admin && (
               <Button variant="outline" onClick={() => navigate('/admin')}>
                 Painel Admin
               </Button>

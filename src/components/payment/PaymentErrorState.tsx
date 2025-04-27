@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AlertCircle, CreditCard, Inbox, PhoneIcon } from 'lucide-react';
+import { AlertCircle, CreditCard, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
@@ -22,30 +22,19 @@ const PaymentErrorState = ({
   amount,
   reference
 }: PaymentErrorStateProps) => {
-  // Determinar se é um erro de PHP específico
-  const isPhpError = errorMessage.toLowerCase().includes('php') || 
-                     errorMessage.toLowerCase().includes('400');
-  
-  // Formatar a mensagem de erro para ser mais amigável ao usuário
-  const friendlyErrorMessage = isPhpError 
-    ? 'O serviço de pagamento está temporariamente indisponível.' 
-    : errorMessage;
-    
   return (
     <div className="min-h-[300px] bg-white p-8 rounded-lg shadow-sm">
       <Alert variant="destructive" className="mb-6">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Falha na conexão com o serviço Multicaixa Express</AlertTitle>
         <AlertDescription>
-          {friendlyErrorMessage}
+          {errorMessage}
         </AlertDescription>
       </Alert>
       
       <div className="flex flex-col items-center mt-6">
         <p className="text-gray-600 mb-4">
-          {isPhpError 
-            ? 'Estamos com dificuldades técnicas para conectar ao serviço de pagamentos. Por favor, escolha uma das opções abaixo:' 
-            : 'Detectamos dificuldades na comunicação com o serviço de pagamentos. Escolha uma das opções abaixo:'}
+          Detectamos dificuldades na comunicação com o serviço de pagamentos. Escolha uma das opções abaixo:
         </p>
         
         <div className="space-y-3 w-full">
@@ -90,16 +79,6 @@ const PaymentErrorState = ({
               </ol>
             </div>
           </div>
-          
-          {isPhpError && (
-            <div className="flex items-start gap-2 mt-4">
-              <PhoneIcon className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <p className="font-semibold mb-1">Precisa de ajuda?</p>
-                <p>Entre em contato com nosso suporte pelo WhatsApp: <a href="https://wa.me/244923456789" className="text-blue-600 hover:underline">+244 923 456 789</a></p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

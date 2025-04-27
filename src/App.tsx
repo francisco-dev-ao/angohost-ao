@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "./components/Navbar";
@@ -24,6 +24,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
 import ClientPanel from "./pages/ClientPanel";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 
 // New Pages
@@ -34,12 +35,7 @@ import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
 import DedicatedServersPage from "./pages/DedicatedServersPage";
 
-// Admin Redirect Component
-const AdminRoute = () => {
-  return <Navigate to="/admin" replace />;
-};
-
-// Creating the queryClient outside of the App component
+// Criando o queryClient fora do componente App
 const queryClient = new QueryClient();
 
 // Layout component that decides whether to show or not the navbar/footer
@@ -74,9 +70,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   // Also hide footer when user is authenticated
   const hideNavbarFooter = 
     path === "/auth" || 
-    path.startsWith("/admin") ||
-    path === "/painel-cliente" || 
-    path.startsWith("/painel-cliente/");
+    path.startsWith("/dashboard") ||
+    path === "/admin" ||
+    path.startsWith("/admin/");
   
   const hideFooter = hideNavbarFooter || session;
   
@@ -111,10 +107,10 @@ const App: React.FC = () => (
                     <Route path="/dominios/configurar" element={<DomainConfig />} />
                     <Route path="/email/profissional" element={<EmailProfessional />} />
                     <Route path="/email/configurar" element={<EmailConfig />} />
-                    <Route path="/painel-cliente/*" element={<ClientPanel />} />
+                    <Route path="/painel-cliente" element={<ClientPanel />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin/*" element={<AdminDashboard />} />
-                    <Route path="/dashboard" element={<AdminRoute />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
                     
                     <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                     <Route path="/hospedagem/cpanel" element={<HostingPage />} />

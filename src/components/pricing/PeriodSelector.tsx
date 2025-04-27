@@ -15,10 +15,9 @@ export const PeriodSelector = ({ selectedPeriod, onPeriodChange, getPeriodText }
           <SelectValue placeholder="Periodo" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="1">1 Ano (10% desconto)</SelectItem>
-          <SelectItem value="2">2 Anos (15% desconto)</SelectItem>
-          <SelectItem value="3">3 Anos (20% desconto)</SelectItem>
-          <SelectItem value="5">5 Anos (25% desconto)</SelectItem>
+          <SelectItem value="1">{getPeriodText("1")}</SelectItem>
+          <SelectItem value="2">{getPeriodText("2")}</SelectItem>
+          <SelectItem value="3">{getPeriodText("3")}</SelectItem>
         </SelectContent>
       </Select>
     </div>
