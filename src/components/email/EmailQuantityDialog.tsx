@@ -12,7 +12,7 @@ import {
 import { QuantityDialogProps } from '@/types/email';
 import { QuantitySelector } from './dialog/QuantitySelector';
 import { PeriodSelector } from './dialog/PeriodSelector';
-import { EmailPlanPriceSummary } from './cart/EmailPlanPriceSummary';
+import { EmailPlanPriceSummary } from '@/components/cart/EmailPlanPriceSummary';
 
 export const EmailQuantityDialog: React.FC<QuantityDialogProps> = ({
   isOpen,
