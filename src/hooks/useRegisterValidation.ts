@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
 
-  const checkExistingAccount = async (field: string, value: string) => {
+  const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     try {
       setLoading(true);
       
@@ -14,7 +14,7 @@ export const useRegisterValidation = () => {
         .select('id')
         .eq(field, value)
         .limit(1)
-        .single();
+        .maybeSingle();
       
       return !!data;
     } catch (error) {
