@@ -6,6 +6,7 @@ import { CreditCard, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PaymentMethodSelector } from '@/components/checkout/PaymentMethodSelector';
 import { PaymentMethod } from '@/types/payment';
+import { useCart } from '@/context/CartContext';
 
 interface CheckoutFormProps {
   paymentMethod: PaymentMethod | null;
@@ -20,6 +21,12 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   onSelectPaymentMethod,
   onProcessPayment,
 }) => {
+  const { customer } = useCart();
+  const accountBalance = customer?.account_balance || 0;
+  const totalPrice = useCart().getTotalPrice();
+  const showAccountBalanceOption = accountBalance > 0;
+  const canUseAccountBalance = accountBalance >= totalPrice;
+
   return (
     <Card className="overflow-hidden">
       <CardHeader className="bg-white">
@@ -37,15 +44,27 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           </AlertDescription>
         </Alert>
         
+        {showAccountBalanceOption && !canUseAccountBalance && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Saldo insuficiente</AlertTitle>
+            <AlertDescription>
+              Seu saldo atual de {accountBalance.toLocaleString('pt-AO')} Kz não é suficiente para o pagamento de {totalPrice.toLocaleString('pt-AO')} Kz.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <PaymentMethodSelector
           selected={paymentMethod}
           onSelect={(method) => onSelectPaymentMethod(method as PaymentMethod)}
+          showAccountBalance={showAccountBalanceOption}
+          accountBalance={accountBalance}
         />
         
         <div className="mt-8 flex justify-end">
           <Button
             onClick={onProcessPayment}
-            disabled={!paymentMethod || isLoading}
+            disabled={!paymentMethod || isLoading || (paymentMethod === 'account_balance' && !canUseAccountBalance)}
             className="w-full md:w-auto"
           >
             {isLoading ? (

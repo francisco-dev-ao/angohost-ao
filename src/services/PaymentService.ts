@@ -13,7 +13,7 @@ export interface PaymentRequestData {
   description?: string;
   customerEmail?: string;
   customerName?: string;
-  paymentMethod: 'emis' | 'bank-transfer' | 'credit-card';
+  paymentMethod: 'emis' | 'bank-transfer' | 'credit-card' | 'account_balance';
 }
 
 export interface PaymentResponse {
@@ -29,6 +29,12 @@ export interface PaymentResponse {
       accountName: string;
       accountNumber: string;
       reference: string;
+    };
+    transaction?: {
+      id: string;
+      date: string;
+      amount: number;
+      newBalance: number;
     };
   };
 }
@@ -90,6 +96,41 @@ export const processBankTransfer = async (data: PaymentRequestData): Promise<Pay
 };
 
 /**
+ * Processa pagamentos com saldo da conta
+ */
+export const processAccountBalance = async (data: PaymentRequestData): Promise<PaymentResponse> => {
+  try {
+    // Simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const currentDate = new Date();
+    const transactionId = `bal_${Date.now()}`;
+    
+    // Em produção, você descontaria o valor do saldo do usuário
+    // e salvaria a transação no banco de dados
+    
+    return {
+      success: true,
+      message: 'Pagamento com saldo processado com sucesso',
+      data: {
+        transaction: {
+          id: transactionId,
+          date: currentDate.toISOString(),
+          amount: data.amount,
+          newBalance: 0 // Em produção, calcularia o novo saldo
+        },
+        redirectUrl: '/payment/success?sessionId=' + transactionId
+      }
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || 'Erro ao processar pagamento com saldo',
+    };
+  }
+};
+
+/**
  * Processa todos os tipos de pagamento
  */
 export const processPayment = async (data: PaymentRequestData): Promise<PaymentResponse> => {
@@ -109,6 +150,9 @@ export const processPayment = async (data: PaymentRequestData): Promise<PaymentR
         
       case 'bank-transfer':
         return processBankTransfer(data);
+      
+      case 'account_balance':
+        return processAccountBalance(data);
         
       case 'credit-card':
         // Simulação de pagamento com cartão

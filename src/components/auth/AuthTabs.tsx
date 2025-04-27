@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoginForm } from './LoginForm';
-import { RegisterFormEnhanced } from './RegisterFormEnhanced';
+import { RegisterFormNew } from './RegisterFormNew';
 import { AuthHeader } from './AuthHeader';
 
 interface AuthTabsProps {
@@ -24,7 +24,7 @@ export const AuthTabs = ({ defaultMode }: AuthTabsProps) => {
         </TabsContent>
         
         <TabsContent value="register">
-          <RegisterFormEnhanced />
+          <RegisterFormNew />
         </TabsContent>
       </Tabs>
     </>

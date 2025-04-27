@@ -2,16 +2,20 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
-import { CreditCard, Building, ArrowRightLeft } from 'lucide-react';
+import { CreditCard, Building, ArrowRightLeft, Wallet } from 'lucide-react';
 
 interface PaymentMethodSelectorProps {
   selected: string | null;
   onSelect: (method: string) => void;
+  showAccountBalance?: boolean;
+  accountBalance?: number;
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   selected,
-  onSelect
+  onSelect,
+  showAccountBalance = true,
+  accountBalance = 0
 }) => {
   const paymentMethods = [
     {
@@ -34,6 +38,16 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     }
   ];
 
+  // Add account balance option if available
+  if (showAccountBalance) {
+    paymentMethods.push({
+      id: 'account_balance',
+      name: 'Saldo da Conta',
+      icon: <Wallet className="h-5 w-5 text-amber-600" />,
+      description: `Saldo disponível: ${accountBalance.toLocaleString('pt-AO')} Kz`,
+    });
+  }
+
   return (
     <RadioGroup 
       value={selected || ""} 
@@ -46,10 +60,13 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             value={method.id} 
             id={`payment-${method.id}`} 
             className="mt-1"
+            disabled={method.id === 'account_balance' && accountBalance <= 0}
           />
           <Label 
             htmlFor={`payment-${method.id}`}
-            className="flex-1 p-4 bg-white rounded-md border cursor-pointer hover:bg-gray-50"
+            className={`flex-1 p-4 bg-white rounded-md border cursor-pointer hover:bg-gray-50 ${
+              method.id === 'account_balance' && accountBalance <= 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
           >
             <div className="flex items-center">
               <div className="mr-3">
