@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +57,6 @@ export const ServicesTab = () => {
         return;
       }
       
-      // Buscar pedidos
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
@@ -67,7 +65,6 @@ export const ServicesTab = () => {
       
       if (ordersError) throw ordersError;
       
-      // Para cada pedido, buscar os itens
       const ordersWithItems = await Promise.all((ordersData || []).map(async (order) => {
         const { data: itemsData } = await supabase
           .from('order_items')
@@ -226,7 +223,14 @@ export const ServicesTab = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ServiceStatusCard type="hosting" />
+            <ServiceStatusCard
+              type="hosting"
+              title="Plano de Hospedagem"
+              description="Seu plano atual de hospedagem web"
+              status="active"
+              expiryDate="31/12/2025"
+              nextPayment="01/12/2024"
+            />
           </CardContent>
         </Card>
       </TabsContent>
@@ -243,7 +247,13 @@ export const ServicesTab = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ServiceStatusCard type="domains" />
+            <ServiceStatusCard
+              type="domains"
+              title="Domínio Principal"
+              description="Status do seu domínio registrado"
+              status="active"
+              expiryDate="31/12/2025"
+            />
           </CardContent>
         </Card>
       </TabsContent>
@@ -260,7 +270,14 @@ export const ServicesTab = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ServiceStatusCard type="email" />
+            <ServiceStatusCard
+              type="email"
+              title="Email Profissional"
+              description="Status do seu serviço de email"
+              status="active"
+              expiryDate="31/12/2025"
+              nextPayment="01/12/2024"
+            />
           </CardContent>
         </Card>
       </TabsContent>
