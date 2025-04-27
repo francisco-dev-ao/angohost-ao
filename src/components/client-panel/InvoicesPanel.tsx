@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Invoice as ReceiptIcon, Search, Calendar, Download, Eye, CheckCircle2 } from "lucide-react";
+import { FileText, Search, Calendar, Download, Eye, CheckCircle2 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 
@@ -38,7 +37,6 @@ export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
     }
   };
   
-  // Sample mockup data
   const mockInvoices = [
     {
       id: '1',
@@ -78,16 +76,13 @@ export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
     }
   ];
 
-  // Use mockup data if no real data is available
   const allInvoices = invoices.length > 0 ? invoices : mockInvoices;
 
   const filteredInvoices = allInvoices.filter(invoice => {
-    // Filter by search term
     const matchesSearch = 
       invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (invoice.description && invoice.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filter by tab
     if (activeTab === 'all') return matchesSearch;
     if (activeTab === 'unpaid') return matchesSearch && (invoice.status === 'não pago' || invoice.status === 'unpaid');
     if (activeTab === 'paid') return matchesSearch && (invoice.status === 'pago' || invoice.status === 'paid');
@@ -131,7 +126,7 @@ export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center">
-          <ReceiptIcon className="mr-2 h-5 w-5 text-primary" />
+          <FileText className="mr-2 h-5 w-5 text-primary" />
           Gerenciamento de Faturas
         </CardTitle>
         <div className="flex items-center space-x-2">
@@ -229,7 +224,7 @@ export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <ReceiptIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <FileText className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-lg font-medium text-gray-900">Nenhuma fatura encontrada</h3>
                 <p className="mt-1 text-sm text-gray-500">
                   Não existem faturas correspondentes aos seus critérios de busca.
