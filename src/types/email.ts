@@ -1,4 +1,3 @@
-
 export interface EmailPlan {
   id: string;
   title: string;

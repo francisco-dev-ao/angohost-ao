@@ -1,4 +1,6 @@
 
+import { EmailPlan } from '@/types/email';
+
 export const emailPlans: EmailPlan[] = [
   {
     id: 'email-premium',
@@ -51,4 +53,3 @@ export const emailPlans: EmailPlan[] = [
     ]
   }
 ];
-
