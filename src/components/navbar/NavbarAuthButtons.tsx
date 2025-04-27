@@ -38,10 +38,6 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
     sessionStorage.setItem('redirect_after_login', currentPath);
   };
   
-  const getPanelRoute = () => {
-    return isAdmin ? '/admin' : '/painel-cliente';
-  };
-  
   return (
     <div className="hidden lg:flex items-center gap-4">
       <Link to="/carrinho">
@@ -56,10 +52,10 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
         </Button>
       </Link>
       {isAuthenticated ? (
-        <Link to={getPanelRoute()}>
+        <Link to="/dashboard">
           <Button className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            <span>{isAdmin ? 'Painel Admin' : 'Painel do Cliente'}</span>
+            <span>Painel do Cliente</span>
           </Button>
         </Link>
       ) : (
