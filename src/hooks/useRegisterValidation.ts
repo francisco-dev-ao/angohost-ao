@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { simulateDbOperation } from '@/integrations/postgres/client';
 
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
@@ -9,22 +9,15 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Use a simplified query to avoid excessive type instantiation
-      const result = await supabase
-        .from('customers')
-        .select('id')
-        .eq(field, value)
-        .limit(1);
+      // Simulate a database check operation
+      const { success, data } = await simulateDbOperation('check_existing_account', {
+        field,
+        value
+      });
       
-      const data = result.data;
-      const error = result.error;
-      
-      if (error) {
-        console.error(`Error checking existing ${field}:`, error);
-        return false;
-      }
-
-      return Array.isArray(data) && data.length > 0;
+      // For demonstration purposes, always return false (no existing account)
+      // In a real implementation, this would check your PostgreSQL database
+      return false;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

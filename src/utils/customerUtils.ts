@@ -1,41 +1,47 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { simulateDbOperation } from '@/integrations/postgres/client';
 import { Customer } from '@/types/cart';
 
 export const ensureCustomerExists = async (userId: string, customerData: Partial<Customer>) => {
   try {
-    // First check if customer already exists
-    const { data: existingCustomer, error: fetchError } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('user_id', userId)
-      .maybeSingle();
+    // Check if customer exists
+    const { success: checkSuccess, data: existingCustomer } = await simulateDbOperation(
+      'check_customer_exists',
+      { userId }
+    );
 
-    if (fetchError) throw fetchError;
+    // If checking failed, throw an error
+    if (!checkSuccess) {
+      throw new Error('Failed to check customer existence');
+    }
 
-    // If customer exists, return their id
-    if (existingCustomer) {
+    // If customer exists (in a real implementation this would be checked),
+    // return their ID
+    if (existingCustomer && existingCustomer.id) {
       return { id: existingCustomer.id, error: null };
     }
 
     // If customer doesn't exist, create them
-    const { data: newCustomer, error: insertError } = await supabase
-      .from('customers')
-      .insert({
-        user_id: userId,
-        name: customerData.name,
-        email: customerData.email,
-        phone: customerData.phone,
-        nif: customerData.nif,
-        billing_address: customerData.billingAddress,
-        city: customerData.city,
-        postal_code: customerData.postalCode,
-        country: customerData.country || 'Angola'
-      })
-      .select('id')
-      .single();
+    const customerToCreate = {
+      user_id: userId,
+      name: customerData.name,
+      email: customerData.email,
+      phone: customerData.phone,
+      nif: customerData.nif,
+      billing_address: customerData.billingAddress,
+      city: customerData.city,
+      postal_code: customerData.postalCode,
+      country: customerData.country || 'Angola'
+    };
 
-    if (insertError) throw insertError;
+    const { success: createSuccess, data: newCustomer } = await simulateDbOperation(
+      'create_customer',
+      customerToCreate
+    );
+
+    if (!createSuccess) {
+      throw new Error('Failed to create customer');
+    }
 
     return { id: newCustomer.id, error: null };
   } catch (error) {

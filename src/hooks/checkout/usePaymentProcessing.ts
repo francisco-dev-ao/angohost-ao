@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ensureCustomerExists } from '@/utils/customerUtils';
+import { simulateDbOperation } from '@/integrations/postgres/client';
 
 export const usePaymentProcessing = () => {
   const navigate = useNavigate();
@@ -37,36 +36,52 @@ export const usePaymentProcessing = () => {
         throw new Error('Customer information is missing');
       }
       
-      // Ensure customer exists and get their ID
-      const { id: customerId, error: customerError } = await ensureCustomerExists(userId, customer);
+      // Create customer record
+      const customerData = {
+        id: userId,
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        nif: customer.nif,
+        billing_address: customer.billingAddress,
+        city: customer.city,
+        postal_code: customer.postalCode,
+        country: customer.country || 'Angola'
+      };
       
-      if (customerError || !customerId) {
-        throw new Error('Failed to create/fetch customer');
+      const { success: customerSuccess, error: customerError } = await simulateDbOperation(
+        'create_customer', 
+        customerData
+      );
+      
+      if (!customerSuccess) {
+        throw new Error('Failed to create customer record');
       }
       
-      // Create the order
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          id: orderId,
-          customer_id: customerId,
-          total_amount: getTotalPrice(),
-          status: paymentMethod === 'emis' ? 'processing' : 'pending',
-          payment_method: paymentMethod || 'unknown',
-          payment_id: orderReference,
-          reference: orderReference
-        });
+      // Create order record
+      const orderData = {
+        id: orderId,
+        customer_id: userId,
+        total_amount: getTotalPrice(),
+        status: paymentMethod === 'emis' ? 'processing' : 'pending',
+        payment_method: paymentMethod || 'unknown',
+        payment_id: orderReference,
+        reference: orderReference
+      };
       
-      if (orderError) {
-        throw orderError;
+      const { success: orderSuccess, error: orderError } = await simulateDbOperation(
+        'create_order', 
+        orderData
+      );
+      
+      if (!orderSuccess) {
+        throw new Error('Failed to create order');
       }
       
-      // Create order items with valid UUIDs for product_id
+      // Create order items
       const orderItems = items.map(item => {
-        // Generate a valid UUID for product_id if the existing one is not in UUID format
-        const productId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id) 
-          ? item.id 
-          : generateValidUUID();
+        // Generate a valid UUID for product_id
+        const productId = generateValidUUID();
           
         return {
           order_id: orderId,
@@ -75,35 +90,38 @@ export const usePaymentProcessing = () => {
           product_id: productId,
           price: item.price,
           period: item.period,
-          details: item.details
+          details: JSON.stringify(item.details)
         };
       });
       
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+      const { success: itemsSuccess, error: itemsError } = await simulateDbOperation(
+        'create_order_items', 
+        orderItems
+      );
       
-      if (itemsError) {
-        throw itemsError;
+      if (!itemsSuccess) {
+        throw new Error('Failed to create order items');
       }
       
       // Create invoice
       const invoiceNumber = `INV-${orderReference}`;
+      const invoiceData = {
+        order_id: orderId,
+        customer_id: userId,
+        invoice_number: invoiceNumber,
+        amount: getTotalPrice(),
+        status: 'unpaid',
+        payment_method: paymentMethod,
+        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      };
       
-      const { error: invoiceError } = await supabase
-        .from('invoices')
-        .insert({
-          order_id: orderId,
-          customer_id: customerId,
-          invoice_number: invoiceNumber,
-          amount: getTotalPrice(),
-          status: 'unpaid',
-          payment_method: paymentMethod,
-          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-        });
+      const { success: invoiceSuccess, error: invoiceError } = await simulateDbOperation(
+        'create_invoice', 
+        invoiceData
+      );
       
-      if (invoiceError) {
-        throw invoiceError;
+      if (!invoiceSuccess) {
+        throw new Error('Failed to create invoice');
       }
       
       console.log('Order saved successfully:', orderId);
