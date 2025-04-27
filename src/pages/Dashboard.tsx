@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ServicesTab } from '@/components/dashboard/ServicesTab';
@@ -10,17 +10,10 @@ import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 import { WalletTab } from '@/components/dashboard/WalletTab';
 import { useUser } from '@/hooks/useUser';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useCart } from '@/context/CartContext';
 
 const Dashboard = () => {
   const { user } = useUser();
-  const { items } = useCart();
   useNotifications(user?.id);
-
-  // Ensure cart is loaded by logging it
-  useEffect(() => {
-    console.log("Dashboard - Cart items:", items);
-  }, [items]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

@@ -16,7 +16,6 @@ export const useShoppingCart = () => {
   
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [profileAssigned, setProfileAssigned] = useState(false);
   
   const hasDomain = items.some(item => item.type === 'domain');
@@ -27,48 +26,16 @@ export const useShoppingCart = () => {
   
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        setLoading(true);
-        const { data } = await supabase.auth.getSession();
-        
-        if (data.session?.user) {
-          setUser(data.session.user);
-          
-          // Check if user is admin
-          const { data: adminData } = await supabase.rpc('is_admin');
-          setIsAdmin(!!adminData);
-        } else {
-          setUser(null);
-          setIsAdmin(false);
-        }
-      } catch (error) {
-        console.error("Error checking auth:", error);
-        setUser(null);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user || null);
+      setLoading(false);
     };
     
     checkAuth();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          
-          // Check if user is admin
-          try {
-            const { data: adminData } = await supabase.rpc('is_admin');
-            setIsAdmin(!!adminData);
-          } catch (error) {
-            console.error("Error checking admin status:", error);
-            setIsAdmin(false);
-          }
-        } else {
-          setUser(null);
-          setIsAdmin(false);
-        }
+      (_event, session) => {
+        setUser(session?.user || null);
       }
     );
     
@@ -110,7 +77,6 @@ export const useShoppingCart = () => {
   
   return {
     user,
-    isAdmin,
     loading,
     hasDomain,
     hasEmailPlan,

@@ -10,13 +10,15 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      const { data }: PostgrestSingleResponse<{ id: string }[]> = await supabase
+      // Use explicit type annotation for the query result
+      const response: PostgrestSingleResponse<{ id: string }> = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
       
-      return Array.isArray(data) && data.length > 0;
+      return response.data !== null;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -30,14 +30,16 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
     
     if (isAuthenticated) {
       checkAdminStatus();
-    } else {
-      setIsAdmin(false);
     }
   }, [isAuthenticated]);
 
   const handleAuthClick = () => {
     const currentPath = location.pathname + location.search;
     sessionStorage.setItem('redirect_after_login', currentPath);
+  };
+  
+  const getPanelRoute = () => {
+    return isAdmin ? '/admin' : '/painel-cliente';
   };
   
   return (
@@ -54,22 +56,12 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
         </Button>
       </Link>
       {isAuthenticated ? (
-        <div className="flex gap-3">
-          {isAdmin && (
-            <Link to="/admin">
-              <Button variant="destructive" className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Painel Admin</span>
-              </Button>
-            </Link>
-          )}
-          <Link to="/dashboard">
-            <Button className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>Painel do Cliente</span>
-            </Button>
-          </Link>
-        </div>
+        <Link to={getPanelRoute()}>
+          <Button className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            <span>{isAdmin ? 'Painel Admin' : 'Painel do Cliente'}</span>
+          </Button>
+        </Link>
       ) : (
         <Link to="/auth" onClick={handleAuthClick}>
           <Button className="flex items-center gap-2">
