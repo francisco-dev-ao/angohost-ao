@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from '@/utils/formatters';
+import { Tag } from 'lucide-react';
 
 interface Invoice {
   id: string;
@@ -12,6 +13,8 @@ interface Invoice {
   status: string;
   date: string;
   dueDate: string;
+  discount?: number; // Campo opcional para desconto
+  originalAmount?: number; // Campo opcional para preço original
 }
 
 interface InvoicesTableProps {
@@ -55,7 +58,24 @@ export const InvoicesTable = ({ invoices }: InvoicesTableProps) => {
               <div>{invoice.service}</div>
               <div>{invoice.date}</div>
               <div>{invoice.dueDate}</div>
-              <div>{formatCurrency(invoice.amount)}</div>
+              <div>
+                {invoice.discount && invoice.originalAmount ? (
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{formatCurrency(invoice.amount)}</span>
+                      <Badge className="bg-green-500 text-xs">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {invoice.discount}% OFF
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground line-through">
+                      {formatCurrency(invoice.originalAmount)}
+                    </span>
+                  </div>
+                ) : (
+                  formatCurrency(invoice.amount)
+                )}
+              </div>
               <div className="text-right">{getStatusBadge(invoice.status)}</div>
             </div>
           ))}

@@ -56,15 +56,17 @@ export function useEmisPayment({ amount, reference, onSuccess, onError }: UseEmi
         return;
       }
       
-      // Garantir que temos uma referência válida
+      // Garantir que temos uma referência válida e não é undefined ou vazio
       if (!reference || reference.trim() === '') {
-        console.error('Referência de pedido inválida:', reference);
-        setErrorMessage("Referência de pedido inválida ou vazia");
+        const errorMsg = "Referência de pedido inválida ou ausente";
+        console.error(errorMsg, reference);
+        setErrorMessage(errorMsg);
         setIsLoading(false);
         setUseDirectPayment(true);
         return;
       }
       
+      // Gerar uma referência sanitizada baseada na original
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       

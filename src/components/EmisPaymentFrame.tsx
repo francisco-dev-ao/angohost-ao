@@ -22,14 +22,14 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Verificar se a referência é válida
+  // Verificar se a referência é válida e garantir que não esteja vazia
   useEffect(() => {
     if (!reference || reference.trim() === '') {
       console.error('Referência inválida passada para EmisPaymentFrame:', reference);
-      onError('Referência de pagamento inválida');
+      onError('Referência de pagamento inválida ou ausente');
       return;
     }
-    console.log('EmisPaymentFrame inicializado com referência:', reference);
+    console.log('EmisPaymentFrame inicializado com referência válida:', reference);
   }, [reference, onError]);
   
   const {
@@ -41,7 +41,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     resetPayment
   } = useEmisPayment({
     amount,
-    reference, // Garantir que a referência seja passada
+    reference, 
     onSuccess,
     onError
   });
@@ -49,10 +49,17 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
   useEffect(() => {
     const startPayment = async () => {
       try {
+        if (!reference || reference.trim() === '') {
+          console.error('Tentativa de iniciar pagamento com referência inválida:', reference);
+          onError('Referência de pagamento inválida ou ausente');
+          return;
+        }
+        
         console.log('Inicializando pagamento com referência:', reference);
         await initializePayment();
       } catch (error) {
         console.error('Erro ao iniciar pagamento:', error);
+        onError(`Erro ao iniciar pagamento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
       }
     };
     
@@ -60,16 +67,16 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     if (reference && reference.trim() !== '') {
       startPayment();
     } else {
-      onError('Referência de pagamento inválida');
+      onError('Referência de pagamento inválida ou ausente');
     }
-  }, [reference]);
+  }, [reference, initializePayment, onError]);
 
   useEffect(() => {
     // Abrir o modal de pagamento automaticamente quando o frameUrl estiver disponível
     if (frameUrl && !isOpen && !errorMessage) {
       setIsOpen(true);
     }
-  }, [frameUrl]);
+  }, [frameUrl, isOpen, errorMessage]);
 
   const handleClose = () => {
     setIsOpen(false);
