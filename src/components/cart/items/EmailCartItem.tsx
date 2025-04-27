@@ -21,4 +21,3 @@ export const EmailCartItem: React.FC<EmailCartItemProps> = ({ item }) => {
     </div>
   );
 };
-

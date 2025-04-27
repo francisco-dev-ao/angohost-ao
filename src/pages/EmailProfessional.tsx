@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ interface EmailPlan {
   id: string;
   title: string;
   price: number;
+  renewalPrice: number;
   storage: string;
   features: string[];
   isPopular?: boolean;
@@ -59,6 +61,7 @@ const EmailProfessional = () => {
   const [existingDomain, setExistingDomain] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [domainsInCart, setDomainsInCart] = useState<string[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState("1");
   
   // Get domains from cart
   useEffect(() => {
@@ -67,52 +70,64 @@ const EmailProfessional = () => {
   
   const emailPlans: EmailPlan[] = [
     {
-      id: "email-start",
-      title: "Plano Start",
-      price: 1500,
+      id: "email-premium",
+      title: "Email Premium",
+      price: 12000,
+      renewalPrice: 14500,
       storage: "5GB",
       minQuantity: 1,
       maxQuantity: 10,
       features: [
-        "5GB por Caixa Postal",
-        "Webmail Responsivo",
-        "Proteção Anti-spam",
+        "5GB por Usuário",
+        "IMAP/POP",
+        "Reputação do IP limpo",
+        "Classificado pelo Google",
         "Suporte 24/7"
       ]
     },
     {
-      id: "email-business",
-      title: "Plano Business",
-      price: 3000,
-      storage: "15GB",
+      id: "email-pro",
+      title: "Avançado Pro",
+      price: 40000,
+      renewalPrice: 42000,
+      storage: "50GB",
       minQuantity: 3,
       maxQuantity: 20,
       isPopular: true,
       features: [
-        "15GB por Caixa Postal",
-        "Webmail Responsivo",
-        "Proteção Anti-spam e Antivírus",
-        "Calendário Compartilhado",
+        "50GB por Usuário",
+        "Regras de Encaminhamento",
+        "Aliases de email",
+        "Verificação Antivírus",
+        "Anti-spam avançado",
+        "Infraestrutura baseada na cloud",
         "Suporte Prioritário 24/7"
       ]
     },
     {
-      id: "email-enterprise",
-      title: "Plano Enterprise",
-      price: 6000,
-      storage: "50GB",
+      id: "email-business",
+      title: "Business",
+      price: 30000,
+      renewalPrice: 32000,
+      storage: "30GB",
       minQuantity: 5,
       maxQuantity: 50,
       features: [
-        "50GB por Caixa Postal",
-        "Webmail Responsivo",
-        "Proteção Anti-spam e Antivírus",
-        "Calendário e Contatos Compartilhados",
-        "Arquivamento de Email",
-        "Suporte Prioritário 24/7"
+        "30GB por Usuário",
+        "IMAP/POP",
+        "Reputação do IP limpo",
+        "Classificado pelo Google",
+        "Suporte VIP 24/7"
       ]
     }
   ];
+
+  const getDiscountedPrice = (basePrice: number, years: number) => {
+    let discount = 0;
+    if (years === 2) discount = 0.10;
+    if (years === 3) discount = 0.20;
+    return Math.round(basePrice * years * (1 - discount));
+  };
 
   const handleSelectPlan = (plan: EmailPlan) => {
     setSelectedPlan(plan);
@@ -180,19 +195,24 @@ const EmailProfessional = () => {
     
     setIsLoading(true);
     
+    // Calculate price with discount based on period
+    const years = parseInt(selectedPeriod);
+    const totalPrice = getDiscountedPrice(selectedPlan.price * quantity, years);
+    
     // Simulate some processing delay
     setTimeout(() => {
       const newItem = {
         id: `${selectedPlan.id}-${Date.now()}`,
         type: 'email',
         name: `${selectedPlan.title} (${quantity} contas)`,
-        price: selectedPlan.price * quantity,
-        period: 'monthly',
+        price: totalPrice,
+        period: 'yearly',
         details: {
           storage: selectedPlan.storage,
-          antispam: selectedPlan.id === 'email-start' ? 'Básico' : (selectedPlan.id === 'email-business' ? 'Avançado' : 'Premium'),
+          antispam: selectedPlan.id === 'email-premium' ? 'Básico' : (selectedPlan.id === 'email-pro' ? 'Avançado' : 'Básico'),
           quantity: quantity,
           domainName: domainOption.type === 'existing' ? existingDomain : undefined,
+          contractYears: years,
           renewalPrice: selectedPlan.price * quantity
         }
       };
@@ -234,8 +254,14 @@ const EmailProfessional = () => {
                   
                   <div className="mt-4 flex items-baseline text-gray-900">
                     <span className="text-3xl font-extrabold tracking-tight">{plan.price.toLocaleString('pt-AO')} Kz</span>
-                    <span className="ml-1 text-xl font-semibold">/conta/mês</span>
+                    <span className="ml-1 text-xl font-semibold">/ano por conta</span>
                   </div>
+                  
+                  {plan.renewalPrice !== plan.price && (
+                    <div className="mt-1 text-sm text-gray-500">
+                      Renovação: {plan.renewalPrice.toLocaleString('pt-AO')} Kz/ano por conta
+                    </div>
+                  )}
                   
                   <ul className="mt-6 space-y-4">
                     {plan.features.map((feature, index) => (
@@ -451,15 +477,50 @@ const EmailProfessional = () => {
                 )}
               </div>
               
+              <div className="w-full border-t border-gray-200 pt-4">
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-600">Período:</span>
+                  <div className="space-x-2">
+                    <Button 
+                      variant={selectedPeriod === "1" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => setSelectedPeriod("1")}
+                    >
+                      1 ano
+                    </Button>
+                    <Button 
+                      variant={selectedPeriod === "2" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => setSelectedPeriod("2")}
+                    >
+                      2 anos (10% desc.)
+                    </Button>
+                    <Button 
+                      variant={selectedPeriod === "3" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => setSelectedPeriod("3")}
+                    >
+                      3 anos (20% desc.)
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
               {selectedPlan && (
                 <div className="w-full border-t border-gray-200 pt-4">
                   <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Preço por conta:</span>
-                    <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz/mês</span>
+                    <span>{selectedPlan.price.toLocaleString('pt-AO')} Kz/ano</span>
                   </div>
+                  {parseInt(selectedPeriod) > 1 && (
+                    <div className="flex justify-between text-green-600 mb-2">
+                      <span>Desconto:</span>
+                      <span>{selectedPeriod === "2" ? "10%" : "20%"}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-medium text-lg">
                     <span>Total:</span>
-                    <span>{(selectedPlan.price * quantity).toLocaleString('pt-AO')} Kz/mês</span>
+                    <span>{getDiscountedPrice(selectedPlan.price * quantity, parseInt(selectedPeriod)).toLocaleString('pt-AO')} Kz</span>
                   </div>
                 </div>
               )}

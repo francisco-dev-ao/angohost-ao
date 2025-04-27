@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmailPlanPriceSummary } from './EmailPlanPriceSummary';
 
 interface EmailPlanConfigProps {
@@ -80,19 +79,29 @@ export const EmailPlanConfig: React.FC<EmailPlanConfigProps> = ({
 
         <div>
           <Label htmlFor="contract-period">Período de Contrato</Label>
-          <Select
-            value={selectedPeriod}
-            onValueChange={onPeriodChange}
-          >
-            <SelectTrigger id="contract-period" className="mt-2">
-              <SelectValue placeholder="Selecione o período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1 Ano</SelectItem>
-              <SelectItem value="2">2 Anos (10% desconto)</SelectItem>
-              <SelectItem value="3">3 Anos (20% desconto)</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            <Button 
+              variant={selectedPeriod === "1" ? "default" : "outline"}
+              onClick={() => onPeriodChange("1")}
+              className="w-full"
+            >
+              1 Ano
+            </Button>
+            <Button 
+              variant={selectedPeriod === "2" ? "default" : "outline"}
+              onClick={() => onPeriodChange("2")}
+              className="w-full"
+            >
+              2 Anos (10% desc.)
+            </Button>
+            <Button 
+              variant={selectedPeriod === "3" ? "default" : "outline"}
+              onClick={() => onPeriodChange("3")}
+              className="w-full"
+            >
+              3 Anos (20% desc.)
+            </Button>
+          </div>
         </div>
 
         <EmailPlanPriceSummary
