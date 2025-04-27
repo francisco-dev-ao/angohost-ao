@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
@@ -10,7 +9,7 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      const { data }: PostgrestSingleResponse<{ id: string }[]> = await supabase
+      const { data } = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
