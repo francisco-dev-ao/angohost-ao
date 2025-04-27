@@ -13,18 +13,6 @@ import { ContactProfileDialogs } from '@/components/client-panel/ContactProfileD
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-// Import the individual panel components
-import { DashboardOverview } from '@/components/client-panel/DashboardOverview';
-import { ServicesPanel } from '@/components/client-panel/ServicesPanel';
-import { DomainsPanel } from '@/components/client-panel/DomainsPanel';
-import { InvoicesPanel } from '@/components/client-panel/InvoicesPanel';
-import { TicketsPanel } from '@/components/client-panel/TicketsPanel';
-import { ProfilePanel } from '@/components/client-panel/ProfilePanel';
-import { DownloadsPanel } from '@/components/client-panel/DownloadsPanel';
-import { KnowledgeBasePanel } from '@/components/client-panel/KnowledgeBasePanel';
-import { NotificationsPanel } from '@/components/client-panel/NotificationsPanel';
-import { AffiliatePanel } from '@/components/client-panel/AffiliatePanel';
-
 const ClientPanel = () => {
   const { loading, userData, handleSignOut, accountBalance, services, domains, invoices, refreshData } = useClientPanel();
   const [refreshing, setRefreshing] = useState(false);
@@ -57,11 +45,6 @@ const ClientPanel = () => {
       </div>
     );
   }
-
-  const renderCurrentPanel = () => {
-    // Use the Outlet component to render the nested route components
-    return <Outlet context={{ userData, services, domains, invoices }} />;
-  };
 
   return (
     <RequireAuth>
@@ -98,7 +81,8 @@ const ClientPanel = () => {
               </div>
             </div>
 
-            {renderCurrentPanel()}
+            {/* Pass the necessary props to the child routes through Outlet context */}
+            <Outlet context={{ userData, services, domains, invoices }} />
           </div>
 
           <ContactProfileDialogs />

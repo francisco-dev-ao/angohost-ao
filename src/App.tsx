@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -100,7 +101,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Componente App definido como função React
+// App component defined as React function
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>

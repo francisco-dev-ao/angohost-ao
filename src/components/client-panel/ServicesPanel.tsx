@@ -1,18 +1,25 @@
-
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Package, Search, RefreshCcw } from 'lucide-react';
-import { ServicesPanelProps } from './dashboard/types';
 import { ServicesList } from './services/ServicesList';
 import { ServiceDetails } from './services/ServiceDetails';
 import { QuickAccess } from './services/QuickAccess';
 import { ServiceUsageStats } from './services/ServiceUsageStats';
 import { mockServices } from './services/utils';
 
-export const ServicesPanel = ({ services = [] }: ServicesPanelProps) => {
+type ClientPanelContext = {
+  userData: any;
+  services: any[];
+  domains: any[];
+  invoices: any[];
+};
+
+export const ServicesPanel = () => {
+  const { services } = useOutletContext<ClientPanelContext>();
   const [searchTerm, setSearchTerm] = useState('');
   const displayServices = services.length > 0 ? services : mockServices;
   

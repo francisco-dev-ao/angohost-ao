@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +9,15 @@ import {
 } from 'lucide-react';
 import { Switch } from "@/components/ui/switch";
 
-interface ProfilePanelProps {
+type ClientPanelContext = {
   userData: any;
-}
+  services: any[];
+  domains: any[];
+  invoices: any[];
+};
 
-export const ProfilePanel = ({ userData }: ProfilePanelProps) => {
+export const ProfilePanel = () => {
+  const { userData } = useOutletContext<ClientPanelContext>();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState({
     invoices: true,

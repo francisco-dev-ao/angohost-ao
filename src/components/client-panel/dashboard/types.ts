@@ -1,3 +1,4 @@
+
 export interface ServiceStatusCardProps {
   type?: string;
   title: string;
@@ -9,7 +10,7 @@ export interface ServiceStatusCardProps {
 }
 
 export interface DashboardOverviewProps {
-  userData: any;
+  userData?: any;
   services?: any[];
   domains?: any[];
   invoices?: any[];
@@ -36,13 +37,21 @@ export interface EmailContentProps {
 }
 
 export interface ServicesPanelProps {
-  services: any[];
+  services?: any[];
 }
 
 export interface DomainsPanelProps {
-  domains: any[];
+  domains?: any[];
 }
 
 export interface InvoicesPanelProps {
-  invoices: any[];
+  invoices?: any[];
+}
+
+export interface ProfilePanelProps {
+  userData?: any;
+}
+
+export interface AffiliatePanelProps {
+  userData?: any;
 }
