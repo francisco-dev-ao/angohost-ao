@@ -7,17 +7,24 @@ import { useCart } from '@/context/CartContext';
 import { Loader2 } from 'lucide-react';
 import { DomainSearchInput } from './domain/DomainSearchInput';
 import { DomainSearchResult } from './domain/DomainSearchResult';
-import { checkDomainAvailability } from '@/services/DomainService';
 
 interface DomainSearchFormProps {
   variant?: 'default' | 'hero' | 'sidebar';
 }
 
+const extensionOptions = [
+  { value: '.co.ao', label: '.co.ao', price: 35000 },
+  { value: '.ao', label: '.ao', price: 25000 },
+  { value: '.it.ao', label: '.it.ao', price: 35000 },
+  { value: '.edu.ao', label: '.edu.ao', price: 35000 },
+  { value: '.com', label: '.com', price: 15000 },
+];
+
 const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default' }) => {
   const [domainName, setDomainName] = useState('');
   const [extension, setExtension] = useState('.co.ao');
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number, records?: any }>(null);
+  const [searchResult, setSearchResult] = useState<null | { available: boolean, price?: number }>(null);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const registerButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -25,20 +32,18 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
   const { addItem } = useCart();
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const domain = searchParams.get('domain');
-    const ext = searchParams.get('ext');
-    
-    if (domain) setDomainName(domain);
-    if (ext) setExtension(ext);
-    
     const pendingEmailPlan = sessionStorage.getItem('pendingEmailPlan');
     if (pendingEmailPlan) {
       toast.info('Selecione um domínio para o seu plano de email');
     }
   }, []);
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const getPrice = () => {
+    const selectedExt = extensionOptions.find(ext => ext.value === extension);
+    return domainName.length <= 3 ? 300000 : (selectedExt?.price || 0);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!domainName) {
@@ -49,13 +54,18 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
     setIsSearching(true);
     setSearchResult(null);
     
-    try {
-      // Use the new domain check service
-      const result = await checkDomainAvailability(domainName, extension);
+    setTimeout(() => {
+      const randomAvailable = Math.random() > 0.3;
+      const price = getPrice();
       
-      setSearchResult(result);
+      setSearchResult({
+        available: randomAvailable,
+        price: price,
+      });
       
-      if (result.available) {
+      setIsSearching(false);
+      
+      if (randomAvailable) {
         toast.success(`O domínio ${domainName}${extension} está disponível!`);
         setTimeout(() => {
           registerButtonRef.current?.focus();
@@ -63,19 +73,14 @@ const DomainSearchForm: React.FC<DomainSearchFormProps> = ({ variant = 'default'
       } else {
         toast.error(`O domínio ${domainName}${extension} não está disponível.`);
       }
-    } catch (error) {
-      console.error("Error checking domain:", error);
-      toast.error("Erro ao verificar disponibilidade do domínio. Tente novamente.");
-    } finally {
-      setIsSearching(false);
-    }
+    }, 1500);
   };
 
   const handleAddToCart = () => {
     setIsProcessingOrder(true);
 
     setTimeout(() => {
-      const price = searchResult?.price || 0;
+      const price = getPrice();
 
       addItem({
         id: `domain-${domainName}${extension}-${Date.now()}`,

@@ -9,109 +9,8 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      account_transactions: {
-        Row: {
-          amount: number
-          created_at: string
-          current_balance: number
-          customer_id: string
-          description: string | null
-          id: string
-          previous_balance: number
-          reference_id: string | null
-          transaction_type: string | null
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          current_balance: number
-          customer_id: string
-          description?: string | null
-          id?: string
-          previous_balance: number
-          reference_id?: string | null
-          transaction_type?: string | null
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          current_balance?: number
-          customer_id?: string
-          description?: string | null
-          id?: string
-          previous_balance?: number
-          reference_id?: string | null
-          transaction_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "account_transactions_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      contact_profiles: {
-        Row: {
-          billing_address: string | null
-          city: string | null
-          country: string | null
-          created_at: string | null
-          customer_id: string | null
-          email: string
-          id: string
-          name: string
-          nif: string | null
-          phone: string | null
-          postal_code: string | null
-          profile_name: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          billing_address?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          email: string
-          id?: string
-          name: string
-          nif?: string | null
-          phone?: string | null
-          postal_code?: string | null
-          profile_name?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          billing_address?: string | null
-          city?: string | null
-          country?: string | null
-          created_at?: string | null
-          customer_id?: string | null
-          email?: string
-          id?: string
-          name?: string
-          nif?: string | null
-          phone?: string | null
-          postal_code?: string | null
-          profile_name?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contact_profiles_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customers: {
         Row: {
-          account_balance: number | null
           billing_address: string | null
           city: string | null
           country: string | null
@@ -127,7 +26,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          account_balance?: number | null
           billing_address?: string | null
           city?: string | null
           country?: string | null
@@ -143,7 +41,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          account_balance?: number | null
           billing_address?: string | null
           city?: string | null
           country?: string | null
@@ -505,39 +402,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      notification_preferences: {
-        Row: {
-          expiring_services: boolean
-          id: string
-          invoices: boolean
-          marketing: boolean
-          product_updates: boolean
-          support: boolean
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          expiring_services?: boolean
-          id?: string
-          invoices?: boolean
-          marketing?: boolean
-          product_updates?: boolean
-          support?: boolean
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          expiring_services?: boolean
-          id?: string
-          invoices?: boolean
-          marketing?: boolean
-          product_updates?: boolean
-          support?: boolean
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       order_items: {
         Row: {

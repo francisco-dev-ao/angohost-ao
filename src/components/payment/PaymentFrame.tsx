@@ -15,17 +15,10 @@ const PaymentFrameDialog = ({ isOpen, onClose, frameUrl }: PaymentFrameDialogPro
   const handleIframeError = () => {
     console.error('Erro ao carregar o iframe de pagamento');
   };
-  
-  // Logging para debug
-  React.useEffect(() => {
-    if (isOpen && frameUrl) {
-      console.log('Abrindo iframe de pagamento:', frameUrl);
-    }
-  }, [isOpen, frameUrl]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] h-[600px] max-h-[90vh]">
+      <DialogContent className="sm:max-w-[600px] h-[600px]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>Pagamento Multicaixa Express</DialogTitle>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -43,7 +36,6 @@ const PaymentFrameDialog = ({ isOpen, onClose, frameUrl }: PaymentFrameDialogPro
               allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
               onError={handleIframeError}
-              sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation"
             />
           )}
         </div>
