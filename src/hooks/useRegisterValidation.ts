@@ -5,24 +5,23 @@ import { supabase } from '@/integrations/supabase/client';
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
 
-  const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
+  const checkExistingAccount = async (field: string, value: string) => {
     try {
       setLoading(true);
       
-      // Query the customers table directly
       const { data, error } = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
-        .limit(1);
+        .limit(1)
+        .single();
       
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
         console.error(`Error checking existing ${field}:`, error);
         return false;
       }
       
-      // If we found records, the account exists
-      return !!data && data.length > 0;
+      return !!data;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
@@ -31,5 +30,5 @@ export const useRegisterValidation = () => {
     }
   };
 
-  return { loading, setLoading, checkExistingAccount };
+  return { loading, checkExistingAccount };
 };

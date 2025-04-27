@@ -198,6 +198,41 @@ const Checkout = () => {
     setIsLoading(false);
   };
 
+  const handleCreateOrderWithoutPayment = async () => {
+    if (!user) {
+      toast.error('É necessário fazer login para finalizar a compra');
+      navigate('/auth');
+      return;
+    }
+    
+    if (hasDomain && !hasOnlyHostingWithoutDomain && !selectedContactProfileId) {
+      toast.error('É necessário selecionar um perfil de contato para seus domínios');
+      return;
+    }
+
+    setIsLoading(true);
+    const orderId = crypto.randomUUID();
+    const ref = generateOrderReference();
+    
+    try {
+      await saveOrderToDatabase(orderId, user.id);
+      
+      setPaymentInfo({
+        method: 'pending_payment',
+        status: 'pending',
+        reference: ref
+      });
+      
+      toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');
+      navigate('/payment/success');
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
+      toast.error('Erro ao criar pedido. Por favor, tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <RequireAuth redirectTo="/auth" toastMessage="É necessário fazer login para finalizar a compra">
       <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -212,6 +247,7 @@ const Checkout = () => {
                   isLoading={isLoading}
                   onSelectPaymentMethod={setPaymentMethod}
                   onProcessPayment={handleProcessPayment}
+                  onCreateOrderWithoutPayment={handleCreateOrderWithoutPayment}
                 />
               ) : (
                 <PaymentFrame
