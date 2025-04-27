@@ -1,19 +1,18 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Calendar, RefreshCcw, DownloadIcon, FileText, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { Badge } from "@/components/ui/badge";
-import { DataTable } from "../ui/data-table";
+import { RefreshCcw, DownloadIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RevenueChart } from './invoices/RevenueChart';
+import { PaymentMethodsChart } from './invoices/PaymentMethodsChart';
+import { InvoiceStats } from './invoices/InvoiceStats';
+import { InvoicesTable } from './invoices/InvoicesTable';
 
 export const AdminInvoices = () => {
   const [dateFilter, setDateFilter] = useState('this-month');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Dados de exemplo para os gráficos
+  // Dados de exemplo
   const monthlyRevenue = [
     { name: 'Jan', valor: 1200000 },
     { name: 'Fev', valor: 1500000 },
@@ -32,7 +31,6 @@ export const AdminInvoices = () => {
     { name: 'PayPal', valor: 150000 },
   ];
   
-  // Lista de faturas de exemplo
   const recentInvoices = [
     { id: 'INV-001', customer: 'Carlos Silva', service: 'Hospedagem WordPress', amount: 15000, status: 'paid', date: '2023-08-15', dueDate: '2023-09-15' },
     { id: 'INV-002', customer: 'Maria Santos', service: 'Domínio .ao', amount: 5000, status: 'pending', date: '2023-08-14', dueDate: '2023-09-14' },
@@ -43,33 +41,9 @@ export const AdminInvoices = () => {
   
   const refreshData = () => {
     setIsLoading(true);
-    // Simular uma atualização de dados
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-  };
-  
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return <Badge className="bg-green-500">Paga</Badge>;
-      case 'pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-300">Pendente</Badge>;
-      case 'overdue':
-        return <Badge className="bg-red-500">Vencida</Badge>;
-      case 'cancelled':
-        return <Badge variant="secondary">Cancelada</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-  
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 0
-    }).format(value);
   };
   
   return (
@@ -102,136 +76,11 @@ export const AdminInvoices = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Faturas Emitidas</CardDescription>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl">142</CardTitle>
-              <FileText className="h-6 w-6 text-primary opacity-75" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Esse mês</span>
-              <div className="flex items-center text-green-600">
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                <span>12%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Faturado</CardDescription>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl">{formatCurrency(2070000)}</CardTitle>
-              <CreditCard className="h-6 w-6 text-primary opacity-75" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Esse mês</span>
-              <div className="flex items-center text-green-600">
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                <span>8%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Faturas Pagas</CardDescription>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl">108</CardTitle>
-              <Badge className="bg-green-500">76%</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Total: {formatCurrency(1620000)}</span>
-              <div className="flex items-center text-green-600">
-                <ArrowUpRight className="mr-1 h-4 w-4" />
-                <span>5%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Faturas Vencidas</CardDescription>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl">15</CardTitle>
-              <Badge className="bg-red-500">11%</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Total: {formatCurrency(225000)}</span>
-              <div className="flex items-center text-red-600">
-                <ArrowDownRight className="mr-1 h-4 w-4" />
-                <span>2%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <InvoiceStats />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Receita Mensal</CardTitle>
-            <CardDescription>Valor total de faturas emitidas por mês</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={monthlyRevenue}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(value) => `${value/1000}K`} />
-                <Tooltip formatter={(value) => [formatCurrency(value as number), "Valor"]} />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="valor" 
-                  name="Receita" 
-                  stroke="#8884d8" 
-                  activeDot={{ r: 8 }} 
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Métodos de Pagamento</CardTitle>
-            <CardDescription>Distribuição por método de pagamento</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={paymentMethodsData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                layout="vertical"
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" tickFormatter={(value) => `${value/1000}K`} />
-                <YAxis dataKey="name" type="category" width={150} />
-                <Tooltip formatter={(value) => [formatCurrency(value as number), "Valor"]} />
-                <Legend />
-                <Bar dataKey="valor" name="Valor" fill="#82ca9d" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <RevenueChart data={monthlyRevenue} />
+        <PaymentMethodsChart data={paymentMethodsData} />
       </div>
       
       <Tabs defaultValue="all" className="w-full">
@@ -248,33 +97,7 @@ export const AdminInvoices = () => {
         </div>
         
         <TabsContent value="all" className="mt-6">
-          <Card>
-            <CardContent className="p-0">
-              <div className="rounded-md border">
-                <div className="grid grid-cols-7 p-4 font-medium border-b">
-                  <div>Nº</div>
-                  <div>Cliente</div>
-                  <div>Serviço</div>
-                  <div>Emissão</div>
-                  <div>Vencimento</div>
-                  <div>Valor</div>
-                  <div className="text-right">Status</div>
-                </div>
-                
-                {recentInvoices.map((invoice) => (
-                  <div key={invoice.id} className="grid grid-cols-7 p-4 items-center border-b">
-                    <div>{invoice.id}</div>
-                    <div>{invoice.customer}</div>
-                    <div>{invoice.service}</div>
-                    <div>{invoice.date}</div>
-                    <div>{invoice.dueDate}</div>
-                    <div>{formatCurrency(invoice.amount)}</div>
-                    <div className="text-right">{getStatusBadge(invoice.status)}</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <InvoicesTable invoices={recentInvoices} />
         </TabsContent>
         
         <TabsContent value="pending">
