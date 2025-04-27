@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Globe, Mail, CreditCard } from 'lucide-react';
+import { User, Globe, Mail, CreditCard, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface ProfileOverviewProps {
