@@ -3,29 +3,25 @@ import React, { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-// Layout
+// Layouts
 import MainLayout from "@/layouts/MainLayout";
 import ClientPanelLayout from "@/layouts/ClientPanelLayout";
 
-// Pages
-const Home = lazy(() => import("@/pages/Home"));
-const Services = lazy(() => import("@/pages/Services"));
-const Domains = lazy(() => import("@/pages/Domains"));
-const About = lazy(() => import("@/pages/About"));
-const Contact = lazy(() => import("@/pages/Contact"));
-const DomainCheck = lazy(() => import("@/pages/DomainCheck"));
-const DomainRegistration = lazy(() => import("@/pages/DomainRegistration"));
-const HostingPlans = lazy(() => import("@/pages/HostingPlans"));
-const HostingConfig = lazy(() => import("@/pages/HostingConfig"));
-const Cart = lazy(() => import("@/pages/Cart"));
+// Page Components
+const Home = lazy(() => import("@/pages/Home/index"));
+const Services = lazy(() => import("@/pages/Services/index"));
+const Domains = lazy(() => import("@/pages/Domains/index"));
+const About = lazy(() => import("@/pages/About/index"));
+const Contact = lazy(() => import("@/pages/Contact/index"));
+const DomainCheck = lazy(() => import("@/pages/DomainCheck/index"));
+const DomainRegistration = lazy(() => import("@/pages/DomainRegistration/index"));
+const HostingPlans = lazy(() => import("@/pages/HostingPlans/index"));
+const HostingConfig = lazy(() => import("@/pages/HostingConfig/index"));
+const Cart = lazy(() => import("@/pages/Cart/index"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const PaymentSuccess = lazy(() => import("@/pages/PaymentSuccess"));
 const PaymentInstructions = lazy(() => import("@/pages/PaymentInstructions"));
 const Auth = lazy(() => import("@/pages/Auth"));
-
-// Client Panel
-const ClientPanel = lazy(() => import("@/pages/ClientPanel"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
 
 // Client Panel Components
 const DashboardOverview = lazy(() => import("@/components/client-panel/DashboardOverview").then(module => ({ default: module.DashboardOverview })));
@@ -45,6 +41,7 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
+        {/* Main Public Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/servicos" element={<Services />} />
@@ -72,10 +69,7 @@ const AppRoutes = () => {
           <Route path="perfil" element={<ProfilePanel />} />
           <Route path="afiliados" element={<AffiliatePanel />} />
         </Route>
-        
-        {/* Legacy Dashboard (will be replaced by ClientPanel) */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        
+
         {/* Not Found / 404 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
