@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAdmin } from '@/hooks/useAdmin';
@@ -12,10 +12,27 @@ import { AdminInvoices } from '@/components/admin/AdminInvoices';
 import { AdminOrders } from '@/components/admin/AdminOrders';
 import { AdminTickets } from '@/components/admin/AdminTickets';
 import { AdminOverview } from '@/components/admin/AdminOverview';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { createInitialAdminUser } from '@/utils/createAdminUser';
 
 const AdminDashboard = () => {
   const { isAdmin, loading } = useAdmin();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
+  
+  const handleCreateAdminUser = async () => {
+    try {
+      setIsCreatingAdmin(true);
+      await createInitialAdminUser();
+      toast.success('Usuário administrador criado ou atualizado com sucesso');
+    } catch (error) {
+      console.error('Erro ao criar usuário admin:', error);
+      toast.error('Erro ao criar usuário administrador');
+    } finally {
+      setIsCreatingAdmin(false);
+    }
+  };
   
   if (loading) {
     return (
@@ -28,8 +45,22 @@ const AdminDashboard = () => {
   
   if (!isAdmin) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex flex-col items-center justify-center h-screen">
         <p>Acesso negado. Esta página é restrita a administradores.</p>
+        <Button 
+          onClick={handleCreateAdminUser} 
+          className="mt-4"
+          disabled={isCreatingAdmin}
+        >
+          {isCreatingAdmin ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Criando...
+            </>
+          ) : (
+            'Criar usuário administrador (support@angohost.ao)'
+          )}
+        </Button>
       </div>
     );
   }
