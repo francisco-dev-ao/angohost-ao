@@ -1,16 +1,42 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Clock } from 'lucide-react';
+import { CreditCard, Clock, Edit } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileTabProps {
   user: User | null;
 }
 
 export const ProfileTab = ({ user }: ProfileTabProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(user?.user_metadata?.full_name || '');
+  const [editedPhone, setEditedPhone] = useState(user?.user_metadata?.phone || '');
+
+  const handleSaveProfile = async () => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          full_name: editedName, 
+          phone: editedPhone 
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar perfil');
+    }
+  };
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>
@@ -19,21 +45,69 @@ export const ProfileTab = ({ user }: ProfileTabProps) => {
           <CardDescription>Gerencie suas informações pessoais</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <p className="font-medium">Email</p>
-              <p className="text-gray-600">{user?.email}</p>
+          {!isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium">Email</p>
+                <p className="text-gray-600">{user?.email}</p>
+              </div>
+              <div>
+                <p className="font-medium">Nome</p>
+                <p className="text-gray-600">{user?.user_metadata?.full_name || 'Não informado'}</p>
+              </div>
+              <div>
+                <p className="font-medium">Telefone</p>
+                <p className="text-gray-600">{user?.user_metadata?.phone || 'Não informado'}</p>
+              </div>
+              <Button 
+                className="mt-6 w-full" 
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit className="mr-2 h-4 w-4" /> Atualizar Meus Dados
+              </Button>
             </div>
-            <div>
-              <p className="font-medium">Nome</p>
-              <p className="text-gray-600">{user?.user_metadata?.full_name || 'Não informado'}</p>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label>Email</Label>
+                <Input 
+                  type="email" 
+                  value={user?.email || ''} 
+                  disabled 
+                  className="bg-gray-100" 
+                />
+              </div>
+              <div>
+                <Label>Nome</Label>
+                <Input 
+                  value={editedName} 
+                  onChange={(e) => setEditedName(e.target.value)} 
+                />
+              </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input 
+                  value={editedPhone} 
+                  onChange={(e) => setEditedPhone(e.target.value)} 
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  className="w-full" 
+                  onClick={handleSaveProfile}
+                >
+                  Salvar
+                </Button>
+              </div>
             </div>
-            <div>
-              <p className="font-medium">Telefone</p>
-              <p className="text-gray-600">{user?.user_metadata?.phone || 'Não informado'}</p>
-            </div>
-          </div>
-          <Button className="mt-6 w-full">Atualizar Meus Dados</Button>
+          )}
         </CardContent>
       </Card>
       
