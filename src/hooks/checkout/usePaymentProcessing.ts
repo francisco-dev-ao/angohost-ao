@@ -24,24 +24,37 @@ export const usePaymentProcessing = () => {
 
   const saveOrderToDatabase = async (orderId: string, userId: string) => {
     try {
-      const { data: orderData, error: orderError } = await supabase
+      console.log('Saving order to database:', { orderId, userId });
+      
+      // Get the customer ID first
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+      
+      if (!customerData) {
+        throw new Error('Customer not found');
+      }
+      
+      // Create the order
+      const { error: orderError } = await supabase
         .from('orders')
         .insert({
           id: orderId,
-          customer_id: userId,
+          customer_id: customerData.id,
           total_amount: getTotalPrice(),
           status: paymentMethod === 'emis' ? 'processing' : 'pending',
           payment_method: paymentMethod || 'unknown',
-          payment_id: orderReference
-        })
-        .select()
-        .single();
+          payment_id: orderReference,
+          reference: orderReference
+        });
       
       if (orderError) {
-        console.error('Erro ao cadastrar pedido:', orderError);
-        return;
+        throw orderError;
       }
       
+      // Create order items
       const orderItems = items.map(item => ({
         order_id: orderId,
         product_name: item.name,
@@ -57,27 +70,32 @@ export const usePaymentProcessing = () => {
         .insert(orderItems);
       
       if (itemsError) {
-        console.error('Erro ao cadastrar itens do pedido:', itemsError);
+        throw itemsError;
       }
       
+      // Create invoice
       const invoiceNumber = `INV-${orderReference}`;
       
       const { error: invoiceError } = await supabase
         .from('invoices')
         .insert({
           order_id: orderId,
-          customer_id: userId,
+          customer_id: customerData.id,
           invoice_number: invoiceNumber,
           amount: getTotalPrice(),
           status: 'unpaid',
+          payment_method: paymentMethod,
           due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
         });
       
       if (invoiceError) {
-        console.error('Erro ao gerar fatura:', invoiceError);
+        throw invoiceError;
       }
+      
+      console.log('Order saved successfully:', orderId);
     } catch (error) {
-      console.error('Erro ao salvar pedido:', error);
+      console.error('Error saving order:', error);
+      throw error;
     }
   };
 

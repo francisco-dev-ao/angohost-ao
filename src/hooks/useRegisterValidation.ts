@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
 
-  const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
+  const checkExistingAccount = async (field: string, value: string) => {
     try {
       setLoading(true);
       
@@ -13,10 +13,9 @@ export const useRegisterValidation = () => {
         .from('customers')
         .select('id')
         .eq(field, value)
-        // Use .maybeSingle() instead of .single() to handle potential multiple or no results
-        .maybeSingle();
+        .single();
       
-      return data !== null;
+      return Boolean(data);
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

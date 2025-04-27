@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { toast } from 'sonner';
@@ -22,19 +21,24 @@ export const usePaymentHandlers = () => {
     const user = data.user;
     if (!user) return;
     
-    const orderId = crypto.randomUUID();
-    await saveOrderToDatabase(orderId, user.id);
-    
-    setPaymentInfo({
-      method: 'emis',
-      status: 'completed',
-      transactionId,
-      reference: orderReference,
-      hasDomain: hasDomain
-    });
-    
-    toast.success('Pagamento processado com sucesso!');
-    navigate('/payment/success');
+    try {
+      const orderId = crypto.randomUUID();
+      await saveOrderToDatabase(orderId, user.id);
+      
+      setPaymentInfo({
+        method: 'emis',
+        status: 'completed',
+        transactionId,
+        reference: orderReference,
+        hasDomain: hasDomain
+      });
+      
+      toast.success('Pagamento processado com sucesso!');
+      navigate('/payment/success');
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast.error('Erro ao processar pagamento. Por favor, tente novamente.');
+    }
   };
   
   const handlePaymentError = (error: string) => {
