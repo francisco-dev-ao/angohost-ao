@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -16,14 +16,22 @@ import { Separator } from "@/components/ui/separator";
 import { PaymentInfoCard } from '../PaymentInfoCard';
 import { Link } from 'react-router-dom';
 
-interface OverviewTabProps {
-  userData: any;
-  services: any[];
-  domains: any[];
-  invoices: any[];
+export interface OverviewTabProps {
+  userData?: any;
+  services?: any[];
+  domains?: any[];
+  invoices?: any[];
 }
 
-export const OverviewTab = ({ userData, services, domains, invoices }: OverviewTabProps) => {
+export const OverviewTab = () => {
+  // Get context from the outlet
+  const { userData, services, domains, invoices } = useOutletContext<{
+    userData: any;
+    services: any[];
+    domains: any[];
+    invoices: any[];
+  }>();
+  
   const pendingInvoices = invoices?.filter(invoice => invoice.status === 'unpaid' || invoice.status === 'pending') || [];
   const expiringDomains = domains?.filter(domain => {
     if (!domain.expiry_date) return false;
