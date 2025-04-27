@@ -2,24 +2,24 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, FileText, AlertCircle } from 'lucide-react';
+import { RefreshCcw, FileText, AlertCircle, CreditCard } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-
-type Invoice = {
-  id: string;
-  invoice_number: string;
-  created_at: string;
-  due_date: string | null;
-  amount: number;
-  status: string;
-}
+import { useClientPanel } from '@/hooks/useClientPanel';
 
 export const InvoicesTab = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const { invoices: clientInvoices, loading: clientLoading } = useClientPanel();
+  const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!clientLoading && clientInvoices) {
+      setInvoices(clientInvoices);
+      setLoading(false);
+    }
+  }, [clientInvoices, clientLoading]);
 
   const fetchInvoices = async () => {
     try {
@@ -34,10 +34,22 @@ export const InvoicesTab = () => {
         return;
       }
       
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', session.session.user.id)
+        .single();
+      
+      if (!customerData) {
+        setError("Não foi possível encontrar seus dados de cliente");
+        setLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('invoices')
         .select('*')
-        .eq('customer_id', session.session.user.id)
+        .eq('customer_id', customerData.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -50,10 +62,6 @@ export const InvoicesTab = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
@@ -148,7 +156,15 @@ export const InvoicesTab = () => {
                 <div>{formatDate(invoice.created_at)}</div>
                 <div>{formatDate(invoice.due_date)}</div>
                 <div>{formatCurrency(invoice.amount)}</div>
-                <div className="text-right">{getStatusBadge(invoice.status)}</div>
+                <div className="text-right flex justify-end items-center gap-2">
+                  {getStatusBadge(invoice.status)}
+                  {['unpaid', 'pending', 'overdue', 'não pago', 'pendente', 'vencido'].includes(invoice.status.toLowerCase()) && (
+                    <Button size="sm">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pagar
+                    </Button>
+                  )}
+                </div>
               </div>
             ))
           )}

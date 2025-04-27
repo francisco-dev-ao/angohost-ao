@@ -24,7 +24,7 @@ import { AffiliatePanel } from '@/components/client-panel/AffiliatePanel';
 import { ContactProfileDialogs } from '@/components/client-panel/ContactProfileDialogs';
 
 const ClientPanel = () => {
-  const { loading, userData, handleSignOut, accountBalance } = useClientPanel();
+  const { loading, userData, handleSignOut, accountBalance, services, domains, invoices } = useClientPanel();
   const [activeTab, setActiveTab] = useState('overview');
   const [notificationsCount] = useState(3);
 
@@ -62,15 +62,15 @@ const ClientPanel = () => {
               </TabsContent>
               
               <TabsContent value="services">
-                <ServicesPanel />
+                <ServicesPanel services={services} />
               </TabsContent>
               
               <TabsContent value="domains">
-                <DomainsPanel />
+                <DomainsPanel domains={domains} />
               </TabsContent>
               
               <TabsContent value="invoices">
-                <InvoicesPanel />
+                <InvoicesPanel invoices={invoices} />
               </TabsContent>
               
               <TabsContent value="tickets">
