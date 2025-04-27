@@ -49,18 +49,21 @@ export const useRegisterValidation = () => {
     }
   };
   
-  // Modified this function to fix the infinite type instantiation
+  // Fixed function to prevent infinite type instantiation
   const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     if (!value) return false;
     
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
+      // Explicitly type the response to avoid infinite type instantiation
+      const response = await supabase
         .from('customers')
         .select(field)
         .eq(field, value)
-        .maybeSingle(); // Using maybeSingle to prevent infinite type instantiation
+        .maybeSingle();
+      
+      const { data, error } = response;
       
       if (error) {
         console.error(`Error checking ${field} existence:`, error);
