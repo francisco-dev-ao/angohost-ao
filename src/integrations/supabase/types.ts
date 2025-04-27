@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      account_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          current_balance: number
+          customer_id: string
+          description: string | null
+          id: string
+          previous_balance: number
+          reference_id: string | null
+          transaction_type: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          current_balance: number
+          customer_id: string
+          description?: string | null
+          id?: string
+          previous_balance: number
+          reference_id?: string | null
+          transaction_type?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          current_balance?: number
+          customer_id?: string
+          description?: string | null
+          id?: string
+          previous_balance?: number
+          reference_id?: string | null
+          transaction_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_profiles: {
         Row: {
           billing_address: string | null
@@ -67,6 +111,7 @@ export type Database = {
       }
       customers: {
         Row: {
+          account_balance: number | null
           billing_address: string | null
           city: string | null
           country: string | null
@@ -82,6 +127,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          account_balance?: number | null
           billing_address?: string | null
           city?: string | null
           country?: string | null
@@ -97,6 +143,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          account_balance?: number | null
           billing_address?: string | null
           city?: string | null
           country?: string | null

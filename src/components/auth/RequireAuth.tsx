@@ -6,25 +6,47 @@ import { Loader2 } from 'lucide-react';
 
 interface RequireAuthProps {
   children: React.ReactNode;
+  adminOnly?: boolean;
 }
 
-export const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
+export const RequireAuth: React.FC<RequireAuthProps> = ({ children, adminOnly = false }) => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const location = useLocation();
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // Check admin status if required
+          if (adminOnly) {
+            const { data, error } = await supabase.rpc('is_admin');
+            if (error) throw error;
+            setIsAdmin(!!data);
+          }
+        }
+        
+        setSession(session);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_, session) => {
+      async (_, session) => {
         setSession(session);
+        if (session && adminOnly) {
+          const { data } = await supabase.rpc('is_admin');
+          setIsAdmin(!!data);
+        }
         setLoading(false);
       }
     );
@@ -32,7 +54,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [adminOnly]);
 
   if (loading) {
     return (
@@ -45,6 +67,10 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
 
   if (!session) {
     return <Navigate to="/auth" state={{ returnTo: location.pathname }} replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/painel-cliente" replace />;
   }
 
   return <>{children}</>;
