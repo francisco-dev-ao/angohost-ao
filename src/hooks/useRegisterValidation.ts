@@ -9,6 +9,7 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
+      // Avoid letting TypeScript infer complicated nested types by not explicitly typing the response
       const { data } = await supabase
         .from('customers')
         .select('id')
