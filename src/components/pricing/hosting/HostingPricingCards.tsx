@@ -9,7 +9,7 @@ export const HostingPricingCards = () => {
         id="iniciante" 
         type="hosting" 
         title="Iniciante" 
-        price={2000} 
+        price={20000} 
         features={[
           "1GB de Espaço em SSD",
           "5 Contas de Email",
@@ -24,7 +24,7 @@ export const HostingPricingCards = () => {
         id="especialista" 
         type="hosting" 
         title="Especialista" 
-        price={5000} 
+        price={50000} 
         features={[
           "5GB de Espaço em SSD",
           "20 Contas de Email",
@@ -42,7 +42,7 @@ export const HostingPricingCards = () => {
         id="entusiasta" 
         type="hosting" 
         title="Entusiasta" 
-        price={10000} 
+        price={100000} 
         features={[
           "10GB de Espaço em SSD",
           "Email Ilimitado",
