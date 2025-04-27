@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { createEmisPayment, getEmisFrameUrl, generateOrderReference, checkPhpAvailability } from '@/services/EmisPaymentService';
+import { createEmisPayment, getEmisFrameUrl, generateOrderReference } from '@/services/EmisPaymentService';
 import PaymentLoadingState from './payment/PaymentLoadingState';
 import PaymentErrorState from './payment/PaymentErrorState';
 import PaymentFrameDialog from './payment/PaymentFrame';
@@ -31,10 +31,6 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
     setErrorMessage(null);
     
     try {
-      // Verificar se PHP está disponível (apenas para informação)
-      const phpAvailable = await checkPhpAvailability();
-      console.log('PHP disponível:', phpAvailable);
-      
       const orderRef = generateOrderReference(reference);
       console.log('Iniciando pagamento com referência:', orderRef);
       
@@ -54,22 +50,17 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
         
         // Setup message listener for payment completion
         const handleMessage = (event: MessageEvent) => {
-          // Lista de origens permitidas - adicionamos mais origens permitidas
           const allowedOrigins = [
             'https://pagamentonline.emis.co.ao',
             window.location.origin,
             'https://www.mocky.io',
             'https://corsproxy.io',
-            'https://api.allorigins.win',
-            'https://angohost-emis-simulator.netlify.app'
+            'https://api.allorigins.win'
           ];
           
-          // Verificar se a origem é confiável - também verificamos subdomínios
+          // Verificar se a origem é confiável
           const isAllowedOrigin = allowedOrigins.some(origin => 
-            event.origin === origin || 
-            event.origin.includes(origin.replace('https://', '')) ||
-            event.origin.endsWith('.netlify.app')
-          );
+            event.origin === origin || event.origin.includes(origin.replace('https://', '')));
           
           if (!isAllowedOrigin) {
             console.warn('Mensagem rejeitada de origem não confiável:', event.origin);
@@ -79,9 +70,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
           console.log('Mensagem recebida do iframe:', event.data);
           
           // Verificar se a mensagem indica sucesso no pagamento
-          if (event.data?.status === "SUCCESS" || 
-              event.data?.status === "success" || 
-              event.data?.status === "COMPLETED") {
+          if (event.data?.status === "SUCCESS" || event.data?.status === "success") {
             onSuccess(event.data.transactionId || response.id || 'unknown');
             setIsOpen(false);
             window.removeEventListener('message', handleMessage);
@@ -93,28 +82,16 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
         // Monitor URL changes for payment completion (backup method)
         const checkUrlInterval = setInterval(() => {
           const currentUrl = window.location.href;
-          if (currentUrl.includes('/payment/callback') || 
-              currentUrl.includes('/payment/success') || 
-              currentUrl.includes('status=SUCCESS')) {
+          if (currentUrl.includes('/payment/callback') || currentUrl.includes('/payment/success')) {
             clearInterval(checkUrlInterval);
             setIsOpen(false);
             onSuccess(response.id || 'url-callback');
           }
         }, 1000);
         
-        // Adicionar timeout de 2 minutos para fechar o diálogo se não houver resposta
-        const timeoutId = setTimeout(() => {
-          if (isOpen) {
-            setIsOpen(false);
-            setUseDirectPayment(true);
-            setErrorMessage('O tempo para pagamento expirou. Por favor, tente novamente ou use o método alternativo.');
-          }
-        }, 120000);
-        
         return () => {
           window.removeEventListener('message', handleMessage);
           clearInterval(checkUrlInterval);
-          clearTimeout(timeoutId);
         };
       } else {
         throw new Error(response.error || 'Falha ao gerar token de pagamento');
@@ -123,7 +100,7 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
       console.error('Erro ao inicializar pagamento:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Erro ao iniciar pagamento');
       
-      if (retryCount < 1) {
+      if (retryCount < 2) {
         toast.info('Tentando novamente conectar ao serviço de pagamento...');
         setRetryCount(prev => prev + 1);
         setTimeout(() => initializePayment(), 2000);

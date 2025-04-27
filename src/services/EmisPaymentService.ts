@@ -42,7 +42,7 @@ const simulateEmisResponse = (data: EmisPaymentRequest): EmisPaymentResponse => 
   };
 };
 
-// Função adaptada para usar o script PHP
+// Função adaptada para ambiente de produção com PHP
 const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResponse> => {
   try {
     // Em produção, usamos um script PHP para evitar problemas de CORS
@@ -89,74 +89,76 @@ export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisP
 
     console.log('Iniciando pagamento EMIS com parâmetros:', params);
     
-    // Verificar se já estamos em produção
-    const isProduction = !window.location.hostname.includes('localhost') && 
-                         !window.location.hostname.includes('lovable') &&
-                         !window.location.hostname.includes('preview-');
-    
-    // Em produção, tentar primeiro o PHP
-    if (isProduction) {
+    // 1. First attempt: Direct connection (works in development)
+    if (process.env.NODE_ENV === 'development') {
       try {
-        console.log('Ambiente de produção detectado, tentando PHP primeiro');
-        return await useFallbackPhp(data);
-      } catch (phpError) {
-        console.error('Erro no PHP em produção:', phpError);
+        const emisUrl = 'https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken';
+        const response = await fetch(emisUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Origin': window.location.origin
+          },
+          body: JSON.stringify(params)
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Resposta direta da API EMIS:', result);
+          return result;
+        }
+        
+        console.log('Tentativa direta falhou:', response.status);
+      } catch (directError) {
+        console.log('Erro na conexão direta com EMIS:', directError);
       }
     }
     
-    // Tentativa direta (funciona em desenvolvimento local)
+    // 2. Second attempt: Try PHP bridge (for production)
+    // Esta opção requer a configuração de um arquivo emis-payment.php no servidor
     try {
-      const emisUrl = 'https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken';
-      const response = await fetch(emisUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params)
-      });
+      // Verifica se estamos em um servidor que suporta PHP (produção)
+      const phpAvailable = await checkPhpAvailability();
       
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Resposta direta da API EMIS:', result);
-        return result;
+      if (phpAvailable) {
+        console.log('Servidor PHP disponível, usando bridge PHP');
+        return await useFallbackPhp(data);
+      } else {
+        console.log('PHP não disponível, continuando com outras opções');
       }
-      
-      console.log('Tentativa direta falhou:', response.status);
-    } catch (directError) {
-      console.log('Erro na conexão direta com EMIS:', directError);
+    } catch (phpError) {
+      console.log('Erro ao verificar disponibilidade de PHP:', phpError);
+    }
+
+    // 3. Final fallback: Mock response for preview
+    if (window.location.hostname.includes('lovable') || 
+        window.location.hostname.includes('preview-') || 
+        process.env.NODE_ENV === 'development') {
+      console.log('Ambiente de desenvolvimento/preview detectado - usando simulação');
+      return simulateEmisResponse(data);
     }
     
-    // Se não estamos em produção ou tudo falhou, usar simulação
-    console.log('Gerando ID simulado como último recurso');
-    return simulateEmisResponse(data);
+    // Se chegamos aqui, todas as tentativas falharam
+    throw new Error('Nenhum método de pagamento disponível');
     
   } catch (error) {
     console.error('EMIS payment error:', error);
+    // Em último caso, retornamos uma simulação para permitir o fluxo continuar
+    console.log('Gerando ID simulado como último recurso');
     return simulateEmisResponse(data);
   }
 }
 
 // Verifica se o servidor suporta PHP
-export async function checkPhpAvailability(): Promise<boolean> {
+async function checkPhpAvailability(): Promise<boolean> {
   try {
-    // Tentar acessar o arquivo de teste PHP com timestamp para evitar cache
-    const timestamp = new Date().getTime();
-    const response = await fetch(`${window.location.origin}/api/php-check.php?t=${timestamp}`, {
-      method: 'GET',
-      headers: {
-        'Cache-Control': 'no-cache, no-store'
-      },
+    // Tenta acessar um arquivo de teste PHP
+    const response = await fetch(`${window.location.origin}/api/php-check.php`, {
+      method: 'HEAD',
       cache: 'no-store'
     });
     
-    if (response.ok) {
-      const data = await response.json();
-      console.log('PHP disponível, versão:', data.php_version);
-      return true;
-    }
-    
-    console.log('PHP não disponível, status:', response.status);
-    return false;
+    return response.ok;
   } catch (error) {
     console.log('PHP não disponível:', error);
     return false;
@@ -173,10 +175,8 @@ export function getEmisFrameUrl(token: string): string {
   
   // URL para desenvolvimento quando o token começa com 'sim-' (simulado)
   if (token.startsWith('sim-')) {
-    console.log('Token simulado detectado, usando URL de simulação');
-    
-    // Substituímos a URL do mocky.io (que está falhando) por uma nova URL de simulação
-    return `https://angohost-emis-simulator.netlify.app/sim.html?token=${token}`;
+    console.log('Token simulado detectado, usando URL de desenvolvimento');
+    return `https://www.mocky.io/v2/5ec3743b3200006600e3d6d7?token=${token}`;
   }
   
   return realUrl;
