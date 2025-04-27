@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAdmin } from '@/hooks/useAdmin';
 import { Loader2 } from 'lucide-react';
 import { AdminUsers } from '@/components/admin/AdminUsers';
@@ -12,6 +11,7 @@ import { AdminInvoices } from '@/components/admin/AdminInvoices';
 import { AdminOrders } from '@/components/admin/AdminOrders';
 import { AdminTickets } from '@/components/admin/AdminTickets';
 import { AdminOverview } from '@/components/admin/AdminOverview';
+import { CustomerManagement } from '@/components/admin/customers/CustomerManagement';
 
 const AdminDashboard = () => {
   const { isAdmin, loading } = useAdmin();
@@ -43,6 +43,7 @@ const AdminDashboard = () => {
         <TabsList className="mb-8 overflow-x-auto flex flex-nowrap gap-2">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
+          <TabsTrigger value="customers">Clientes</TabsTrigger>
           <TabsTrigger value="domains">Domínios</TabsTrigger>
           <TabsTrigger value="hosting">Hospedagem</TabsTrigger>
           <TabsTrigger value="emails">E-mails</TabsTrigger>
@@ -57,6 +58,10 @@ const AdminDashboard = () => {
         
         <TabsContent value="users">
           <AdminUsers />
+        </TabsContent>
+
+        <TabsContent value="customers">
+          <CustomerManagement />
         </TabsContent>
         
         <TabsContent value="domains">
