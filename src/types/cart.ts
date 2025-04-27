@@ -50,7 +50,7 @@ export interface Customer {
 }
 
 export interface PaymentInfo {
-  method: 'credit-card' | 'bank-transfer' | 'emis';
+  method: 'credit-card' | 'bank-transfer' | 'emis' | 'account_balance';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   transactionId?: string;
   reference?: string;

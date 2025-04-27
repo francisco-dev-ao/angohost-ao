@@ -8,17 +8,25 @@ export const useRegisterValidation = () => {
   const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     try {
       if (field === 'email') {
-        const { data } = await supabase.auth.signInWithOtp({
+        // Check if email exists using a different approach to avoid the infinite type issue
+        const { data, error } = await supabase.auth.signInWithOtp({
           email: value,
           options: { shouldCreateUser: false }
         });
         return !!data.session;
       } else {
-        const { data } = await supabase
+        // For non-email fields, query the customers table
+        const { data, error } = await supabase
           .from('customers')
           .select('id')
           .eq(field, value)
           .limit(1);
+        
+        if (error) {
+          console.error(`Error checking existing ${field}:`, error);
+          return false;
+        }
+        
         return !!data && data.length > 0;
       }
     } catch (error) {
