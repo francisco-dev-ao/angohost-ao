@@ -32,136 +32,81 @@ interface EmisPaymentResponse {
   error?: string;
 }
 
-// Função para gerar resposta simulada para casos de falha ou testes
-const simulateEmisResponse = (data: EmisPaymentRequest): EmisPaymentResponse => {
-  const simulatedId = `sim-${Math.random().toString(36).substring(2, 12)}`;
-  console.log('Simulando resposta EMIS com ID:', simulatedId);
-  return {
-    id: simulatedId,
-    status: 'success'
-  };
-};
+// Retentativas e timeout para solicitações
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 2000; // 2 segundos
+const REQUEST_TIMEOUT = 15000; // 15 segundos
 
-// Função adaptada para ambiente de produção com PHP
+// Função para realizar o pagamento via PHP bridge com retentativas
 const useFallbackPhp = async (data: EmisPaymentRequest): Promise<EmisPaymentResponse> => {
-  try {
-    // Em produção, usamos um script PHP para evitar problemas de CORS
-    const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
-    console.log('Tentando via PHP bridge:', phpEndpoint);
-    
-    const response = await fetch(phpEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        reference: data.reference,
-        amount: data.amount,
-        token: config.frameToken,
-        callbackUrl: config.callbackUrl
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Erro no script PHP: ${response.status}`);
+  let retries = 0;
+  
+  while (retries <= MAX_RETRIES) {
+    try {
+      const phpEndpoint = `${window.location.origin}/api/emis-payment.php`;
+      console.log(`Tentativa ${retries + 1}: Iniciando pagamento via PHP bridge:`, phpEndpoint);
+      
+      // Criar uma promessa com timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Tempo limite esgotado')), REQUEST_TIMEOUT);
+      });
+      
+      // Fazer a requisição com fetch
+      const fetchPromise = fetch(phpEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        },
+        body: JSON.stringify({
+          reference: data.reference,
+          amount: data.amount,
+          token: config.frameToken,
+          callbackUrl: config.callbackUrl,
+          mobile: 'PAYMENT',
+          card: 'DISABLED',
+          qrCode: 'PAYMENT'
+        })
+      });
+      
+      // Aguardar a primeira promessa a resolver (fetch ou timeout)
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      if (!response.ok) {
+        const statusText = response.statusText;
+        const errorText = await response.text().catch(() => 'Sem detalhes do erro');
+        throw new Error(`Erro no script PHP: ${response.status} ${statusText}. ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Resposta do EMIS via PHP:', result);
+      return result;
+    } catch (error) {
+      console.error(`Tentativa ${retries + 1} falhou:`, error);
+      
+      retries++;
+      
+      if (retries <= MAX_RETRIES) {
+        console.log(`Aguardando ${RETRY_DELAY}ms antes da próxima tentativa...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      } else {
+        console.error('Todas as tentativas falharam');
+        throw error;
+      }
     }
-    
-    const result = await response.json();
-    console.log('Resposta do script PHP:', result);
-    return result;
-  } catch (error) {
-    console.error('Erro no fallback PHP:', error);
-    return simulateEmisResponse(data);
   }
+  
+  throw new Error('Erro fatal no gateway de pagamento após várias tentativas');
 };
 
 export async function createEmisPayment(data: EmisPaymentRequest): Promise<EmisPaymentResponse> {
+  console.log('Iniciando pagamento EMIS com referência:', data.reference);
+  
   try {
-    const params = {
-      reference: data.reference,
-      amount: data.amount,
-      token: config.frameToken,
-      mobile: 'PAYMENT',
-      card: 'DISABLED',
-      qrCode: 'PAYMENT',
-      callbackUrl: config.callbackUrl
-    };
-
-    console.log('Iniciando pagamento EMIS com parâmetros:', params);
-    
-    // 1. First attempt: Direct connection (works in development)
-    if (process.env.NODE_ENV === 'development') {
-      try {
-        const emisUrl = 'https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frameToken';
-        const response = await fetch(emisUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Origin': window.location.origin
-          },
-          body: JSON.stringify(params)
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
-          console.log('Resposta direta da API EMIS:', result);
-          return result;
-        }
-        
-        console.log('Tentativa direta falhou:', response.status);
-      } catch (directError) {
-        console.log('Erro na conexão direta com EMIS:', directError);
-      }
-    }
-    
-    // 2. Second attempt: Try PHP bridge (for production)
-    // Esta opção requer a configuração de um arquivo emis-payment.php no servidor
-    try {
-      // Verifica se estamos em um servidor que suporta PHP (produção)
-      const phpAvailable = await checkPhpAvailability();
-      
-      if (phpAvailable) {
-        console.log('Servidor PHP disponível, usando bridge PHP');
-        return await useFallbackPhp(data);
-      } else {
-        console.log('PHP não disponível, continuando com outras opções');
-      }
-    } catch (phpError) {
-      console.log('Erro ao verificar disponibilidade de PHP:', phpError);
-    }
-
-    // 3. Final fallback: Mock response for preview
-    if (window.location.hostname.includes('lovable') || 
-        window.location.hostname.includes('preview-') || 
-        process.env.NODE_ENV === 'development') {
-      console.log('Ambiente de desenvolvimento/preview detectado - usando simulação');
-      return simulateEmisResponse(data);
-    }
-    
-    // Se chegamos aqui, todas as tentativas falharam
-    throw new Error('Nenhum método de pagamento disponível');
-    
+    return await useFallbackPhp(data);
   } catch (error) {
-    console.error('EMIS payment error:', error);
-    // Em último caso, retornamos uma simulação para permitir o fluxo continuar
-    console.log('Gerando ID simulado como último recurso');
-    return simulateEmisResponse(data);
-  }
-}
-
-// Verifica se o servidor suporta PHP
-async function checkPhpAvailability(): Promise<boolean> {
-  try {
-    // Tenta acessar um arquivo de teste PHP
-    const response = await fetch(`${window.location.origin}/api/php-check.php`, {
-      method: 'HEAD',
-      cache: 'no-store'
-    });
-    
-    return response.ok;
-  } catch (error) {
-    console.log('PHP não disponível:', error);
-    return false;
+    console.error('Erro fatal no pagamento:', error);
+    throw error;
   }
 }
 
@@ -170,14 +115,32 @@ export function generateOrderReference(orderId: string): string {
 }
 
 export function getEmisFrameUrl(token: string): string {
-  // URL para o iframe do EMIS
-  const realUrl = `https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frame?token=${token}`;
-  
-  // URL para desenvolvimento quando o token começa com 'sim-' (simulado)
-  if (token.startsWith('sim-')) {
-    console.log('Token simulado detectado, usando URL de desenvolvimento');
-    return `https://www.mocky.io/v2/5ec3743b3200006600e3d6d7?token=${token}`;
+  return `https://pagamentonline.emis.co.ao/online-payment-gateway/portal/frame?token=${token}`;
+}
+
+export async function checkPhpAvailability(): Promise<boolean> {
+  try {
+    // Tentar acessar o arquivo de teste PHP com timestamp para evitar cache
+    const timestamp = new Date().getTime();
+    const response = await fetch(`${window.location.origin}/api/php-check.php?t=${timestamp}`, {
+      method: 'GET',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      },
+      cache: 'no-store',
+      credentials: 'omit'
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      console.log('PHP disponível, versão:', data.php_version);
+      return true;
+    }
+    
+    console.log('PHP não disponível, status:', response.status);
+    return false;
+  } catch (error) {
+    console.log('PHP não disponível:', error);
+    return false;
   }
-  
-  return realUrl;
 }
