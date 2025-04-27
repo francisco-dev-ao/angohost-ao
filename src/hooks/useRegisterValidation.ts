@@ -15,6 +15,7 @@ export const useRegisterValidation = () => {
         .eq(field, value)
         .limit(1);
       
+      // Simplified check to avoid type complexity
       return Array.isArray(data) && data.length > 0;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
