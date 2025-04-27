@@ -26,9 +26,14 @@ export const useShoppingCart = () => {
   
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user || null);
-      setLoading(false);
+      try {
+        const { data } = await supabase.auth.getSession();
+        setUser(data.session?.user || null);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error checking auth:", error);
+        setLoading(false);
+      }
     };
     
     checkAuth();

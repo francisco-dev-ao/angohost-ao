@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { CartItemsList } from '@/components/cart/CartItemsList';
@@ -11,6 +11,7 @@ import { AuthenticationCard } from '@/components/cart/AuthenticationCard';
 import { ContactProfileCard } from '@/components/cart/ContactProfileCard';
 import { useShoppingCart } from '@/hooks/useShoppingCart';
 import { toast } from 'sonner';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ShoppingCart = () => {
   const navigate = useNavigate();
@@ -66,8 +67,31 @@ const ShoppingCart = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
-        <p>Carregando...</p>
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="container max-w-6xl mx-auto">
+          <CartHeader />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <h2 className="text-xl font-semibold mb-4">Itens do Carrinho</h2>
+                <div className="space-y-4 mt-8">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <Skeleton className="h-8 w-3/4 mb-4" />
+                <Skeleton className="h-6 w-full mb-2" />
+                <Skeleton className="h-6 w-full mb-2" />
+                <Skeleton className="h-6 w-full mb-4" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

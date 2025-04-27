@@ -13,10 +13,9 @@ export const useRegisterValidation = () => {
         .from('customers')
         .select('id')
         .eq(field, value)
-        .limit(1)
-        .single();
+        .limit(1);
       
-      return data !== null;
+      return Array.isArray(data) && data.length > 0;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
