@@ -1,15 +1,4 @@
 
-export interface EmailPlan {
-  id: string;
-  title: string;
-  storage: string;
-  price: number;
-  renewalPrice: number;
-  features: string[];
-  minQuantity: number;
-  maxQuantity: number;
-}
-
 export const emailPlans: EmailPlan[] = [
   {
     id: 'email-premium',
@@ -18,7 +7,7 @@ export const emailPlans: EmailPlan[] = [
     price: 12000,
     renewalPrice: 14500,
     minQuantity: 1,
-    maxQuantity: 50,
+    maxQuantity: 1000,
     features: [
       '5GB por usuário',
       'IMAP/POP',
@@ -34,7 +23,7 @@ export const emailPlans: EmailPlan[] = [
     price: 40000,
     renewalPrice: 42000,
     minQuantity: 1,
-    maxQuantity: 100,
+    maxQuantity: 1000,
     features: [
       '50GB por usuário',
       'Regras de Encaminhamento',
@@ -52,7 +41,7 @@ export const emailPlans: EmailPlan[] = [
     price: 30000,
     renewalPrice: 32000,
     minQuantity: 1,
-    maxQuantity: 75,
+    maxQuantity: 1000,
     features: [
       '30GB por usuário',
       'IMAP/POP',
