@@ -16,6 +16,7 @@ export const useShoppingCart = () => {
   
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profileAssigned, setProfileAssigned] = useState(false);
   
   const hasDomain = items.some(item => item.type === 'domain');
@@ -28,7 +29,18 @@ export const useShoppingCart = () => {
     const checkAuth = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        setUser(data.session?.user || null);
+        
+        if (data.session?.user) {
+          setUser(data.session.user);
+          
+          // Check if user is admin
+          const { data: adminData } = await supabase.rpc('is_admin');
+          setIsAdmin(!!adminData);
+        } else {
+          setUser(null);
+          setIsAdmin(false);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Error checking auth:", error);
@@ -39,8 +51,17 @@ export const useShoppingCart = () => {
     checkAuth();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
+      async (_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          
+          // Check if user is admin
+          const { data: adminData } = await supabase.rpc('is_admin');
+          setIsAdmin(!!adminData);
+        } else {
+          setUser(null);
+          setIsAdmin(false);
+        }
       }
     );
     
@@ -82,6 +103,7 @@ export const useShoppingCart = () => {
   
   return {
     user,
+    isAdmin,
     loading,
     hasDomain,
     hasEmailPlan,

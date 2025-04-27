@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User, ShieldCheck } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -30,6 +30,8 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
     
     if (isAuthenticated) {
       checkAdminStatus();
+    } else {
+      setIsAdmin(false);
     }
   }, [isAuthenticated]);
 
@@ -52,12 +54,22 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
         </Button>
       </Link>
       {isAuthenticated ? (
-        <Link to="/dashboard">
-          <Button className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            <span>Painel do Cliente</span>
-          </Button>
-        </Link>
+        <div className="flex gap-3">
+          {isAdmin && (
+            <Link to="/admin">
+              <Button variant="destructive" className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4" />
+                <span>Painel Admin</span>
+              </Button>
+            </Link>
+          )}
+          <Link to="/dashboard">
+            <Button className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span>Painel do Cliente</span>
+            </Button>
+          </Link>
+        </div>
       ) : (
         <Link to="/auth" onClick={handleAuthClick}>
           <Button className="flex items-center gap-2">

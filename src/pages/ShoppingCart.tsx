@@ -12,6 +12,8 @@ import { ContactProfileCard } from '@/components/cart/ContactProfileCard';
 import { useShoppingCart } from '@/hooks/useShoppingCart';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { InfoIcon } from 'lucide-react';
 
 const ShoppingCart = () => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const ShoppingCart = () => {
   
   const {
     user,
+    isAdmin,
     loading,
     hasDomain,
     hasEmailPlan,
@@ -73,7 +76,7 @@ const ShoppingCart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold mb-4">Itens do Carrinho</h2>
+                <h2 className="text-xl font-semibold mb-4">Carregando Carrinho...</h2>
                 <div className="space-y-4 mt-8">
                   <Skeleton className="h-16 w-full" />
                   <Skeleton className="h-16 w-full" />
@@ -99,7 +102,17 @@ const ShoppingCart = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="container max-w-6xl mx-auto">
-        <CartHeader />
+        <div className="flex justify-between items-center mb-4">
+          <CartHeader />
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+                <InfoIcon className="h-3 w-3" />
+                Modo Administrador
+              </Badge>
+            </div>
+          )}
+        </div>
         
         {items.length === 0 ? (
           <EmptyCart />
@@ -110,6 +123,7 @@ const ShoppingCart = () => {
                 items={items}
                 onRemoveItem={removeItem}
                 getContactProfileById={getContactProfileById}
+                isAdmin={isAdmin}
               />
               
               {!user && <AuthenticationCard />}
