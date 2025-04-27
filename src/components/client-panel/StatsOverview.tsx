@@ -50,7 +50,7 @@ export const StatsOverview = ({ accountBalance }: StatsOverviewProps) => {
           <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 flex flex-col items-center justify-center text-white">
             <h3 className="text-3xl font-bold">2</h3>
             <p className="text-sm text-center">Produto e serviço</p>
-            <Link to="/client-panel?tab=services" className="text-xs underline mt-1 hover:text-white/80">
+            <Link to="/painel-cliente/servicos" className="text-xs underline mt-1 hover:text-white/80">
               Todos os produtos e serviços
             </Link>
           </div>
@@ -58,7 +58,7 @@ export const StatsOverview = ({ accountBalance }: StatsOverviewProps) => {
           <div className="bg-blue-500/90 backdrop-blur-sm rounded-lg p-4 flex flex-col items-center justify-center text-white">
             <h3 className="text-3xl font-bold">0</h3>
             <p className="text-sm text-center">Domain Names</p>
-            <Link to="/client-panel?tab=domains" className="text-xs underline mt-1 hover:text-white/80">
+            <Link to="/painel-cliente/dominios" className="text-xs underline mt-1 hover:text-white/80">
               Todos os domínios
             </Link>
           </div>
@@ -66,7 +66,7 @@ export const StatsOverview = ({ accountBalance }: StatsOverviewProps) => {
           <div className="bg-red-500/90 backdrop-blur-sm rounded-lg p-4 flex flex-col items-center justify-center text-white">
             <h3 className="text-3xl font-bold">0</h3>
             <p className="text-sm text-center">Faturas não pagas</p>
-            <Link to="/client-panel?tab=invoices" className="text-xs underline mt-1 hover:text-white/80">
+            <Link to="/painel-cliente/faturas" className="text-xs underline mt-1 hover:text-white/80">
               Todas as faturas
             </Link>
           </div>
@@ -74,7 +74,7 @@ export const StatsOverview = ({ accountBalance }: StatsOverviewProps) => {
           <div className="bg-gray-600/90 backdrop-blur-sm rounded-lg p-4 flex flex-col items-center justify-center text-white">
             <h3 className="text-3xl font-bold">0</h3>
             <p className="text-sm text-center">Active Support Tickets</p>
-            <Link to="/client-panel?tab=tickets" className="text-xs underline mt-1 hover:text-white/80">
+            <Link to="/painel-cliente/tickets" className="text-xs underline mt-1 hover:text-white/80">
               Abrir Ticket de Suporte
             </Link>
           </div>

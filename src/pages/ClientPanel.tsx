@@ -1,47 +1,26 @@
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import React, { useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { ContactProfileProvider } from '@/context/ContactProfileContext';
 import { useClientPanel } from '@/hooks/useClientPanel';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-
-// Import panel components
 import { PanelHeader } from '@/components/client-panel/PanelHeader';
 import { StatsOverview } from '@/components/client-panel/StatsOverview';
 import { DomainSearchPanel } from '@/components/client-panel/DomainSearchPanel';
 import { PanelNavigation } from '@/components/client-panel/PanelNavigation';
-import { DashboardOverview } from '@/components/client-panel/DashboardOverview';
-import { ServicesPanel } from '@/components/client-panel/ServicesPanel';
-import { DomainsPanel } from '@/components/client-panel/DomainsPanel';
-import { InvoicesPanel } from '@/components/client-panel/InvoicesPanel';
-import { TicketsPanel } from '@/components/client-panel/TicketsPanel';
-import { ProfilePanel } from '@/components/client-panel/ProfilePanel';
-import { DownloadsPanel } from '@/components/client-panel/DownloadsPanel';
-import { KnowledgeBasePanel } from '@/components/client-panel/KnowledgeBasePanel';
-import { NotificationsPanel } from '@/components/client-panel/NotificationsPanel';
-import { AffiliatePanel } from '@/components/client-panel/AffiliatePanel';
 import { ContactProfileDialogs } from '@/components/client-panel/ContactProfileDialogs';
 
 const ClientPanel = () => {
   const { loading, userData, handleSignOut, accountBalance, services, domains, invoices } = useClientPanel();
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const tabFromUrl = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
-  const [notificationsCount] = useState(3);
-
+  const location = useLocation();
+  
   useEffect(() => {
-    if (tabFromUrl !== activeTab) {
-      setActiveTab(tabFromUrl || 'overview');
+    if (location.pathname === '/painel-cliente') {
+      navigate('/painel-cliente/visao-geral');
     }
-  }, [tabFromUrl, activeTab]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    setSearchParams({ tab: value });
-  };
+  }, [location, navigate]);
 
   if (loading) {
     return (
@@ -58,60 +37,23 @@ const ClientPanel = () => {
         <div className="min-h-screen bg-gray-50 pb-12">
           <PanelHeader
             userData={userData}
-            notificationsCount={notificationsCount}
+            notificationsCount={3}
             handleSignOut={handleSignOut}
-            setActiveTab={handleTabChange}
+            setActiveTab={(tab) => navigate(`/painel-cliente/${tab}`)}
           />
 
           <StatsOverview accountBalance={accountBalance} />
           <DomainSearchPanel />
 
           <div className="container max-w-7xl mx-auto px-4">
-            <Tabs value={activeTab} onValueChange={handleTabChange}>
-              <div className="bg-white border rounded-lg shadow-sm mb-6">
-                <PanelNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-              </div>
+            <div className="bg-white border rounded-lg shadow-sm mb-6">
+              <PanelNavigation
+                activeTab={location.pathname.split('/').pop() || 'visao-geral'}
+                onTabChange={(tab) => navigate(`/painel-cliente/${tab}`)}
+              />
+            </div>
 
-              <TabsContent value="overview">
-                <DashboardOverview userData={userData} />
-              </TabsContent>
-              
-              <TabsContent value="services">
-                <ServicesPanel services={services} />
-              </TabsContent>
-              
-              <TabsContent value="domains">
-                <DomainsPanel domains={domains} />
-              </TabsContent>
-              
-              <TabsContent value="invoices">
-                <InvoicesPanel invoices={invoices} />
-              </TabsContent>
-              
-              <TabsContent value="tickets">
-                <TicketsPanel />
-              </TabsContent>
-              
-              <TabsContent value="profile">
-                <ProfilePanel userData={userData} />
-              </TabsContent>
-              
-              <TabsContent value="downloads">
-                <DownloadsPanel />
-              </TabsContent>
-              
-              <TabsContent value="knowledge">
-                <KnowledgeBasePanel />
-              </TabsContent>
-              
-              <TabsContent value="notifications">
-                <NotificationsPanel />
-              </TabsContent>
-              
-              <TabsContent value="affiliate">
-                <AffiliatePanel userData={userData} />
-              </TabsContent>
-            </Tabs>
+            <Outlet context={{ userData, services, domains, invoices }} />
           </div>
 
           <ContactProfileDialogs />
