@@ -17,24 +17,34 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
   const { getItemCount } = useCart();
   const cartItemCount = getItemCount();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
-    // Verificar se o usuário está autenticado e tem itens no carrinho
+    // Check if user is authenticated and has items in cart
     const checkCartAndAuth = async () => {
-      if (isAuthenticated && cartItemCount > 0 && location.pathname !== '/carrinho' && location.pathname !== '/checkout') {
-        // Exibir toast para redirecionar ao carrinho
-        toast.info(
-          "Você tem itens no carrinho! Finalize sua compra.",
-          {
-            action: {
-              label: "Ir para carrinho",
-              onClick: () => navigate('/carrinho')
-            },
-            duration: 5000,
-          }
-        );
+      if (isAuthenticated) {
+        // Check if user is admin
+        const { data: adminData } = await supabase.rpc('is_admin');
+        setIsAdmin(!!adminData);
         
-        setShouldRedirect(true);
+        // If has items in cart and not an admin, show cart notification
+        if (cartItemCount > 0 && !adminData && 
+            location.pathname !== '/carrinho' && 
+            location.pathname !== '/checkout') {
+          // Show toast to redirect to cart
+          toast.info(
+            "Você tem itens no carrinho! Finalize sua compra.",
+            {
+              action: {
+                label: "Ir para carrinho",
+                onClick: () => navigate('/carrinho')
+              },
+              duration: 5000,
+            }
+          );
+          
+          setShouldRedirect(true);
+        }
       }
     };
     
@@ -42,10 +52,10 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
   }, [isAuthenticated, cartItemCount, location.pathname, navigate]);
   
   const handleAuthClick = () => {
-    // Guarda o caminho atual completo, incluindo a rota e query params
+    // Store current path for redirect after login
     const currentPath = location.pathname + location.search;
     sessionStorage.setItem('redirect_after_login', currentPath);
-    console.log('NavbarAuthButtons: Salvando redirecionamento após login:', currentPath);
+    console.log('NavbarAuthButtons: Saving redirect after login:', currentPath);
   };
   
   return (
@@ -62,7 +72,7 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
         </Button>
       </Link>
       {isAuthenticated ? (
-        <Link to="/dashboard">
+        <Link to={isAdmin ? "/admin" : "/painel-cliente"}>
           <Button className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span>Painel do Cliente</span>

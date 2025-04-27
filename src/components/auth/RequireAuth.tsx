@@ -29,14 +29,14 @@ export const RequireAuth = ({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Verificar sessão
+        // Check session
         const { data } = await supabase.auth.getSession();
         
         if (!data.session) {
-          // Salvar o caminho atual para redirecionamento após login
+          // Save current path for redirect after login
           const currentPath = location.pathname + location.search;
           sessionStorage.setItem('redirect_after_login', currentPath);
-          console.log('RequireAuth: Salvando redirecionamento após login:', currentPath);
+          console.log('RequireAuth: Saving redirect after login:', currentPath);
           
           if (showToast) {
             toast.info(toastMessage);
@@ -46,13 +46,13 @@ export const RequireAuth = ({
           return;
         }
 
-        // Se precisar verificar se é admin
+        // If admin check is required
         if (adminOnly) {
           const { data: adminData, error } = await supabase.rpc('is_admin');
           
           if (error || !adminData) {
             toast.error('Acesso restrito a administradores');
-            navigate('/painel-cliente'); // Redireciona para o painel do cliente se não for admin
+            navigate('/painel-cliente'); // Redirect to client panel if not admin
             return;
           }
           
@@ -62,7 +62,7 @@ export const RequireAuth = ({
         setAuthenticated(true);
         setLoading(false);
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
+        console.error('Error checking authentication:', error);
         setAuthenticated(false);
         setLoading(false);
         navigate(redirectTo);
@@ -76,12 +76,12 @@ export const RequireAuth = ({
         if (event === 'SIGNED_OUT') {
           setAuthenticated(false);
           setIsAdmin(false);
-          // Ao sair, também salvar o caminho atual
+          // Also save current path when signing out
           sessionStorage.setItem('redirect_after_login', location.pathname + location.search);
           navigate(redirectTo);
         } else if (session) {
           setAuthenticated(true);
-          // Verificar status de admin ao mudar autenticação
+          // Check admin status when auth changes
           if (adminOnly) {
             supabase.rpc('is_admin').then(({ data }) => {
               if (!data) {
@@ -108,7 +108,7 @@ export const RequireAuth = ({
     );
   }
 
-  // Se precisar de admin e não for admin, não renderizar nada
+  // If admin is required and user is not admin, don't render anything
   if (adminOnly && !isAdmin) {
     return null;
   }
