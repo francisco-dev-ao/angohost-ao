@@ -38,6 +38,7 @@ export interface Customer {
   postalCode?: string;
   country?: string;
   idNumber?: string;
+  account_balance?: number; // Add this property to fix TypeScript errors
   domainOwnership?: {
     ownerName: string;
     ownerNif: string;
