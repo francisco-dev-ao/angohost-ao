@@ -6,44 +6,52 @@ export const HostingPricingCards = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       <PricingCard 
-        id="basic" 
+        id="iniciante" 
         type="hosting" 
-        title="Plano Básico" 
-        price={2500} 
+        title="Iniciante" 
+        price={2000} 
         features={[
-          "5GB de Espaço em Disco",
-          "10 Contas de Email",
-          "Banco de Dados MySQL",
-          "Certificado SSL Gratuito",
-          "Painel cPanel"
+          "1GB de Espaço em SSD",
+          "5 Contas de Email",
+          "2 Banco de Dados MySQL",
+          "Certificado SSL Grátis",
+          "Painel cPanel",
+          "1 Site",
+          "Suporte 24/7"
         ]} 
       />
       <PricingCard 
-        id="professional" 
+        id="especialista" 
         type="hosting" 
-        title="Plano Profissional" 
-        price={4500} 
+        title="Especialista" 
+        price={5000} 
         features={[
-          "20GB de Espaço em Disco",
-          "30 Contas de Email",
-          "Banco de Dados MySQL Ilimitados",
-          "Certificado SSL Gratuito",
+          "5GB de Espaço em SSD",
+          "20 Contas de Email",
+          "10 Bancos de Dados MySQL",
+          "Certificado SSL Grátis",
           "Painel cPanel",
+          "5 Sites",
+          "Suporte 24/7",
+          "Domínio Grátis (plano anual)",
           "Backup Diário"
         ]} 
         isPopular 
       />
       <PricingCard 
-        id="enterprise" 
+        id="entusiasta" 
         type="hosting" 
-        title="Plano Empresarial" 
-        price={8500} 
+        title="Entusiasta" 
+        price={10000} 
         features={[
-          "50GB de Espaço em Disco",
+          "10GB de Espaço em SSD",
           "Email Ilimitado",
-          "Banco de Dados MySQL Ilimitados",
-          "Certificado SSL Gratuito",
+          "Bancos de Dados MySQL Ilimitados",
+          "Certificado SSL Grátis",
           "Painel cPanel",
+          "Sites Ilimitados",
+          "Suporte 24/7 Prioritário",
+          "Domínio Grátis (plano anual)",
           "Backup Diário",
           "CDN Premium"
         ]}

@@ -8,6 +8,14 @@ export const usePlanConfiguration = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
 
+  const getDiscount = (years: number) => {
+    if (years >= 5) return 0.25; // 25% desconto
+    if (years >= 3) return 0.20; // 20% desconto
+    if (years >= 2) return 0.15; // 15% desconto
+    if (years >= 1) return 0.10; // 10% desconto
+    return 0;
+  };
+
   const createHostingItem = (
     id: string,
     type: CartItem['type'],
@@ -17,16 +25,24 @@ export const usePlanConfiguration = () => {
     yearlyRenewalPrice: number,
     planDetails: Record<string, any>
   ): CartItem => {
+    const discount = getDiscount(years);
+    const discountedPrice = totalPrice * (1 - discount);
+    
+    const hasDomainIncluded = years >= 1 && 
+      (id.includes('especialista') || id.includes('entusiasta'));
+
     return {
       id: `${type}-${id}-${Date.now()}`,
       type,
       name: title,
-      price: totalPrice,
+      price: discountedPrice,
       period: 'yearly',
       details: {
         ...planDetails,
         renewalPrice: yearlyRenewalPrice,
-        contractYears: years
+        contractYears: years,
+        discount: discount * 100,
+        hasDomainIncluded
       }
     };
   };
