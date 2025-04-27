@@ -9,20 +9,13 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Use simpler type handling
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
         .maybeSingle();
       
-      if (error) {
-        console.error(`Error checking existing ${field}:`, error);
-        return false;
-      }
-      
-      // Boolean conversion without complex type inference
-      return Boolean(data);
+      return data !== null;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
