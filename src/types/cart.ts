@@ -82,4 +82,5 @@ export interface CartContextType {
   getContactProfiles: () => ContactProfile[];
   setSelectedContactProfile: (id: string | null) => void;
   selectedContactProfileId: string | null;
+  hasDomain?: boolean;
 }

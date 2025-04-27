@@ -13,10 +13,10 @@ export const useRegisterValidation = () => {
         .from('customers')
         .select('id')
         .eq(field, value)
-        // Use .maybeSingle() instead of .single() to handle potential multiple or no results
-        .maybeSingle();
+        .limit(1)
+        .single();
       
-      return data !== null;
+      return !!data;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

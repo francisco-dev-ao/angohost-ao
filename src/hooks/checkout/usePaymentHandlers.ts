@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const usePaymentHandlers = () => {
   const navigate = useNavigate();
-  const { setPaymentInfo, hasDomain } = useCart();
+  const { setPaymentInfo, hasDomainInCart } = useCart();
   const { paymentMethod, orderReference, saveOrderToDatabase } = usePaymentProcessing();
   
   const { handleEmisPayment } = useEmisPaymentHandler();
@@ -30,7 +30,7 @@ export const usePaymentHandlers = () => {
       status: 'completed',
       transactionId,
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomainInCart()
     });
     
     toast.success('Pagamento processado com sucesso!');

@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export const useBankTransferHandler = () => {
   const navigate = useNavigate();
-  const { setPaymentInfo, hasDomain } = useCart();
+  const { setPaymentInfo, hasDomainInCart } = useCart();
 
   const handleBankTransfer = async (orderId: string, orderReference: string) => {
     const { data } = await supabase.auth.getUser();
@@ -22,7 +22,7 @@ export const useBankTransferHandler = () => {
       method: 'bank-transfer',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomainInCart()
     });
     
     toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');

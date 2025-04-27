@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 export const useEmisPaymentHandler = () => {
   const navigate = useNavigate();
-  const { setPaymentInfo, hasDomain } = useCart();
+  const { setPaymentInfo, hasDomainInCart } = useCart();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleEmisPayment = async (orderId: string, orderReference: string) => {
@@ -24,7 +24,7 @@ export const useEmisPaymentHandler = () => {
       method: 'emis',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomain
+      hasDomain: hasDomainInCart()
     });
   };
 
