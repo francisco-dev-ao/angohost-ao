@@ -10,7 +10,8 @@ export const ServiceStatusCard = ({
   description, 
   status, 
   expiryDate, 
-  nextPayment 
+  nextPayment,
+  actions
 }: ServiceStatusCardProps) => {
   let statusBadge;
 
@@ -38,25 +39,33 @@ export const ServiceStatusCard = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-medium">Status:</div>
-            {statusBadge}
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">Status:</div>
+              {statusBadge}
+            </div>
+            <div>
+              {expiryDate && (
+                <>
+                  <div className="text-sm font-medium">Expira em:</div>
+                  <div className="text-sm">{expiryDate}</div>
+                </>
+              )}
+              {nextPayment && (
+                <>
+                  <div className="text-sm font-medium">Próximo pagamento:</div>
+                  <div className="text-sm">{nextPayment}</div>
+                </>
+              )}
+            </div>
           </div>
-          <div>
-            {expiryDate && (
-              <>
-                <div className="text-sm font-medium">Expira em:</div>
-                <div className="text-sm">{expiryDate}</div>
-              </>
-            )}
-            {nextPayment && (
-              <>
-                <div className="text-sm font-medium">Próximo pagamento:</div>
-                <div className="text-sm">{nextPayment}</div>
-              </>
-            )}
-          </div>
+          
+          {actions && (
+            <div className="mt-4">
+              {actions}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

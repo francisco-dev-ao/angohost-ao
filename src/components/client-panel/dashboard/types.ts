@@ -6,6 +6,7 @@ export interface ServiceStatusCardProps {
   status: 'active' | 'pending' | 'suspended' | 'expired';
   expiryDate?: string;
   nextPayment?: string;
+  actions?: React.ReactNode;
 }
 
 export interface DashboardOverviewProps {
@@ -29,4 +30,22 @@ export interface InvoicesSummaryProps {
 
 export interface TicketsSummaryProps {
   tickets?: any[];
+}
+
+// Add interfaces for the panels in ClientPanel.tsx
+export interface ServicesPanelProps {
+  services?: any[];
+}
+
+export interface DomainsPanelProps {
+  domains?: any[];
+}
+
+export interface InvoicesPanelProps {
+  invoices?: any[];
+}
+
+// Add interface for EmailContent component
+export interface EmailContentProps {
+  loading?: boolean;
 }

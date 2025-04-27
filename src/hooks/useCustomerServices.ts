@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -59,7 +60,7 @@ export const useCustomerServices = () => {
         const formattedServices: Service[] = [
           ...(hostingData?.map(hosting => ({
             id: hosting.id,
-            type: 'hosting',
+            type: 'hosting' as const,
             name: hosting.hosting_plans?.name || 'Plano de Hospedagem',
             status: (hosting.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             details: hosting
@@ -67,7 +68,7 @@ export const useCustomerServices = () => {
           
           ...(domainsData?.map(domain => ({
             id: domain.id,
-            type: 'domain',
+            type: 'domain' as const,
             name: `${domain.name}.${domain.tld}`,
             status: (domain.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             expiryDate: domain.expiry_date,
@@ -76,7 +77,7 @@ export const useCustomerServices = () => {
           
           ...(emailData?.map(email => ({
             id: email.id,
-            type: 'email',
+            type: 'email' as const,
             name: email.email_address,
             status: (email.status || 'pending') as 'active' | 'suspended' | 'expired' | 'pending',
             details: email

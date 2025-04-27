@@ -9,8 +9,9 @@ import {
   Package, Search, ExternalLink, Settings, RefreshCcw, 
   ArrowUpRight, ServerCog, Shield, Database, BarChart4
 } from 'lucide-react';
+import { ServicesPanelProps } from './dashboard/types';
 
-export const ServicesPanel = () => {
+export const ServicesPanel = ({ services = [] }: ServicesPanelProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const services = [
