@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
-import { EmailPlan } from '@/data/emailPlans';
+import { EmailPlan } from '@/types/email';
 
 interface EmailPlanCardProps {
   plan: EmailPlan;
