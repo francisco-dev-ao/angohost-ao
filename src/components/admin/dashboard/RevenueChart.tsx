@@ -28,14 +28,14 @@ export const RevenueChart = () => {
 
   const data = generateData();
 
-  const formatValue = (value: number) => {
+  const formatValue = (value: number): string => {
     if (value >= 1000000) {
       return `${(value / 1000000).toFixed(1)}M`;
     }
     if (value >= 1000) {
       return `${(value / 1000).toFixed(1)}K`;
     }
-    return value;
+    return value.toString();
   };
 
   return (
@@ -53,7 +53,7 @@ export const RevenueChart = () => {
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
           <XAxis dataKey="name" axisLine={false} tickLine={false} />
           <YAxis 
-            tickFormatter={formatValue}
+            tickFormatter={(value) => formatValue(value)}
             axisLine={false}
             tickLine={false}
           />

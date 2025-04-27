@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
+import { Badge as UIBadge } from "@/components/ui/badge";
 
 export const AdminSecurity = () => {
   const [activeTab, setActiveTab] = useState('overview');

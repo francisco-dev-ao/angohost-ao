@@ -32,6 +32,13 @@ export const ServerStatus = () => {
     },
   ];
 
+  // Helper function to map server status to valid badge variants
+  const getStatusVariant = (status: string): "default" | "destructive" | "outline" | "secondary" => {
+    if (status === 'online') return "secondary";
+    if (status === 'offline') return "destructive";
+    return "outline";
+  };
+
   return (
     <div className="space-y-4">
       {servers.map((server, index) => (
@@ -40,7 +47,7 @@ export const ServerStatus = () => {
             <div>
               <p className="font-medium">{server.name}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant={server.status === 'online' ? 'success' : 'destructive'} className="text-xs capitalize">
+                <Badge variant={getStatusVariant(server.status)} className="text-xs capitalize">
                   {server.status}
                 </Badge>
                 <span className="text-xs text-muted-foreground">Uptime: {server.uptime}</span>
