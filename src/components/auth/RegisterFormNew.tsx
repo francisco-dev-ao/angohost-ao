@@ -11,11 +11,15 @@ import { useNifSearch } from '@/hooks/useNifSearch';
 import { Customer } from '@/types/cart';
 import { Card, CardContent } from '@/components/ui/card';
 
+interface RegisterFormData extends Customer {
+  password: string;
+}
+
 export const RegisterFormNew = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [formData, setFormData] = useState<Customer & { password: string }>({
+  const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
     email: '',
     phone: '',

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -56,7 +55,6 @@ const Checkout = () => {
 
   const saveOrderToDatabase = async (orderId: string, userId: string) => {
     try {
-      // Cadastrar pedido
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -75,7 +73,6 @@ const Checkout = () => {
         return;
       }
       
-      // Cadastrar itens do pedido
       const orderItems = items.map(item => ({
         order_id: orderId,
         product_name: item.name,
@@ -94,7 +91,6 @@ const Checkout = () => {
         console.error('Erro ao cadastrar itens do pedido:', itemsError);
       }
       
-      // Cadastrar fatura
       const invoiceNumber = `INV-${orderReference}`;
       
       const { error: invoiceError } = await supabase
@@ -171,6 +167,19 @@ const Checkout = () => {
     
     if (paymentMethod === 'emis') {
       setShowPaymentFrame(true);
+    } else if (paymentMethod === 'account_balance') {
+      const orderId = crypto.randomUUID();
+      await saveOrderToDatabase(orderId, user.id);
+      
+      setPaymentInfo({
+        method: paymentMethod,
+        status: 'pending',
+        reference: ref,
+        hasDomain: hasDomain
+      });
+      
+      toast.success('Pedido registrado com sucesso! Processando pagamento com saldo da conta.');
+      navigate('/payment/success');
     } else {
       const orderId = crypto.randomUUID();
       await saveOrderToDatabase(orderId, user.id);

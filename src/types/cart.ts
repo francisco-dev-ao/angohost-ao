@@ -38,6 +38,7 @@ export interface Customer {
   postalCode?: string;
   country?: string;
   idNumber?: string;
+  account_balance?: number;
   domainOwnership?: {
     ownerName: string;
     ownerNif: string;
