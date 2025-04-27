@@ -24,20 +24,35 @@ const Auth = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
-        const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+        // Verificar se é administrador
+        const { data: isAdmin } = await supabase.rpc('is_admin');
+        
+        // Obtém o URL de redirecionamento armazenado
+        const redirectUrl = sessionStorage.getItem('redirect_after_login');
         console.log('Auth: Redirecionando após login para:', redirectUrl);
         
-        // Verificar se tem itens no carrinho para redirecionar para o carrinho
+        // Verificar se tem itens no carrinho
         const hasItemsInCart = items && items.length > 0;
         
         sessionStorage.removeItem('redirect_after_login');
         
-        if (redirectUrl === '/dashboard' && hasItemsInCart) {
-          toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
-          navigate('/carrinho');
+        if (isAdmin) {
+          // Administradores sempre vão para o painel admin
+          navigate('/admin');
+          toast.success('Bem-vindo ao painel administrativo!');
         } else {
-          navigate(redirectUrl);
+          // Para clientes regulares
+          if (redirectUrl && redirectUrl !== '/admin') {
+            // Se houver um redirecionamento específico (exceto admin), use-o
+            navigate(redirectUrl);
+          } else if (hasItemsInCart) {
+            // Se tiver itens no carrinho, redirecione para finalizar a compra
+            toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
+            navigate('/carrinho');
+          } else {
+            // Caso contrário, vá para o painel do cliente
+            navigate('/painel-cliente');
+          }
         }
       }
     };
@@ -45,22 +60,37 @@ const Auth = () => {
     checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
-          const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+          // Verificar se é administrador
+          const { data: isAdmin } = await supabase.rpc('is_admin');
+          
+          // Obtém o URL de redirecionamento armazenado
+          const redirectUrl = sessionStorage.getItem('redirect_after_login');
           console.log('Auth: Redirecionamento após mudança de auth state para:', redirectUrl);
           
-          // Verificar se tem itens no carrinho para redirecionar para o carrinho
+          // Verificar se tem itens no carrinho
           const hasItemsInCart = items && items.length > 0;
           
           sessionStorage.removeItem('redirect_after_login');
           
-          if (redirectUrl === '/dashboard' && hasItemsInCart) {
-            toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
-            navigate('/carrinho');
+          if (isAdmin) {
+            // Administradores sempre vão para o painel admin
+            navigate('/admin');
+            toast.success('Bem-vindo ao painel administrativo!');
           } else {
-            navigate(redirectUrl);
+            // Para clientes regulares
+            if (redirectUrl && redirectUrl !== '/admin') {
+              // Se houver um redirecionamento específico (exceto admin), use-o
+              navigate(redirectUrl);
+            } else if (hasItemsInCart) {
+              // Se tiver itens no carrinho, redirecione para finalizar a compra
+              toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
+              navigate('/carrinho');
+            } else {
+              // Caso contrário, vá para o painel do cliente
+              navigate('/painel-cliente');
+            }
           }
         }
       }

@@ -34,21 +34,21 @@ export const useAdmin = () => {
           console.error('Erro ao verificar status de administrador:', error);
           setIsAdmin(false);
           toast.error('Erro ao verificar permissões de administrador');
-          navigate('/dashboard');
+          navigate('/painel-cliente');
         } else {
           setIsAdmin(data);
           
           // Redirecionar se não for administrador
           if (!data) {
             toast.error('Acesso restrito a administradores');
-            navigate('/dashboard');
+            navigate('/painel-cliente');
           }
         }
       } catch (error) {
         console.error('Erro ao verificar permissões:', error);
         setIsAdmin(false);
         toast.error('Erro ao verificar permissões de administrador');
-        navigate('/dashboard');
+        navigate('/painel-cliente');
       } finally {
         setLoading(false);
       }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,12 +43,8 @@ const AdminDashboard = () => {
   }
   
   if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center h-screen flex-col">
-        <p className="text-xl font-bold mb-4 text-red-600">Acesso negado. Esta página é restrita a administradores.</p>
-        <Button onClick={() => navigate('/dashboard')}>Ir para Painel do Cliente</Button>
-      </div>
-    );
+    navigate('/painel-cliente');
+    return null;
   }
   
   return (

@@ -52,7 +52,7 @@ export const RequireAuth = ({
           
           if (error || !adminData) {
             toast.error('Acesso restrito a administradores');
-            navigate('/dashboard');
+            navigate('/painel-cliente'); // Redireciona para o painel do cliente se não for admin
             return;
           }
           
@@ -86,7 +86,7 @@ export const RequireAuth = ({
             supabase.rpc('is_admin').then(({ data }) => {
               if (!data) {
                 toast.error('Acesso restrito a administradores');
-                navigate('/dashboard');
+                navigate('/painel-cliente');
               } else {
                 setIsAdmin(true);
               }
