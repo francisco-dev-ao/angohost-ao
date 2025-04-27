@@ -6,7 +6,6 @@ import { AuthContainer } from '@/components/auth/AuthContainer';
 import { AuthTabs } from '@/components/auth/AuthTabs';
 import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
-import { UserService } from '@/services/UserService';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -25,20 +24,8 @@ const Auth = () => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Check if user is admin
-        const isAdmin = await UserService.isAdminUser();
-        
         // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
-        let redirectUrl = sessionStorage.getItem('redirect_after_login');
-        
-        // Admins go to admin dashboard by default
-        if (isAdmin && (!redirectUrl || redirectUrl === '/dashboard')) {
-          redirectUrl = '/admin';
-        } else if (!redirectUrl) {
-          // Non-admins go to client panel by default
-          redirectUrl = '/painel-cliente';
-        }
-        
+        const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
         console.log('Auth: Redirecionando após login para:', redirectUrl);
         
         // Verificar se tem itens no carrinho para redirecionar para o carrinho
@@ -46,7 +33,7 @@ const Auth = () => {
         
         sessionStorage.removeItem('redirect_after_login');
         
-        if ((redirectUrl === '/dashboard' || redirectUrl === '/painel-cliente') && hasItemsInCart) {
+        if (redirectUrl === '/dashboard' && hasItemsInCart) {
           toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
           navigate('/carrinho');
         } else {
@@ -58,22 +45,10 @@ const Auth = () => {
     checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Check if user is admin
-          const isAdmin = await UserService.isAdminUser();
-          
-          // Obtém o URL de redirecionamento armazenado ou usa o dashboard/painel-cliente como fallback
-          let redirectUrl = sessionStorage.getItem('redirect_after_login');
-          
-          // Admins go to admin dashboard by default
-          if (isAdmin && (!redirectUrl || redirectUrl === '/dashboard')) {
-            redirectUrl = '/admin';
-          } else if (!redirectUrl) {
-            // Non-admins go to client panel by default
-            redirectUrl = '/painel-cliente';
-          }
-          
+          // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
+          const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
           console.log('Auth: Redirecionamento após mudança de auth state para:', redirectUrl);
           
           // Verificar se tem itens no carrinho para redirecionar para o carrinho
@@ -81,7 +56,7 @@ const Auth = () => {
           
           sessionStorage.removeItem('redirect_after_login');
           
-          if ((redirectUrl === '/dashboard' || redirectUrl === '/painel-cliente') && hasItemsInCart) {
+          if (redirectUrl === '/dashboard' && hasItemsInCart) {
             toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
             navigate('/carrinho');
           } else {

@@ -43,43 +43,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const path = location.pathname;
   const [session, setSession] = useState<Session | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
     // Fetch the session when component mounts
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
-      
-      if (data.session) {
-        // Check if user is admin
-        try {
-          const { data: isAdminData } = await supabase.rpc('is_admin');
-          setIsAdmin(!!isAdminData);
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-        }
-      }
     };
     
     getSession();
     
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_, currentSession) => {
+      (_, currentSession) => {
         setSession(currentSession);
-        
-        if (currentSession?.user) {
-          // Check if user is admin
-          try {
-            const { data: isAdminData } = await supabase.rpc('is_admin');
-            setIsAdmin(!!isAdminData);
-          } catch (error) {
-            console.error("Error checking admin status:", error);
-          }
-        } else {
-          setIsAdmin(false);
-        }
       }
     );
     
@@ -95,9 +72,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     path === "/auth" || 
     path.startsWith("/dashboard") ||
     path === "/admin" ||
-    path.startsWith("/admin/") ||
-    path === "/painel-cliente" ||
-    path.startsWith("/painel-cliente/");
+    path.startsWith("/admin/");
   
   const hideFooter = hideNavbarFooter || session;
   
@@ -137,7 +112,6 @@ const App: React.FC = () => (
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminDashboard />} />
                     
-                    {/* Product pages */}
                     <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                     <Route path="/hospedagem/cpanel" element={<HostingPage />} />
                     <Route path="/hospedagem/wordpress" element={<HostingPage />} />

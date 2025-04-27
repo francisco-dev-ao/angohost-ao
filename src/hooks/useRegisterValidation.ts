@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PostgrestSingleResponse } from '@supabase/supabase-js';
 
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
@@ -10,15 +9,14 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Use explicit type annotation for the query result
-      const response: PostgrestSingleResponse<{ id: string }> = await supabase
+      const { data } = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
-        .limit(1)
+        // Use .maybeSingle() instead of .single() to handle potential multiple or no results
         .maybeSingle();
       
-      return response.data !== null;
+      return data !== null;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

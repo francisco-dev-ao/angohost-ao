@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export const useBalancePaymentHandler = () => {
   const navigate = useNavigate();
-  const { setPaymentInfo, hasDomainInCart } = useCart();
+  const { setPaymentInfo, hasDomain } = useCart();
 
   const handleBalancePayment = async (orderId: string, orderReference: string) => {
     const { data } = await supabase.auth.getUser();
@@ -22,7 +22,7 @@ export const useBalancePaymentHandler = () => {
       method: 'account_balance',
       status: 'pending',
       reference: orderReference,
-      hasDomain: hasDomainInCart()
+      hasDomain: hasDomain
     });
     
     toast.success('Pedido registrado com sucesso! Processando pagamento com saldo da conta.');
