@@ -8,7 +8,7 @@ export const usePricingCalculator = (basePrice: number, renewalPrice?: number) =
     switch (period) {
       case "1": return "1 ano";
       case "2": return "2 anos (10% desconto)";
-      case "3": return "3 anos (15% desconto)";
+      case "3": return "3 anos (10% desconto)";
       default: return "1 ano";
     }
   };
@@ -17,8 +17,7 @@ export const usePricingCalculator = (basePrice: number, renewalPrice?: number) =
     const years = parseInt(period);
     let discount = 0;
     
-    if (years === 2) discount = 0.1; // 10% discount
-    if (years === 3) discount = 0.15; // 15% discount
+    if (years >= 2) discount = 0.10; // 10% discount for 2 or 3 years
     
     const yearlyPrice = basePrice;
     const totalBeforeDiscount = yearlyPrice * years;
@@ -35,3 +34,4 @@ export const usePricingCalculator = (basePrice: number, renewalPrice?: number) =
     displayPrice
   };
 };
+

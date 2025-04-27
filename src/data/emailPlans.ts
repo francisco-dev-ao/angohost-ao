@@ -4,29 +4,62 @@ export interface EmailPlan {
   title: string;
   storage: string;
   price: number;
+  renewalPrice: number;
   features: string[];
+  minQuantity: number;
+  maxQuantity: number;
 }
 
 export const emailPlans: EmailPlan[] = [
   {
-    id: 'email-start',
-    title: 'Email Start',
+    id: 'email-premium',
+    title: 'Email Premium',
     storage: '5GB',
-    price: 15000,
-    features: ['Proteção anti-spam básica', 'Acesso web e mobile', 'Suporte por email']
+    price: 12000,
+    renewalPrice: 14500,
+    minQuantity: 1,
+    maxQuantity: 50,
+    features: [
+      '5GB por usuário',
+      'IMAP/POP',
+      'Reputação do IP limpo',
+      'Classificado pelo Google',
+      'Suporte 24/7'
+    ]
+  },
+  {
+    id: 'email-pro',
+    title: 'Avançado Pro',
+    storage: '50GB',
+    price: 40000,
+    renewalPrice: 42000,
+    minQuantity: 1,
+    maxQuantity: 100,
+    features: [
+      '50GB por usuário',
+      'Regras de Encaminhamento',
+      'Aliases de email',
+      'Verificação Antivírus',
+      'Anti-spam avançado',
+      'Infraestrutura baseada na cloud',
+      'Suporte prioritário 24/7'
+    ]
   },
   {
     id: 'email-business',
-    title: 'Email Business',
-    storage: '25GB',
-    price: 24000,
-    features: ['Proteção anti-spam avançada', 'Acesso web e mobile', 'Suporte prioritário', 'Calendário compartilhado']
-  },
-  {
-    id: 'email-premium',
-    title: 'Email Premium',
-    storage: '50GB',
-    price: 36000,
-    features: ['Proteção anti-spam premium', 'Acesso web e mobile', 'Suporte VIP 24/7', 'Calendário e contatos compartilhados', 'Colaboração em tempo real']
+    title: 'Business',
+    storage: '30GB',
+    price: 30000,
+    renewalPrice: 32000,
+    minQuantity: 1,
+    maxQuantity: 75,
+    features: [
+      '30GB por usuário',
+      'IMAP/POP',
+      'Reputação do IP limpo',
+      'Classificado pelo Google',
+      'Suporte VIP 24/7'
+    ]
   }
 ];
+

@@ -14,14 +14,15 @@ export const PriceDisplay = ({ price, period, renewalPrice }: PriceDisplayProps)
         <span className="text-3xl font-extrabold tracking-tight">
           {price.toLocaleString('pt-AO')} Kz
         </span>
-        <span className="ml-1 text-xl font-semibold">{period}</span>
+        <span className="ml-1 text-xl font-semibold">/ano por conta</span>
       </div>
       
       {renewalPrice && renewalPrice !== price && (
         <div className="mt-1 text-sm text-gray-500">
-          Renovação: {renewalPrice.toLocaleString('pt-AO')} Kz/ano
+          Renovação: {renewalPrice.toLocaleString('pt-AO')} Kz/ano por conta
         </div>
       )}
     </div>
   );
 };
+

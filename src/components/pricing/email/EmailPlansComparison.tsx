@@ -4,10 +4,30 @@ import PlanComparisonTable from '../PlanComparisonTable';
 import { PlanComparison } from '@/types/pricing';
 
 const emailComparisons: PlanComparison[] = [
-  { feature: "Espaço", basic: "5GB", professional: "15GB", enterprise: "50GB" },
-  { feature: "Anti-spam", basic: "Básico", professional: "Avançado", enterprise: "Premium" },
-  { feature: "Antivírus", basic: false, professional: true, enterprise: true },
-  { feature: "Arquivamento", basic: false, professional: false, enterprise: true }
+  { 
+    feature: "Espaço por Usuário", 
+    basic: "5GB", 
+    professional: "50GB", 
+    enterprise: "30GB" 
+  },
+  { 
+    feature: "IMAP/POP", 
+    basic: true, 
+    professional: true, 
+    enterprise: true 
+  },
+  { 
+    feature: "Anti-spam", 
+    basic: "Básico", 
+    professional: "Avançado", 
+    enterprise: "Básico" 
+  },
+  { 
+    feature: "Reputação IP", 
+    basic: true, 
+    professional: true, 
+    enterprise: true 
+  }
 ];
 
 export const EmailPlansComparison = () => {
@@ -18,3 +38,4 @@ export const EmailPlansComparison = () => {
     </div>
   );
 };
+

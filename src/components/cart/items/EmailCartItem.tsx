@@ -16,8 +16,9 @@ export const EmailCartItem: React.FC<EmailCartItemProps> = ({ item }) => {
       )}
       <p>Período: {item.details.contractYears} {item.details.contractYears === 1 ? 'ano' : 'anos'}</p>
       <p className="mt-2 text-orange-600">
-        Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO')} Kz/ano
+        Renovação: {item.details.renewalPrice?.toLocaleString('pt-AO')} Kz/ano por conta
       </p>
     </div>
   );
 };
+
