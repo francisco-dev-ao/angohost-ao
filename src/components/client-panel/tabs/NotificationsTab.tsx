@@ -109,7 +109,15 @@ export const NotificationsTab = () => {
                 productUpdates: emailNotifications.product_updates,
                 expiringServices: emailNotifications.expiring_services,
               }}
-              onPreferenceChange={handlePreferenceChange}
+              onPreferenceChange={(key, value) => {
+                if (key === 'productUpdates') {
+                  handlePreferenceChange('product_updates', value);
+                } else if (key === 'expiringServices') {
+                  handlePreferenceChange('expiring_services', value);
+                } else {
+                  handlePreferenceChange(key as keyof Tables<'notification_preferences'>, value);
+                }
+              }}
             />
             <Button 
               className="mt-6"

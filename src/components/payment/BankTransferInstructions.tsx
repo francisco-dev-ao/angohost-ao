@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Info, Copy, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -104,8 +105,8 @@ const BankTransferInstructions = ({ reference, amount }: BankTransferInstruction
         </div>
       </div>
       
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
+      <Alert variant="default" className="bg-amber-50 border-amber-200">
+        <AlertCircle className="h-4 w-4 text-amber-600" />
         <AlertTitle>Importante</AlertTitle>
         <AlertDescription>
           <p>Para que possamos processar seu pagamento rapidamente, inclua o código de referência <strong>{reference}</strong> no campo de descrição da transferência.</p>
