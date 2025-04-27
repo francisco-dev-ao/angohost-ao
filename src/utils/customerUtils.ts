@@ -49,3 +49,4 @@ export const ensureCustomerExists = async (userId: string, customerData: Partial
     return { id: null, error };
   }
 };
+
