@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,7 +32,14 @@ import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
 import DedicatedServersPage from "./pages/DedicatedServersPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1
+    }
+  }
+});
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
@@ -43,16 +49,21 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   
   useEffect(() => {
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      
-      if (data.session) {
-        try {
-          const { data: isAdminData } = await supabase.rpc('is_admin');
-          setIsAdmin(!!isAdminData);
-        } catch (error) {
-          console.error("Error checking admin status:", error);
+      try {
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+        
+        if (data.session) {
+          try {
+            const { data: isAdminData } = await supabase.rpc('is_admin');
+            setIsAdmin(!!isAdminData);
+          } catch (error) {
+            console.error("Error checking admin status:", error);
+          }
         }
+      } catch (error) {
+        console.error("Error getting session:", error);
+        setSession(null);
       }
     };
     
@@ -121,7 +132,6 @@ const App: React.FC = () => (
                     <Route path="/admin" element={<Dashboard />} />
                     <Route path="/painel-cliente" element={<Navigate to="/dashboard" replace />} />
                     
-                    {/* Product pages */}
                     <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                     <Route path="/hospedagem/cpanel" element={<HostingPage />} />
                     <Route path="/hospedagem/wordpress" element={<HostingPage />} />

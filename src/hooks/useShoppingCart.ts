@@ -28,6 +28,7 @@ export const useShoppingCart = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setLoading(true);
         const { data } = await supabase.auth.getSession();
         
         if (data.session?.user) {
@@ -40,10 +41,11 @@ export const useShoppingCart = () => {
           setUser(null);
           setIsAdmin(false);
         }
-        
-        setLoading(false);
       } catch (error) {
         console.error("Error checking auth:", error);
+        setUser(null);
+        setIsAdmin(false);
+      } finally {
         setLoading(false);
       }
     };
@@ -56,8 +58,13 @@ export const useShoppingCart = () => {
           setUser(session.user);
           
           // Check if user is admin
-          const { data: adminData } = await supabase.rpc('is_admin');
-          setIsAdmin(!!adminData);
+          try {
+            const { data: adminData } = await supabase.rpc('is_admin');
+            setIsAdmin(!!adminData);
+          } catch (error) {
+            console.error("Error checking admin status:", error);
+            setIsAdmin(false);
+          }
         } else {
           setUser(null);
           setIsAdmin(false);

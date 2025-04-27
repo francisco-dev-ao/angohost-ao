@@ -10,7 +10,7 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      const { data } = await supabase
+      const { data }: PostgrestSingleResponse<{ id: string }[]> = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)

@@ -35,6 +35,20 @@ export const CartItemsList: React.FC<CartItemsListProps> = ({
     }
   };
 
+  // Check if there are any items to display
+  if (items.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">{isAdmin ? 'Carrinho de Compras (Modo Admin)' : 'Itens do Carrinho'}</h2>
+        </div>
+        <div className="border-t p-6 text-center text-gray-500">
+          Nenhum item no carrinho
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <div className="p-6">
@@ -42,27 +56,21 @@ export const CartItemsList: React.FC<CartItemsListProps> = ({
       </div>
       
       <div className="border-t">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <div key={item.id} className="p-6 border-b">
-              <div className="flex flex-col md:flex-row justify-between">
-                <div>
-                  <h3 className="font-medium text-lg">{item.name}</h3>
-                  {renderItemDetails(item)}
-                </div>
-                <CartItemActions 
-                  price={item.price}
-                  period={item.period}
-                  onRemove={() => onRemoveItem(item.id)}
-                />
+        {items.map((item) => (
+          <div key={item.id} className="p-6 border-b">
+            <div className="flex flex-col md:flex-row justify-between">
+              <div>
+                <h3 className="font-medium text-lg">{item.name}</h3>
+                {renderItemDetails(item)}
               </div>
+              <CartItemActions 
+                price={item.price}
+                period={item.period}
+                onRemove={() => onRemoveItem(item.id)}
+              />
             </div>
-          ))
-        ) : (
-          <div className="p-6 text-center text-gray-500">
-            Nenhum item no carrinho
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
