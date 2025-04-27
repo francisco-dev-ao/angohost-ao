@@ -49,38 +49,9 @@ export const useRegisterValidation = () => {
     }
   };
   
-  // Completely restructured function to avoid infinite type instantiation
-  const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
-    if (!value) return false;
-    
-    try {
-      setIsLoading(true);
-      
-      // Use explicit type annotations and avoid method chaining
-      const { data, error } = await supabase
-        .from('customers')
-        .select(field)
-        .eq(field, value)
-        .maybeSingle();
-      
-      if (error) {
-        console.error(`Error checking ${field} existence:`, error);
-        return false;
-      }
-      
-      return !!data;
-    } catch (error) {
-      console.error(`Error checking ${field} existence:`, error);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   return { 
     isLoading,
     checkEmailExists,
-    checkNifExists,
-    checkExistingAccount
+    checkNifExists
   };
 };

@@ -14,7 +14,7 @@ import { CustomerProfile } from '@/components/dashboard/types';
 import { supabase } from '@/integrations/supabase/client';
 
 export function ProfileTab() {
-  const { user, loading: userLoading } = useUser();
+  const { user, isLoading: userLoading } = useUser();
   const [profile, setProfile] = useState<CustomerProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -46,7 +46,7 @@ export function ProfileTab() {
         }
         
         if (data) {
-          setProfile(data as CustomerProfile);
+          setProfile(data);
           setFormData({
             name: data.name || '',
             email: data.email || '',
