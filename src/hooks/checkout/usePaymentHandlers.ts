@@ -98,7 +98,7 @@ export const usePaymentHandlers = () => {
         method: 'emis',
         status: 'pending',
         reference: ref,
-        hasDomain: hasDomain
+        hasDomain: hasDomainInCart()
       });
       
       toast.success('Pedido registrado com sucesso! Aguardando confirmação de pagamento.');
