@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PostgrestError } from '@supabase/supabase-js';
 
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
@@ -10,19 +9,22 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Simplify the query to avoid excessive type instantiation
-      const { data, error } = await supabase
+      // Use a simplified query to avoid excessive type instantiation
+      const result = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
         .limit(1);
+      
+      const data = result.data;
+      const error = result.error;
       
       if (error) {
         console.error(`Error checking existing ${field}:`, error);
         return false;
       }
 
-      return data !== null && data.length > 0;
+      return Array.isArray(data) && data.length > 0;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;

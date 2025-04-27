@@ -24,6 +24,11 @@ export const usePaymentProcessing = () => {
   const [orderReference, setOrderReference] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
 
+  // Utility function to generate a valid UUID
+  const generateValidUUID = () => {
+    return crypto.randomUUID();
+  };
+
   const saveOrderToDatabase = async (orderId: string, userId: string) => {
     try {
       console.log('Saving order to database:', { orderId, userId });
@@ -56,16 +61,23 @@ export const usePaymentProcessing = () => {
         throw orderError;
       }
       
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: orderId,
-        product_name: item.name,
-        product_type: item.type,
-        product_id: item.id,
-        price: item.price,
-        period: item.period,
-        details: item.details
-      }));
+      // Create order items with valid UUIDs for product_id
+      const orderItems = items.map(item => {
+        // Generate a valid UUID for product_id if the existing one is not in UUID format
+        const productId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.id) 
+          ? item.id 
+          : generateValidUUID();
+          
+        return {
+          order_id: orderId,
+          product_name: item.name,
+          product_type: item.type,
+          product_id: productId,
+          price: item.price,
+          period: item.period,
+          details: item.details
+        };
+      });
       
       const { error: itemsError } = await supabase
         .from('order_items')
