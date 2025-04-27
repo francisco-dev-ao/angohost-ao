@@ -116,7 +116,24 @@ export const HostingTab: React.FC = () => {
   );
 };
 
-const HostingServiceCard: React.FC<{ service: HostingService }> = ({ service }) => {
+interface HostingServiceCardProps {
+  service: HostingService;
+}
+
+const HostingServiceCard: React.FC<HostingServiceCardProps> = ({ service }) => {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active': return 'bg-green-500';
+      case 'suspended': return 'bg-red-500';
+      case 'pending': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const calculateUsage = (used: number = 0, total: number = 1) => {
+    return Math.min(Math.round((used / total) * 100), 100);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -199,7 +216,11 @@ const HostingServiceCard: React.FC<{ service: HostingService }> = ({ service }) 
   );
 };
 
-const EmptyState = ({ type }: { type: 'active' | 'pending' | 'suspended' }) => {
+interface EmptyStateProps {
+  type: 'active' | 'pending' | 'suspended';
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ type }) => {
   const getMessage = () => {
     switch (type) {
       case 'active':

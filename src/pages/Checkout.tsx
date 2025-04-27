@@ -11,6 +11,7 @@ import { CheckoutForm } from '@/components/checkout/CheckoutForm';
 import { PaymentFrame } from '@/components/checkout/PaymentFrame';
 import { usePaymentManager } from '@/hooks/usePaymentManager';
 import { AlertCircle } from 'lucide-react';
+import { formatCurrency } from '@/utils/format';
 
 const Checkout = () => {
   const location = useLocation();
@@ -58,15 +59,6 @@ const Checkout = () => {
   
   const { amount, description, reference } = paymentDetails;
   
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-AO', {
-      style: 'currency',
-      currency: 'AOA',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-  
   return (
     <div className="container max-w-3xl mx-auto py-8 px-4">
       <PageHeader
@@ -91,6 +83,7 @@ const Checkout = () => {
               isLoading={isLoading}
               onSelectPaymentMethod={setPaymentMethod}
               onProcessPayment={handleProcessPayment}
+              totalAmount={amount}
             />
             
             {paymentMethod === 'bank-transfer' && (

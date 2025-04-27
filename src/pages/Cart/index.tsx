@@ -6,12 +6,37 @@ import { CartHeader } from '@/components/cart/CartHeader';
 import { CartItemsList } from '@/components/cart/CartItemsList';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { EmptyCart } from '@/components/cart/EmptyCart';
+import { toast } from 'sonner';
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, removeItem, getTotalPrice, generateOrderReference } = useCart();
+  const { 
+    items, 
+    removeItem, 
+    getTotalPrice, 
+    generateOrderReference,
+    contactProfiles,
+    selectedContactProfileId
+  } = useCart();
 
   const handleCheckout = () => {
+    // Validate cart items before proceeding to checkout
+    if (items.length === 0) {
+      toast.error('Seu carrinho está vazio!');
+      return;
+    }
+
+    // Check if domain items need a contact profile
+    const hasDomains = items.some(item => item.type === 'domain');
+    const hasOnlyHostingWithExistingDomain = items.length === 1 && 
+      items[0].type === 'hosting' && 
+      items[0].details.existingDomain === true;
+
+    if (hasDomains && !hasOnlyHostingWithExistingDomain && !selectedContactProfileId) {
+      toast.error('Por favor, selecione um perfil de contato para os domínios');
+      return;
+    }
+
     // Generate payment details to pass to the checkout page
     const paymentDetails = {
       amount: getTotalPrice(),
@@ -23,9 +48,9 @@ const Cart = () => {
     navigate('/checkout', { state: paymentDetails });
   };
 
-  // Provide a dummy implementation for getContactProfileById
+  // Get contact profile by ID
   const getContactProfileById = (id: string) => {
-    return null; // This will be replaced with actual implementation when needed
+    return contactProfiles.find(profile => profile.id === id);
   };
 
   if (items.length === 0) {

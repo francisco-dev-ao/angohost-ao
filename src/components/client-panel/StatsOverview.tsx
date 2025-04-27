@@ -99,9 +99,9 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ accountBalance = 0
   if (error) {
     return (
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="h-5 w-5 text-red-500" />
+          <AlertDescription className="text-red-700">{error}</AlertDescription>
         </Alert>
       </div>
     );
@@ -110,73 +110,80 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ accountBalance = 0
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8">
       <Card className="bg-primary/5 border-primary/20">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="flex flex-col">
-              <div className="text-sm text-gray-500 mb-1">Saldo da Conta</div>
-              <div className="flex items-center">
-                <CircleDollarSign className="h-5 w-5 text-primary mr-2" />
-                <span className="text-xl font-semibold">{formatCurrency(accountBalance)}</span>
+        <CardContent className="p-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+            {/* Account Balance */}
+            <div className="p-6 border-b sm:border-b md:border-b-0 md:border-r border-primary/10">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  <CircleDollarSign className="h-5 w-5 text-primary mr-2" />
+                  <h3 className="text-sm font-medium">Saldo da Conta</h3>
+                </div>
+                <p className={`text-2xl font-bold ${accountBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(accountBalance)}
+                </p>
+                <Link to="/checkout" className="text-xs text-primary hover:underline mt-2">
+                  Adicionar fundos
+                </Link>
               </div>
             </div>
             
-            <div className="flex flex-col">
-              <div className="flex justify-between">
-                <div className="text-sm text-gray-500 mb-1">Domínios</div>
-                {stats.domains > 0 && 
-                  <Link to="/painel-cliente/dominios">
-                    <Badge className="text-xs cursor-pointer bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                      Ver todos
-                    </Badge>
+            {/* Domains */}
+            <div className="p-6 border-b sm:border-b md:border-b-0 md:border-r border-primary/10">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  <Globe className="h-5 w-5 text-primary mr-2" />
+                  <h3 className="text-sm font-medium">Domínios</h3>
+                </div>
+                <div className="flex items-center">
+                  <p className="text-2xl font-bold">{stats.domains}</p>
+                  <Link to="/painel-cliente/dominios" className="text-xs text-primary hover:underline ml-2">
+                    Ver todos
                   </Link>
-                }
-              </div>
-              <div className="flex items-center">
-                <Globe className="h-5 w-5 text-primary mr-2" />
-                <span className="text-xl font-semibold">{stats.domains}</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  {stats.domains === 1 ? 'domínio' : 'domínios'}
-                </span>
+                </div>
+                <Link to="/dominios/registrar" className="text-xs text-primary hover:underline mt-2">
+                  Registrar novo domínio
+                </Link>
               </div>
             </div>
             
-            <div className="flex flex-col">
-              <div className="flex justify-between">
-                <div className="text-sm text-gray-500 mb-1">Hospedagem</div>
-                {stats.hosting > 0 && 
-                  <Link to="/painel-cliente/hospedagem">
-                    <Badge className="text-xs cursor-pointer bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                      Ver todos
-                    </Badge>
+            {/* Hosting */}
+            <div className="p-6 border-b sm:border-r sm:border-b md:border-b-0 border-primary/10">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  <Server className="h-5 w-5 text-primary mr-2" />
+                  <h3 className="text-sm font-medium">Serviços de Hospedagem</h3>
+                </div>
+                <div className="flex items-center">
+                  <p className="text-2xl font-bold">{stats.hosting}</p>
+                  <Link to="/painel-cliente/hospedagem" className="text-xs text-primary hover:underline ml-2">
+                    Ver todos
                   </Link>
-                }
-              </div>
-              <div className="flex items-center">
-                <Server className="h-5 w-5 text-primary mr-2" />
-                <span className="text-xl font-semibold">{stats.hosting}</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  {stats.hosting === 1 ? 'serviço' : 'serviços'}
-                </span>
+                </div>
+                <Link to="/hospedagem" className="text-xs text-primary hover:underline mt-2">
+                  Contratar hospedagem
+                </Link>
               </div>
             </div>
             
-            <div className="flex flex-col">
-              <div className="flex justify-between">
-                <div className="text-sm text-gray-500 mb-1">Pagamentos Pendentes</div>
-                {stats.pendingPayments > 0 && 
-                  <Link to="/painel-cliente/faturas">
-                    <Badge className="text-xs cursor-pointer bg-red-100 text-red-700 border-red-200 hover:bg-red-200">
-                      Pagar agora
+            {/* Payments */}
+            <div className="p-6">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  <AlertCircle className="h-5 w-5 text-primary mr-2" />
+                  <h3 className="text-sm font-medium">Pagamentos Pendentes</h3>
+                </div>
+                <div className="flex items-center">
+                  <p className="text-2xl font-bold">{stats.pendingPayments}</p>
+                  {stats.pendingPayments > 0 && (
+                    <Badge variant="destructive" className="ml-2">
+                      Atenção
                     </Badge>
-                  </Link>
-                }
-              </div>
-              <div className="flex items-center">
-                <AlertCircle className={`h-5 w-5 ${stats.pendingPayments > 0 ? 'text-red-500' : 'text-green-500'} mr-2`} />
-                <span className="text-xl font-semibold">{stats.pendingPayments}</span>
-                <span className="text-sm text-gray-500 ml-2">
-                  {stats.pendingPayments === 1 ? 'pendente' : 'pendentes'}
-                </span>
+                  )}
+                </div>
+                <Link to="/painel-cliente/faturas" className="text-xs text-primary hover:underline mt-2">
+                  Ver faturas
+                </Link>
               </div>
             </div>
           </div>
