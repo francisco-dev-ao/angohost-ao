@@ -10,8 +10,8 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
-      // Use explicit type casting to avoid excessive type inference
-      const response = await supabase
+      // Use explicit type annotation for the query result
+      const response: PostgrestSingleResponse<{ id: string }> = await supabase
         .from('customers')
         .select('id')
         .eq(field, value)
