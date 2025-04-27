@@ -23,13 +23,10 @@ export const useShoppingCart = () => {
       const { data } = await supabase.auth.getSession();
       const session = data.session;
       
-      if (!session) {
-        toast.error('É necessário fazer login para finalizar a compra');
-        navigate('/carrinho');
-        return;
+      if (session) {
+        setUser(session.user);
       }
       
-      setUser(session.user);
       setLoading(false);
     };
     
@@ -53,9 +50,10 @@ export const useShoppingCart = () => {
   const profileAssigned = hasDomain ? !!selectedContactProfileId : true;
 
   const handleCheckout = () => {
+    // Only require login at checkout time, not for browsing the cart
     if (!user) {
-      toast.error('É necessário fazer login para finalizar a compra');
-      navigate('/auth');
+      toast.info('É necessário fazer login para finalizar a compra');
+      navigate('/auth', { state: { returnTo: '/checkout' } });
       return;
     }
     

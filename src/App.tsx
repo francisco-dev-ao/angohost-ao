@@ -19,6 +19,7 @@ import ClientPanel from '@/pages/ClientPanel';
 import Auth from '@/pages/Auth';
 import DomainRegistration from '@/pages/DomainRegistration';
 import AdminDashboard from '@/pages/Admin/Dashboard';
+import HostingPlans from '@/pages/HostingPlans';
 
 // Client panel tabs
 import { OverviewTab } from '@/components/client-panel/tabs';
@@ -26,6 +27,8 @@ import { InvoicesTab } from '@/components/client-panel/tabs';
 import { DomainsTab } from '@/components/client-panel/tabs';
 import { NotificationsTab } from '@/components/client-panel/tabs';
 import { HostingTab } from '@/components/client-panel/tabs';
+import { ContactProfilesTab } from '@/components/client-panel/tabs/ContactProfilesTab';
+import { PersonalDataTab } from '@/components/client-panel/tabs/PersonalDataTab';
 
 function App() {
   return (
@@ -40,6 +43,7 @@ function App() {
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/callback" element={<PaymentCallback />} />
           <Route path="/dominios/registrar" element={<DomainRegistration />} />
+          <Route path="/hospedagem-de-sites" element={<HostingPlans />} />
 
           {/* Client panel - protected routes */}
           <Route path="/painel-cliente" element={
@@ -52,14 +56,16 @@ function App() {
             <Route path="dominios" element={<DomainsTab />} />
             <Route path="notificacoes" element={<NotificationsTab />} />
             <Route path="hospedagem" element={<HostingTab />} />
+            <Route path="perfis-de-contato" element={<ContactProfilesTab />} />
+            <Route path="dados-pessoais" element={<PersonalDataTab />} />
             <Route index element={<Navigate to="visao-geral" replace />} />
           </Route>
 
           {/* Admin panel - protected routes */}
           <Route path="/admin" element={
-            <AdminRoute>
+            <RequireAuth adminOnly={true}>
               <AdminLayout />
-            </AdminRoute>
+            </RequireAuth>
           }>
             <Route index element={<AdminDashboard />} />
             {/* Add other admin routes as needed */}
