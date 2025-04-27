@@ -6,10 +6,21 @@ import { Bell, Loader2 } from 'lucide-react';
 import { NotificationPreferences } from './notifications/NotificationPreferences';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Tables } from '@/types/supabase';
+
+// Define the interface for notification preferences
+interface NotificationPreference {
+  id: string;
+  user_id: string;
+  invoices: boolean;
+  support: boolean;
+  marketing: boolean;
+  product_updates: boolean;
+  expiring_services: boolean;
+  updated_at: string;
+}
 
 export const NotificationsTab = () => {
-  const [emailNotifications, setEmailNotifications] = useState<Tables<'notification_preferences'>>({
+  const [emailNotifications, setEmailNotifications] = useState<NotificationPreference>({
     id: '',
     user_id: '',
     invoices: true,
@@ -39,7 +50,7 @@ export const NotificationsTab = () => {
         if (error) throw error;
         
         if (data) {
-          setEmailNotifications(data);
+          setEmailNotifications(data as NotificationPreference);
         }
       } catch (error) {
         console.error('Error fetching notification preferences:', error);
@@ -51,7 +62,7 @@ export const NotificationsTab = () => {
     fetchPreferences();
   }, []);
 
-  const handlePreferenceChange = (key: keyof Tables<'notification_preferences'>, value: boolean) => {
+  const handlePreferenceChange = (key: keyof NotificationPreference, value: boolean) => {
     setEmailNotifications(prev => ({
       ...prev,
       [key]: value
@@ -115,7 +126,7 @@ export const NotificationsTab = () => {
                 } else if (key === 'expiringServices') {
                   handlePreferenceChange('expiring_services', value);
                 } else {
-                  handlePreferenceChange(key as keyof Tables<'notification_preferences'>, value);
+                  handlePreferenceChange(key as keyof NotificationPreference, value);
                 }
               }}
             />
