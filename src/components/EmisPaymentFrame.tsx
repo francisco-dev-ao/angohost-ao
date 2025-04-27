@@ -54,17 +54,22 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
         
         // Setup message listener for payment completion
         const handleMessage = (event: MessageEvent) => {
+          // Lista de origens permitidas - adicionamos mais origens permitidas
           const allowedOrigins = [
             'https://pagamentonline.emis.co.ao',
             window.location.origin,
             'https://www.mocky.io',
             'https://corsproxy.io',
-            'https://api.allorigins.win'
+            'https://api.allorigins.win',
+            'https://angohost-emis-simulator.netlify.app'
           ];
           
-          // Verificar se a origem é confiável
+          // Verificar se a origem é confiável - também verificamos subdomínios
           const isAllowedOrigin = allowedOrigins.some(origin => 
-            event.origin === origin || event.origin.includes(origin.replace('https://', '')));
+            event.origin === origin || 
+            event.origin.includes(origin.replace('https://', '')) ||
+            event.origin.endsWith('.netlify.app')
+          );
           
           if (!isAllowedOrigin) {
             console.warn('Mensagem rejeitada de origem não confiável:', event.origin);
@@ -74,7 +79,9 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
           console.log('Mensagem recebida do iframe:', event.data);
           
           // Verificar se a mensagem indica sucesso no pagamento
-          if (event.data?.status === "SUCCESS" || event.data?.status === "success") {
+          if (event.data?.status === "SUCCESS" || 
+              event.data?.status === "success" || 
+              event.data?.status === "COMPLETED") {
             onSuccess(event.data.transactionId || response.id || 'unknown');
             setIsOpen(false);
             window.removeEventListener('message', handleMessage);
@@ -86,16 +93,28 @@ const EmisPaymentFrame: React.FC<EmisPaymentFrameProps> = ({
         // Monitor URL changes for payment completion (backup method)
         const checkUrlInterval = setInterval(() => {
           const currentUrl = window.location.href;
-          if (currentUrl.includes('/payment/callback') || currentUrl.includes('/payment/success')) {
+          if (currentUrl.includes('/payment/callback') || 
+              currentUrl.includes('/payment/success') || 
+              currentUrl.includes('status=SUCCESS')) {
             clearInterval(checkUrlInterval);
             setIsOpen(false);
             onSuccess(response.id || 'url-callback');
           }
         }, 1000);
         
+        // Adicionar timeout de 2 minutos para fechar o diálogo se não houver resposta
+        const timeoutId = setTimeout(() => {
+          if (isOpen) {
+            setIsOpen(false);
+            setUseDirectPayment(true);
+            setErrorMessage('O tempo para pagamento expirou. Por favor, tente novamente ou use o método alternativo.');
+          }
+        }, 120000);
+        
         return () => {
           window.removeEventListener('message', handleMessage);
           clearInterval(checkUrlInterval);
+          clearTimeout(timeoutId);
         };
       } else {
         throw new Error(response.error || 'Falha ao gerar token de pagamento');
