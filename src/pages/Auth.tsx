@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContainer } from '@/components/auth/AuthContainer';
@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { items } = useCart();
@@ -22,33 +23,51 @@ const Auth = () => {
     }
     
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
-        const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
-        console.log('Auth: Redirecionando após login para:', redirectUrl);
-        
-        // Verificar se tem itens no carrinho para redirecionar para o carrinho
-        const hasItemsInCart = items && items.length > 0;
-        
-        sessionStorage.removeItem('redirect_after_login');
-        
-        if (redirectUrl === '/dashboard' && hasItemsInCart) {
-          toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
-          navigate('/carrinho');
-        } else {
-          navigate(redirectUrl);
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          // Check if user is admin
+          const { data: adminData, error: adminError } = await supabase.rpc('is_admin');
+          const isAdmin = !adminError && adminData === true;
+          
+          // Obtém o URL de redirecionamento armazenado ou usa o painel do cliente como fallback
+          const redirectUrl = sessionStorage.getItem('redirect_after_login') || (isAdmin ? '/admin' : '/painel-cliente');
+          console.log('Auth: Redirecionando após login para:', redirectUrl);
+          
+          // Verificar se tem itens no carrinho para redirecionar para o carrinho
+          const hasItemsInCart = items && items.length > 0;
+          
+          sessionStorage.removeItem('redirect_after_login');
+          
+          if ((redirectUrl === '/painel-cliente' || redirectUrl === '/dashboard') && hasItemsInCart) {
+            toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
+            navigate('/carrinho');
+          } else if (isAdmin && (redirectUrl === '/painel-cliente' || redirectUrl === '/dashboard')) {
+            navigate('/admin'); // Redirect admins to admin dashboard
+          } else if (!isAdmin && redirectUrl === '/admin') {
+            navigate('/painel-cliente'); // Redirect non-admins away from admin
+          } else {
+            navigate(redirectUrl);
+          }
         }
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error checking session:', error);
+        setIsLoading(false);
       }
     };
     
     checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         if (event === 'SIGNED_IN' && session) {
-          // Obtém o URL de redirecionamento armazenado ou usa o dashboard como fallback
-          const redirectUrl = sessionStorage.getItem('redirect_after_login') || '/dashboard';
+          // Check if user is admin
+          const { data: adminData, error: adminError } = await supabase.rpc('is_admin');
+          const isAdmin = !adminError && adminData === true;
+          
+          // Obtém o URL de redirecionamento armazenado ou usa o painel do cliente como fallback
+          const redirectUrl = sessionStorage.getItem('redirect_after_login') || (isAdmin ? '/admin' : '/painel-cliente');
           console.log('Auth: Redirecionamento após mudança de auth state para:', redirectUrl);
           
           // Verificar se tem itens no carrinho para redirecionar para o carrinho
@@ -56,9 +75,13 @@ const Auth = () => {
           
           sessionStorage.removeItem('redirect_after_login');
           
-          if (redirectUrl === '/dashboard' && hasItemsInCart) {
+          if ((redirectUrl === '/painel-cliente' || redirectUrl === '/dashboard') && hasItemsInCart) {
             toast.info("Você tem itens no carrinho! Redirecionando para finalizar sua compra.");
             navigate('/carrinho');
+          } else if (isAdmin && (redirectUrl === '/painel-cliente' || redirectUrl === '/dashboard')) {
+            navigate('/admin'); // Redirect admins to admin dashboard
+          } else if (!isAdmin && redirectUrl === '/admin') {
+            navigate('/painel-cliente'); // Redirect non-admins away from admin
           } else {
             navigate(redirectUrl);
           }
@@ -68,6 +91,10 @@ const Auth = () => {
     
     return () => subscription.unsubscribe();
   }, [navigate, location, items]);
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+  }
   
   return (
     <AuthContainer>

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { CartProvider } from "./context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "./components/Navbar";
@@ -37,6 +37,59 @@ import DedicatedServersPage from "./pages/DedicatedServersPage";
 
 // Criando o queryClient fora do componente App
 const queryClient = new QueryClient();
+
+// Redirect component to handle user role-based redirects
+const RoleBasedRedirect = ({ children }: { children: React.ReactNode }) => {
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+        
+        const { data: adminData, error } = await supabase.rpc('is_admin');
+        
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(adminData);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        setLoading(false);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [location]);
+  
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+  
+  // Handle redirects for /dashboard path
+  if (location.pathname === '/dashboard') {
+    if (isAdmin === true) {
+      return <Navigate to="/admin" replace />;
+    } else if (isAdmin === false) {
+      return <Navigate to="/painel-cliente" replace />;
+    }
+  }
+  
+  return <>{children}</>;
+};
 
 // Layout component that decides whether to show or not the navbar/footer
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -97,33 +150,35 @@ const App: React.FC = () => (
             <Routes>
               <Route path="/*" element={
                 <Layout>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/carrinho" element={<ShoppingCart />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/payment/success" element={<PaymentSuccess />} />
-                    <Route path="/payment/callback" element={<PaymentCallback />} />
-                    <Route path="/dominios/registrar" element={<RegisterDomain />} />
-                    <Route path="/dominios/configurar" element={<DomainConfig />} />
-                    <Route path="/email/profissional" element={<EmailProfessional />} />
-                    <Route path="/email/configurar" element={<EmailConfig />} />
-                    <Route path="/painel-cliente" element={<ClientPanel />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    
-                    <Route path="/hospedagem-de-sites" element={<HostingPage />} />
-                    <Route path="/hospedagem/cpanel" element={<HostingPage />} />
-                    <Route path="/hospedagem/wordpress" element={<HostingPage />} />
-                    <Route path="/dominios" element={<DomainsPage />} />
-                    <Route path="/transferencia_de_dominios" element={<DomainTransferPage />} />
-                    <Route path="/dominios/transferir" element={<DomainTransferPage />} />
-                    <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
-                    <Route path="/email-office-365" element={<Office365Page />} />
-                    <Route path="/servidores-dedicados" element={<DedicatedServersPage />} />
-                    
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <RoleBasedRedirect>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/carrinho" element={<ShoppingCart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/payment/success" element={<PaymentSuccess />} />
+                      <Route path="/payment/callback" element={<PaymentCallback />} />
+                      <Route path="/dominios/registrar" element={<RegisterDomain />} />
+                      <Route path="/dominios/configurar" element={<DomainConfig />} />
+                      <Route path="/email/profissional" element={<EmailProfessional />} />
+                      <Route path="/email/configurar" element={<EmailConfig />} />
+                      <Route path="/painel-cliente" element={<ClientPanel />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      
+                      <Route path="/hospedagem-de-sites" element={<HostingPage />} />
+                      <Route path="/hospedagem/cpanel" element={<HostingPage />} />
+                      <Route path="/hospedagem/wordpress" element={<HostingPage />} />
+                      <Route path="/dominios" element={<DomainsPage />} />
+                      <Route path="/transferencia_de_dominios" element={<DomainTransferPage />} />
+                      <Route path="/dominios/transferir" element={<DomainTransferPage />} />
+                      <Route path="/Email-profissional" element={<ProfessionalEmailPage />} />
+                      <Route path="/email-office-365" element={<Office365Page />} />
+                      <Route path="/servidores-dedicados" element={<DedicatedServersPage />} />
+                      
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </RoleBasedRedirect>
                 </Layout>
               } />
             </Routes>

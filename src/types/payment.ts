@@ -1,2 +1,2 @@
 
-export type PaymentMethod = 'emis' | 'bank-transfer' | 'credit-card';
+export type PaymentMethod = 'emis' | 'bank-transfer' | 'credit-card' | 'account_balance';
