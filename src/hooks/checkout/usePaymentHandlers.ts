@@ -11,29 +11,23 @@ import { supabase } from '@/integrations/supabase/client';
 export const usePaymentHandlers = () => {
   const navigate = useNavigate();
   const { setPaymentInfo, hasDomain } = useCart();
-  const { paymentMethod, orderReference, setOrderReference, generateOrderReference } = usePaymentProcessing();
+  const { paymentMethod, orderReference, saveOrderToDatabase } = usePaymentProcessing();
   
   const { handleEmisPayment } = useEmisPaymentHandler();
   const { handleBalancePayment } = useBalancePaymentHandler();
   const { handleBankTransfer } = useBankTransferHandler();
 
-  // Generate order reference if not already set
-  if (!orderReference) {
-    setOrderReference(generateOrderReference());
-  }
-
   const handlePaymentSuccess = async (transactionId: string) => {
+    const { data } = await supabase.auth.getUser();
+    const user = data.user;
+    if (!user) return;
+    
     try {
-      const { data } = await supabase.auth.getUser();
-      const user = data.user;
-      if (!user) {
-        toast.error('É necessário fazer login para finalizar a compra');
-        navigate('/auth');
-        return;
-      }
+      const orderId = crypto.randomUUID();
+      await saveOrderToDatabase(orderId, user.id);
       
       setPaymentInfo({
-        method: paymentMethod || 'emis',
+        method: 'emis',
         status: 'completed',
         transactionId,
         reference: orderReference,
@@ -51,7 +45,7 @@ export const usePaymentHandlers = () => {
   const handlePaymentError = (error: string) => {
     toast.error(`Erro no pagamento: ${error}`);
     setPaymentInfo({
-      method: paymentMethod || 'emis',
+      method: 'emis',
       status: 'failed',
       reference: orderReference,
       hasDomain: hasDomain()
@@ -74,28 +68,19 @@ export const usePaymentHandlers = () => {
     }
     
     const orderId = crypto.randomUUID();
-    const ref = orderReference || generateOrderReference();
     
-    try {
-      switch (paymentMethod) {
-        case 'emis':
-          await handleEmisPayment(orderId, ref);
-          break;
-        case 'account_balance':
-          await handleBalancePayment(orderId, ref);
-          break;
-        case 'bank-transfer':
-          await handleBankTransfer(orderId, ref);
-          break;
-        case 'credit-card':
-          toast.error('Pagamento com cartão de crédito em desenvolvimento');
-          break;
-        default:
-          toast.error('Método de pagamento não suportado');
-      }
-    } catch (error) {
-      console.error('Payment processing error:', error);
-      toast.error('Ocorreu um erro ao processar o pagamento. Por favor, tente novamente.');
+    switch (paymentMethod) {
+      case 'emis':
+        await handleEmisPayment(orderId, orderReference);
+        break;
+      case 'account_balance':
+        await handleBalancePayment(orderId, orderReference);
+        break;
+      case 'bank-transfer':
+        await handleBankTransfer(orderId, orderReference);
+        break;
+      default:
+        await handleBankTransfer(orderId, orderReference);
     }
   };
 
@@ -109,40 +94,14 @@ export const usePaymentHandlers = () => {
       return;
     }
 
+    const orderId = crypto.randomUUID();
+    const ref = orderReference;
+    
     try {
-      const orderId = crypto.randomUUID();
-      const ref = orderReference || generateOrderReference();
-      
-      // Get the customer ID
-      const { data: customerData } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (!customerData) {
-        throw new Error('Customer not found');
-      }
-      
-      // Create the order directly with the customer's ID
-      const { error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          id: orderId,
-          customer_id: customerData.id,
-          total_amount: 0, // We'll update this after adding items
-          status: 'pending',
-          payment_method: 'none',
-          reference: ref
-        });
-      
-      if (orderError) {
-        console.error('Order creation error:', orderError);
-        throw orderError;
-      }
+      await saveOrderToDatabase(orderId, user.id);
       
       setPaymentInfo({
-        method: 'none',
+        method: 'emis',
         status: 'pending',
         reference: ref,
         hasDomain: hasDomain()

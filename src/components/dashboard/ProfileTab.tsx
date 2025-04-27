@@ -1,285 +1,159 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard, Clock, Edit } from 'lucide-react';
+import { User } from '@supabase/supabase-js';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-import { useUser } from '@/hooks/useUser';
-import { Loader2, Save, KeyRound } from 'lucide-react';
-import { CustomerProfile } from '@/components/dashboard/types';
 import { supabase } from '@/integrations/supabase/client';
 
-export function ProfileTab() {
-  const { user, isLoading: userLoading } = useUser();
-  const [profile, setProfile] = useState<CustomerProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    nif: '',
-    billingAddress: '',
-    city: '',
-    postalCode: '',
-    country: 'Angola'
-  });
-  
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('customers')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setProfile(data);
-          setFormData({
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            nif: data.nif || '',
-            billingAddress: data.billing_address || '',
-            city: data.city || '',
-            postalCode: data.postal_code || '',
-            country: data.country || 'Angola'
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast.error('Erro ao carregar perfil');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadProfile();
-  }, [user]);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !profile) return;
-    
+interface ProfileTabProps {
+  user: User | null;
+}
+
+export const ProfileTab = ({ user }: ProfileTabProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(user?.user_metadata?.full_name || '');
+  const [editedPhone, setEditedPhone] = useState(user?.user_metadata?.phone || '');
+
+  const handleSaveProfile = async () => {
     try {
-      setIsSaving(true);
-      
-      const { error } = await supabase
-        .from('customers')
-        .update({
-          name: formData.name,
-          phone: formData.phone,
-          billing_address: formData.billingAddress,
-          city: formData.city,
-          postal_code: formData.postalCode,
-          country: formData.country
-        })
-        .eq('id', profile.id);
-      
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          full_name: editedName, 
+          phone: editedPhone 
+        }
+      });
+
       if (error) throw error;
-      
-      toast.success('Perfil atualizado com sucesso');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil');
-    } finally {
-      setIsSaving(false);
+
+      toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao atualizar perfil');
     }
   };
-  
-  if (isLoading || userLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
-  if (!user || !profile) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <p className="text-center text-muted-foreground mb-4">
-          Não foi possível carregar seu perfil. Por favor, faça login novamente.
-        </p>
-        <Button asChild>
-          <Link to="/auth">Fazer Login</Link>
-        </Button>
-      </div>
-    );
-  }
-  
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">Perfil de Usuário</h3>
-          <p className="text-sm text-muted-foreground">
-            Gerencie suas informações de perfil e preferências
-          </p>
-        </div>
-        <Link to="/alterar-senha">
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <KeyRound className="h-4 w-4" />
-            <span>Alterar Senha</span>
-          </Button>
-        </Link>
-      </div>
-      
-      <Separator />
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
-          <form onSubmit={handleSubmit}>
-            <CardHeader>
-              <CardTitle>Informações do Perfil</CardTitle>
-              <CardDescription>Atualize suas informações pessoais</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome</Label>
-                  <Input 
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    disabled
-                    readOnly
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    O email não pode ser alterado
-                  </p>
-                </div>
+    <div className="grid gap-6 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Meus Dados</CardTitle>
+          <CardDescription>Gerencie suas informações pessoais</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {!isEditing ? (
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium">Email</p>
+                <p className="text-gray-600">{user?.email}</p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input 
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="nif">NIF</Label>
-                  <Input 
-                    id="nif"
-                    name="nif"
-                    value={formData.nif}
-                    disabled
-                    readOnly
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    O NIF não pode ser alterado
-                  </p>
-                </div>
+              <div>
+                <p className="font-medium">Nome</p>
+                <p className="text-gray-600">{user?.user_metadata?.full_name || 'Não informado'}</p>
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="billingAddress">Endereço</Label>
+              <div>
+                <p className="font-medium">Telefone</p>
+                <p className="text-gray-600">{user?.user_metadata?.phone || 'Não informado'}</p>
+              </div>
+              <Button 
+                className="mt-6 w-full" 
+                onClick={() => setIsEditing(true)}
+              >
+                <Edit className="mr-2 h-4 w-4" /> Atualizar Meus Dados
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <Label>Email</Label>
                 <Input 
-                  id="billingAddress"
-                  name="billingAddress"
-                  value={formData.billingAddress}
-                  onChange={handleChange}
+                  type="email" 
+                  value={user?.email || ''} 
+                  disabled 
+                  className="bg-gray-100" 
                 />
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input 
-                    id="city"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="postalCode">Código Postal</Label>
-                  <Input 
-                    id="postalCode"
-                    name="postalCode"
-                    value={formData.postalCode}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">País</Label>
-                  <Input 
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                  />
-                </div>
+              <div>
+                <Label>Nome</Label>
+                <Input 
+                  value={editedName} 
+                  onChange={(e) => setEditedName(e.target.value)} 
+                />
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                type="submit" 
-                disabled={isSaving}
-                className="flex items-center"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Salvar Alterações
-                  </>
-                )}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Seu Perfil</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <Avatar className="h-24 w-24 mb-4">
-              <AvatarImage src="/user.png" alt="Avatar" />
-              <AvatarFallback>{profile.name?.charAt(0) || 'U'}</AvatarFallback>
-            </Avatar>
-            <h4 className="font-semibold text-lg">{profile.name}</h4>
-            <p className="text-sm text-muted-foreground mb-2">{profile.email}</p>
-            <p className="text-sm text-muted-foreground">Cliente desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}</p>
-          </CardContent>
-        </Card>
-      </div>
+              <div>
+                <Label>Telefone</Label>
+                <Input 
+                  value={editedPhone} 
+                  onChange={(e) => setEditedPhone(e.target.value)} 
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  className="w-full" 
+                  onClick={handleSaveProfile}
+                >
+                  Salvar
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <CreditCard className="mr-2 h-5 w-5 text-blue-500" />
+            Formas de Pagamento
+          </CardTitle>
+          <CardDescription>Gerencie suas formas de pagamento</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center p-4 border rounded-md">
+              <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-gray-500" />
+              </div>
+              <div className="ml-4">
+                <p className="font-medium">Multicaixa Express</p>
+                <p className="text-sm text-gray-500">Pagamentos instantâneos</p>
+              </div>
+              <Badge className="ml-auto">Ativo</Badge>
+            </div>
+            <div className="flex items-center p-4 border rounded-md">
+              <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Clock className="h-5 w-5 text-gray-500" />
+              </div>
+              <div className="ml-4">
+                <p className="font-medium">Transferência Bancária</p>
+                <p className="text-sm text-gray-500">Processamento em até 24h</p>
+              </div>
+              <Badge variant="outline" className="ml-auto">Disponível</Badge>
+            </div>
+            <div className="flex items-center p-4 border rounded-md">
+              <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-gray-500" />
+              </div>
+              <div className="ml-4">
+                <p className="font-medium">Cartão de Crédito</p>
+                <p className="text-sm text-gray-500">Pagamentos internacionais</p>
+              </div>
+              <Badge variant="outline" className="ml-auto">Disponível</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};

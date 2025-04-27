@@ -1,26 +1,26 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const usePaymentProcessing = () => {
+  const navigate = useNavigate();
   const { 
     items, 
-    getTotalPrice, 
-    generateOrderReference: contextGenerateOrderReference
+    paymentInfo, 
+    getTotalPrice,
+    setPaymentInfo, 
+    generateOrderReference,
+    selectedContactProfileId,
   } = useCart();
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPaymentFrame, setShowPaymentFrame] = useState(false);
-  const [orderReference, setOrderReference] = useState<string>('');
+  const [orderReference, setOrderReference] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
-
-  const generateOrderReference = () => {
-    const ref = contextGenerateOrderReference();
-    setOrderReference(ref);
-    return ref;
-  };
 
   const saveOrderToDatabase = async (orderId: string, userId: string) => {
     try {
@@ -31,7 +31,7 @@ export const usePaymentProcessing = () => {
         .from('customers')
         .select('id')
         .eq('user_id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors
+        .single();
       
       if (!customerData) {
         throw new Error('Customer not found');
@@ -51,7 +51,6 @@ export const usePaymentProcessing = () => {
         });
       
       if (orderError) {
-        console.error('Order creation error:', orderError);
         throw orderError;
       }
       
@@ -71,7 +70,6 @@ export const usePaymentProcessing = () => {
         .insert(orderItems);
       
       if (itemsError) {
-        console.error('Order items error:', itemsError);
         throw itemsError;
       }
       
@@ -91,12 +89,10 @@ export const usePaymentProcessing = () => {
         });
       
       if (invoiceError) {
-        console.error('Invoice error:', invoiceError);
         throw invoiceError;
       }
       
       console.log('Order saved successfully:', orderId);
-      return true;
     } catch (error) {
       console.error('Error saving order:', error);
       throw error;
@@ -112,7 +108,6 @@ export const usePaymentProcessing = () => {
     saveOrderToDatabase,
     setShowPaymentFrame,
     setOrderReference,
-    setIsLoading,
-    generateOrderReference
+    setIsLoading
   };
 };
