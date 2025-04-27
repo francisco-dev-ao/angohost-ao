@@ -1,150 +1,158 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Search, Calendar, Download, Eye, CheckCircle2 } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { 
+  AlertCircle, RefreshCcw, Search, FileText, Download,
+  CreditCard, Receipt, CheckCircle, Calendar
+} from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 
-interface InvoicesPanelProps {
-  invoices?: any[];
-}
-
-export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
+export const InvoicesPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // In a real app, these would be fetched from the database
+  // For now, let's simulate some sample invoices
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session?.session?.user) return;
+        
+        // In a real app, use actual data from the database
+        setInvoices([
+          {
+            id: '1',
+            invoice_number: 'INV-2025-001',
+            created_at: '2025-04-01',
+            due_date: '2025-04-15',
+            paid_date: '2025-04-10',
+            amount: 25000,
+            status: 'paid',
+            payment_method: 'bank_transfer'
+          },
+          {
+            id: '2',
+            invoice_number: 'INV-2025-002',
+            created_at: '2025-04-15',
+            due_date: '2025-04-30',
+            paid_date: null,
+            amount: 35000,
+            status: 'unpaid',
+            payment_method: null
+          }
+        ]);
+      } catch (err) {
+        console.error('Erro ao buscar faturas:', err);
+        setError('Não foi possível carregar suas faturas. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchInvoices();
+  }, []);
   
-  const getStatusColor = (status: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-AO').format(date);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pt-AO', {
+      style: 'currency',
+      currency: 'AOA',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case 'paid':
       case 'pago':
-        return 'bg-green-100 text-green-800';
+        return <Badge className="bg-green-500">Pago</Badge>;
+      case 'pending':
+      case 'pendente':
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-300">Pendente</Badge>;
       case 'unpaid':
       case 'não pago':
-        return 'bg-red-100 text-red-800';
+        return <Badge variant="outline" className="text-red-600 border-red-300">Não Pago</Badge>;
       case 'overdue':
       case 'vencido':
-        return 'bg-amber-100 text-amber-800';
+        return <Badge className="bg-red-500">Vencido</Badge>;
       case 'cancelled':
       case 'cancelado':
-        return 'bg-gray-100 text-gray-800';
+        return <Badge variant="secondary">Cancelado</Badge>;
       default:
-        return 'bg-blue-100 text-blue-800';
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
   
-  const mockInvoices = [
-    {
-      id: '1',
-      invoice_number: 'INV-2025-0001',
-      created_at: '2025-04-01T10:00:00Z',
-      due_date: '2025-04-15T10:00:00Z',
-      amount: 35000,
-      status: 'pago',
-      description: 'Hospedagem Web - Plano Standard'
-    },
-    {
-      id: '2',
-      invoice_number: 'INV-2025-0002',
-      created_at: '2025-04-05T14:30:00Z',
-      due_date: '2025-04-20T14:30:00Z',
-      amount: 15000,
-      status: 'não pago',
-      description: 'Registro de Domínio - meusite.ao'
-    },
-    {
-      id: '3',
-      invoice_number: 'INV-2025-0003',
-      created_at: '2025-03-10T09:15:00Z',
-      due_date: '2025-03-25T09:15:00Z',
-      amount: 45000,
-      status: 'vencido',
-      description: 'Email Profissional - 5 contas'
-    },
-    {
-      id: '4',
-      invoice_number: 'INV-2025-0004',
-      created_at: '2025-04-15T16:45:00Z',
-      due_date: '2025-04-30T16:45:00Z',
-      amount: 120000,
-      status: 'não pago',
-      description: 'Servidor VPS - Plano Business'
+  const getPaymentMethodDisplay = (method: string | null) => {
+    if (!method) return '-';
+    
+    switch (method.toLowerCase()) {
+      case 'credit_card':
+        return (
+          <div className="flex items-center">
+            <CreditCard className="h-4 w-4 mr-1 text-blue-500" />
+            <span>Cartão de Crédito</span>
+          </div>
+        );
+      case 'bank_transfer':
+        return (
+          <div className="flex items-center">
+            <Receipt className="h-4 w-4 mr-1 text-green-500" />
+            <span>Transferência Bancária</span>
+          </div>
+        );
+      default:
+        return method;
     }
-  ];
-
-  const allInvoices = invoices.length > 0 ? invoices : mockInvoices;
-
-  const filteredInvoices = allInvoices.filter(invoice => {
-    const matchesSearch = 
-      invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (invoice.description && invoice.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'unpaid') return matchesSearch && (invoice.status === 'não pago' || invoice.status === 'unpaid');
-    if (activeTab === 'paid') return matchesSearch && (invoice.status === 'pago' || invoice.status === 'paid');
-    if (activeTab === 'overdue') return matchesSearch && (invoice.status === 'vencido' || invoice.status === 'overdue');
-    
-    return matchesSearch;
-  });
-  
-  const handlePayInvoice = (invoice: any) => {
-    navigate('/checkout', { 
-      state: { 
-        paymentType: 'invoice', 
-        invoiceId: invoice.id,
-        amount: invoice.amount,
-        description: invoice.description || `Fatura ${invoice.invoice_number}`
-      } 
-    });
-  };
-  
-  const handleDownloadInvoice = (invoiceId: string) => {
-    toast.info(`Preparando fatura para download...`);
-    setTimeout(() => {
-      toast.success(`Fatura baixada com sucesso`);
-    }, 1500);
-  };
-  
-  const handleViewInvoice = (invoiceId: string) => {
-    toast.info(`Abrindo detalhes da fatura...`);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-  
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(amount);
-  };
+  const filteredInvoices = invoices.filter(invoice => 
+    invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const unpaidInvoices = invoices.filter(invoice => 
+    ['unpaid', 'pending', 'overdue'].includes(invoice.status.toLowerCase())
+  );
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center">
-          <FileText className="mr-2 h-5 w-5 text-primary" />
-          Gerenciamento de Faturas
-        </CardTitle>
-        <div className="flex items-center space-x-2">
+        <div>
+          <CardTitle>Faturas e Pagamentos</CardTitle>
+          <CardDescription>Histórico de faturas e pagamentos</CardDescription>
+        </div>
+        <div className="space-x-2">
           <Button variant="outline" size="sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            Histórico
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Atualizar
           </Button>
         </div>
       </CardHeader>
-      
       <CardContent>
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="all">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
             <TabsList>
-              <TabsTrigger value="all">Todas</TabsTrigger>
+              <TabsTrigger value="all">Todas Faturas</TabsTrigger>
               <TabsTrigger value="unpaid">Não Pagas</TabsTrigger>
               <TabsTrigger value="paid">Pagas</TabsTrigger>
-              <TabsTrigger value="overdue">Vencidas</TabsTrigger>
+              <TabsTrigger value="automatic">Pagamento Automático</TabsTrigger>
             </TabsList>
             
             <div className="relative w-full md:max-w-xs">
@@ -157,92 +165,198 @@ export const InvoicesPanel = ({ invoices = [] }: InvoicesPanelProps) => {
               />
             </div>
           </div>
-
+          
+          {unpaidInvoices.length > 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Você tem {unpaidInvoices.length} faturas pendentes de pagamento. Por favor, efetue o pagamento para manter seus serviços ativos.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <TabsContent value="all" className="m-0">
-            {filteredInvoices.length > 0 ? (
-              <div className="border rounded-md overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fatura</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Vencimento</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInvoices.map((invoice) => (
-                      <TableRow key={invoice.id}>
-                        <TableCell className="font-medium">
-                          {invoice.invoice_number}
-                          <div className="text-xs text-gray-500 mt-1">
-                            {invoice.description || 'Fatura AngoHost'}
-                          </div>
-                        </TableCell>
-                        <TableCell>{formatDate(invoice.created_at)}</TableCell>
-                        <TableCell>{formatDate(invoice.due_date)}</TableCell>
-                        <TableCell>{formatAmount(invoice.amount)}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(invoice.status)}>
-                            {invoice.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            {(invoice.status === 'não pago' || invoice.status === 'unpaid' || 
-                             invoice.status === 'vencido' || invoice.status === 'overdue') && (
-                              <Button 
-                                size="sm" 
-                                onClick={() => handlePayInvoice(invoice)}
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Pagar
-                              </Button>
-                            )}
-                            <Button 
-                              size="icon" 
-                              variant="ghost"
-                              onClick={() => handleViewInvoice(invoice.id)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              size="icon" 
-                              variant="ghost" 
-                              onClick={() => handleDownloadInvoice(invoice.id)}
-                            >
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+            <div className="rounded-md border">
+              <div className="grid grid-cols-7 p-4 font-medium border-b bg-muted/50">
+                <div>Nº Fatura</div>
+                <div>Data</div>
+                <div>Vencimento</div>
+                <div>Valor</div>
+                <div>Método</div>
+                <div>Status</div>
+                <div className="text-right">Ações</div>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-lg font-medium text-gray-900">Nenhuma fatura encontrada</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Não existem faturas correspondentes aos seus critérios de busca.
-                </p>
-              </div>
-            )}
+              
+              {loading ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3"></div>
+                  <p>Carregando faturas...</p>
+                </div>
+              ) : error ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <AlertCircle className="h-6 w-6 mx-auto mb-3 text-red-500" />
+                  <p>{error}</p>
+                </div>
+              ) : filteredInvoices.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+                  <p>Nenhuma fatura encontrada</p>
+                </div>
+              ) : (
+                filteredInvoices.map((invoice) => (
+                  <div key={invoice.id} className="grid grid-cols-7 p-4 items-center border-b hover:bg-muted/50">
+                    <div>{invoice.invoice_number}</div>
+                    <div>{formatDate(invoice.created_at)}</div>
+                    <div>{formatDate(invoice.due_date)}</div>
+                    <div>{formatCurrency(invoice.amount)}</div>
+                    <div>{getPaymentMethodDisplay(invoice.payment_method)}</div>
+                    <div>{getStatusBadge(invoice.status)}</div>
+                    <div className="text-right space-x-1">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
+                      </Button>
+                      {invoice.status === 'unpaid' && (
+                        <Button size="sm">
+                          <CreditCard className="h-4 w-4 mr-1" />
+                          Pagar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </TabsContent>
           
           <TabsContent value="unpaid" className="m-0">
-            {/* Same table structure for unpaid invoices */}
+            {/* Similar content to "all" tab but filtered for unpaid invoices */}
+            <div className="rounded-md border">
+              <div className="grid grid-cols-7 p-4 font-medium border-b bg-muted/50">
+                <div>Nº Fatura</div>
+                <div>Data</div>
+                <div>Vencimento</div>
+                <div>Valor</div>
+                <div>Método</div>
+                <div>Status</div>
+                <div className="text-right">Ações</div>
+              </div>
+              
+              {unpaidInvoices.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500/60" />
+                  <p>Você não possui faturas pendentes</p>
+                </div>
+              ) : (
+                unpaidInvoices.map((invoice) => (
+                  <div key={invoice.id} className="grid grid-cols-7 p-4 items-center border-b hover:bg-muted/50">
+                    <div>{invoice.invoice_number}</div>
+                    <div>{formatDate(invoice.created_at)}</div>
+                    <div>{formatDate(invoice.due_date)}</div>
+                    <div>{formatCurrency(invoice.amount)}</div>
+                    <div>{getPaymentMethodDisplay(invoice.payment_method)}</div>
+                    <div>{getStatusBadge(invoice.status)}</div>
+                    <div className="text-right space-x-1">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
+                      </Button>
+                      <Button size="sm">
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Pagar
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </TabsContent>
           
           <TabsContent value="paid" className="m-0">
-            {/* Same table structure for paid invoices */}
+            {/* Similar content to "all" tab but filtered for paid invoices */}
+            <div className="rounded-md border">
+              <div className="grid grid-cols-7 p-4 font-medium border-b bg-muted/50">
+                <div>Nº Fatura</div>
+                <div>Data</div>
+                <div>Data Pagamento</div>
+                <div>Valor</div>
+                <div>Método</div>
+                <div>Status</div>
+                <div className="text-right">Ações</div>
+              </div>
+              
+              {invoices.filter(i => i.status === 'paid').length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+                  <p>Nenhuma fatura paga encontrada</p>
+                </div>
+              ) : (
+                invoices.filter(i => i.status === 'paid').map((invoice) => (
+                  <div key={invoice.id} className="grid grid-cols-7 p-4 items-center border-b hover:bg-muted/50">
+                    <div>{invoice.invoice_number}</div>
+                    <div>{formatDate(invoice.created_at)}</div>
+                    <div>{formatDate(invoice.paid_date)}</div>
+                    <div>{formatCurrency(invoice.amount)}</div>
+                    <div>{getPaymentMethodDisplay(invoice.payment_method)}</div>
+                    <div>{getStatusBadge(invoice.status)}</div>
+                    <div className="text-right space-x-1">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </TabsContent>
           
-          <TabsContent value="overdue" className="m-0">
-            {/* Same table structure for overdue invoices */}
+          <TabsContent value="automatic" className="m-0">
+            <Card>
+              <CardHeader>
+                <CardTitle>Configurar Pagamento Automático</CardTitle>
+                <CardDescription>Configure o pagamento automático para suas faturas</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-md flex items-center gap-4">
+                  <Calendar className="h-10 w-10 text-primary" />
+                  <div>
+                    <h4 className="font-medium mb-1">Pagamento Automático</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Habilite o pagamento automático para que suas faturas sejam pagas automaticamente no vencimento,
+                      evitando a suspensão de serviços.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <input type="checkbox" id="auto-payment" />
+                  <label htmlFor="auto-payment">Ativar pagamento automático para todas as faturas</label>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Método de Pagamento Padrão</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="card" name="payment-method" />
+                      <label htmlFor="card" className="flex items-center">
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Cartão de Crédito
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="bank" name="payment-method" />
+                      <label htmlFor="bank" className="flex items-center">
+                        <Receipt className="h-4 w-4 mr-1" />
+                        Transferência Bancária
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button>Salvar Configurações</Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </CardContent>

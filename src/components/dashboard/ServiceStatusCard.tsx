@@ -1,8 +1,15 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ServiceStatusCardProps } from '@/components/client-panel/dashboard/types';
+
+export interface ServiceStatusCardProps {
+  type?: string;  // Adding the type prop to fix the error
+  title: string;
+  description: string;
+  status: string;
+  expiryDate?: string;
+  nextPayment?: string;
+}
 
 export const ServiceStatusCard = ({ 
   type,
@@ -10,8 +17,7 @@ export const ServiceStatusCard = ({
   description, 
   status, 
   expiryDate, 
-  nextPayment,
-  actions
+  nextPayment 
 }: ServiceStatusCardProps) => {
   let statusBadge;
 
@@ -25,9 +31,6 @@ export const ServiceStatusCard = ({
     case 'expired':
       statusBadge = <Badge className="bg-red-500">Expirado</Badge>;
       break;
-    case 'suspended':
-      statusBadge = <Badge className="bg-red-500">Suspenso</Badge>;
-      break;
     default:
       statusBadge = <Badge variant="outline">{status}</Badge>;
   }
@@ -39,33 +42,25 @@ export const ServiceStatusCard = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm font-medium">Status:</div>
-              {statusBadge}
-            </div>
-            <div>
-              {expiryDate && (
-                <>
-                  <div className="text-sm font-medium">Expira em:</div>
-                  <div className="text-sm">{expiryDate}</div>
-                </>
-              )}
-              {nextPayment && (
-                <>
-                  <div className="text-sm font-medium">Próximo pagamento:</div>
-                  <div className="text-sm">{nextPayment}</div>
-                </>
-              )}
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium">Status:</div>
+            {statusBadge}
           </div>
-          
-          {actions && (
-            <div className="mt-4">
-              {actions}
-            </div>
-          )}
+          <div>
+            {expiryDate && (
+              <>
+                <div className="text-sm font-medium">Expira em:</div>
+                <div className="text-sm">{expiryDate}</div>
+              </>
+            )}
+            {nextPayment && (
+              <>
+                <div className="text-sm font-medium">Próximo pagamento:</div>
+                <div className="text-sm">{nextPayment}</div>
+              </>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

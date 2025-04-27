@@ -1,5 +1,5 @@
+
 import React from 'react';
-import { useOutletContext } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,15 +9,11 @@ import {
   Calculator, CheckCircle, Share2, Wallet
 } from 'lucide-react';
 
-type ClientPanelContext = {
+interface AffiliatePanelProps {
   userData: any;
-  services: any[];
-  domains: any[];
-  invoices: any[];
-};
+}
 
-export const AffiliatePanel = () => {
-  const { userData } = useOutletContext<ClientPanelContext>();
+export const AffiliatePanel = ({ userData }: AffiliatePanelProps) => {
   const affiliateEnabled = false; // Would be fetched from backend
   
   const copyToClipboard = (text: string) => {
