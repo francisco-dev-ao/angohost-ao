@@ -10,7 +10,21 @@ import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export function NavbarMobileMenu() {
+interface NavbarMobileMenuProps {
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  hostingMenuItems?: { title: string; href: string }[];
+  domainMenuItems?: { title: string; href: string }[];
+  emailMenuItems?: { title: string; href: string }[];
+}
+
+export function NavbarMobileMenu({
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  hostingMenuItems,
+  domainMenuItems,
+  emailMenuItems
+}: NavbarMobileMenuProps) {
   const { user, isAdmin } = useUser();
   const [isOpen, setIsOpen] = React.useState(false);
 

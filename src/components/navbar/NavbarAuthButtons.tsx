@@ -1,38 +1,17 @@
 
-import React, { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useUser } from '@/hooks/useUser';
 
-interface NavbarAuthButtonsProps {
-  isAuthenticated: boolean;
-}
-
-export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) => {
+export const NavbarAuthButtons = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const { getItemCount } = useCart();
+  const { user, isAdmin } = useUser();
   const cartItemCount = getItemCount();
-  const [isAdmin, setIsAdmin] = useState(false);
   
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const { data } = await supabase.rpc('is_admin');
-        setIsAdmin(data === true);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-      }
-    };
-    
-    if (isAuthenticated) {
-      checkAdminStatus();
-    }
-  }, [isAuthenticated]);
-
   const handleAuthClick = () => {
     const currentPath = location.pathname + location.search;
     sessionStorage.setItem('redirect_after_login', currentPath);
@@ -55,7 +34,7 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
           )}
         </Button>
       </Link>
-      {isAuthenticated ? (
+      {user ? (
         <Link to={getPanelRoute()}>
           <Button className="flex items-center gap-2">
             <User className="h-4 w-4" />

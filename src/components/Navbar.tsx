@@ -7,40 +7,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { NavbarDesktopMenu } from './navbar/NavbarDesktopMenu';
 import { NavbarMobileMenu } from './navbar/NavbarMobileMenu';
 import { NavbarAuthButtons } from './navbar/NavbarAuthButtons';
+import { useUser } from '@/hooks/useUser';
 
 // Componente principal da barra de navegação
 const Navbar = () => {
   // Estados para gerenciar o menu mobile e autenticação
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user } = useUser();
   const location = useLocation();
   const isClientArea = location.pathname.startsWith('/dashboard') || 
                        location.pathname.startsWith('/painel-cliente') ||
                        location.pathname === '/carrinho' ||
                        location.pathname === '/checkout';
   
-  useEffect(() => {
-    // Verifica se o usuário está autenticado
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-    };
-    
-    checkAuth();
-    
-    // Escuta mudanças no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setIsAuthenticated(!!session);
-      }
-    );
-    
-    // Remove a escuta quando o componente é desmontado
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   // Itens do menu de hospedagem
   const hostingMenuItems = [
     { title: 'Hospedagem cPanel', href: '/hospedagem/cpanel' },
@@ -76,10 +55,10 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   return (
-    <header className={`py-4 border-b sticky top-0 backdrop-blur-sm z-[100] ${isClientArea || isAuthenticated ? 'bg-blue-50' : 'bg-background/95'}`}>
+    <header className={`py-4 border-b sticky top-0 backdrop-blur-sm z-[100] ${isClientArea || user ? 'bg-blue-50' : 'bg-background/95'}`}>
       <div className="container flex items-center justify-between">
         {/* Logo */}
-        <Link to={isAuthenticated ? "/painel-cliente" : "/"} className="flex items-center gap-2 z-30">
+        <Link to={user ? "/painel-cliente" : "/"} className="flex items-center gap-2 z-30">
           <img 
             src="/ANGOHOST-01.png" 
             alt="ANGOHOST" 
@@ -92,11 +71,10 @@ const Navbar = () => {
           hostingMenuItems={hostingMenuItems}
           domainMenuItems={domainMenuItems}
           emailMenuItems={emailMenuItems}
-          isAuthenticated={isAuthenticated}
         />
 
         {/* Botões de autenticação */}
-        <NavbarAuthButtons isAuthenticated={isAuthenticated} />
+        <NavbarAuthButtons />
 
         {/* Botão do menu mobile */}
         <div className="lg:hidden">
@@ -114,7 +92,6 @@ const Navbar = () => {
 
       {/* Menu Mobile */}
       <NavbarMobileMenu 
-        isAuthenticated={isAuthenticated}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         hostingMenuItems={hostingMenuItems}

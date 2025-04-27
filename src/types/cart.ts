@@ -1,3 +1,4 @@
+
 export interface CartItem {
   id: string;
   type: 'domain' | 'hosting' | 'vps' | 'email' | 'office365';
@@ -49,7 +50,7 @@ export interface Customer {
 }
 
 export interface PaymentInfo {
-  method: 'credit-card' | 'bank-transfer' | 'emis' | 'account_balance';
+  method: 'credit-card' | 'bank-transfer' | 'emis' | 'account_balance' | 'none';
   status: 'pending' | 'processing' | 'completed' | 'failed';
   transactionId?: string;
   reference?: string;

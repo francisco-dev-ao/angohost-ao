@@ -8,6 +8,9 @@ import { useBalancePaymentHandler } from './handlers/useBalancePaymentHandler';
 import { useBankTransferHandler } from './handlers/useBankTransferHandler';
 import { supabase } from '@/integrations/supabase/client';
 
+// Update the PaymentInfo type to include 'none'
+type PaymentMethod = 'emis' | 'bank-transfer' | 'credit-card' | 'account_balance' | 'none';
+
 export const usePaymentHandlers = () => {
   const navigate = useNavigate();
   const { setPaymentInfo, hasDomain } = useCart();
@@ -33,7 +36,7 @@ export const usePaymentHandlers = () => {
       }
       
       setPaymentInfo({
-        method: paymentMethod || 'emis',
+        method: (paymentMethod || 'emis') as PaymentMethod,
         status: 'completed',
         transactionId,
         reference: orderReference,
@@ -51,7 +54,7 @@ export const usePaymentHandlers = () => {
   const handlePaymentError = (error: string) => {
     toast.error(`Erro no pagamento: ${error}`);
     setPaymentInfo({
-      method: paymentMethod || 'emis',
+      method: (paymentMethod || 'emis') as PaymentMethod,
       status: 'failed',
       reference: orderReference,
       hasDomain: hasDomain()
@@ -118,7 +121,7 @@ export const usePaymentHandlers = () => {
         .from('customers')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (!customerData) {
         throw new Error('Customer not found');
@@ -132,7 +135,7 @@ export const usePaymentHandlers = () => {
           customer_id: customerData.id,
           total_amount: 0, // We'll update this after adding items
           status: 'pending',
-          payment_method: 'none',
+          payment_method: 'none', // Use 'none' as a valid payment method
           reference: ref
         });
       
@@ -142,7 +145,7 @@ export const usePaymentHandlers = () => {
       }
       
       setPaymentInfo({
-        method: 'none',
+        method: 'none' as PaymentMethod, // Cast to make TypeScript happy
         status: 'pending',
         reference: ref,
         hasDomain: hasDomain()

@@ -18,3 +18,17 @@ export type Order = {
   payment_method: string | null;
   items: OrderItem[];
 }
+
+export type CustomerProfile = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  nif?: string;
+  billing_address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  created_at: string;
+  updated_at: string;
+}

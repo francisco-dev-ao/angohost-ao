@@ -12,9 +12,18 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { useUser } from '@/hooks/useUser';
-import { NavbarAuthButtons } from './NavbarAuthButtons';
 
-export function NavbarDesktopMenu() {
+interface NavbarDesktopMenuProps {
+  hostingMenuItems?: { title: string; href: string }[];
+  domainMenuItems?: { title: string; href: string }[];
+  emailMenuItems?: { title: string; href: string }[];
+}
+
+export function NavbarDesktopMenu({ 
+  hostingMenuItems, 
+  domainMenuItems, 
+  emailMenuItems 
+}: NavbarDesktopMenuProps) {
   const { user, isAdmin } = useUser();
 
   return (
@@ -152,8 +161,6 @@ export function NavbarDesktopMenu() {
           </NavigationMenuItem>
         )}
       </NavigationMenuList>
-
-      <NavbarAuthButtons />
     </NavigationMenu>
   );
 }

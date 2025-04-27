@@ -13,7 +13,12 @@ import { useNotifications } from '@/hooks/useNotifications';
 
 const Dashboard = () => {
   const { user } = useUser();
-  useNotifications(user?.id);
+  const userId = user?.id;
+  
+  // Only use the useNotifications hook if we have a userId
+  if (userId) {
+    useNotifications(userId);
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
@@ -54,7 +59,7 @@ const Dashboard = () => {
           </TabsContent>
           
           <TabsContent value="profile" className="mt-6">
-            <ProfileTab user={user} />
+            <ProfileTab />
           </TabsContent>
         </Tabs>
       </div>

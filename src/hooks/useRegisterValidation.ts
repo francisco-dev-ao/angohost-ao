@@ -49,9 +49,34 @@ export const useRegisterValidation = () => {
     }
   };
   
+  const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      if (!value) return false;
+      
+      const { data, error } = await supabase
+        .from('customers')
+        .select(field)
+        .eq(field, value)
+        .maybeSingle();
+      
+      if (error) {
+        throw error;
+      }
+      
+      return !!data; // If data exists, the value is already taken
+    } catch (error) {
+      console.error(`Error checking ${field} existence:`, error);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return { 
     isLoading,
     checkEmailExists,
-    checkNifExists
+    checkNifExists,
+    checkExistingAccount
   };
 };
