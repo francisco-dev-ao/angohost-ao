@@ -6,21 +6,10 @@ import { Bell, Loader2 } from 'lucide-react';
 import { NotificationPreferences } from './notifications/NotificationPreferences';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-// Define the interface for notification preferences
-interface NotificationPreference {
-  id: string;
-  user_id: string;
-  invoices: boolean;
-  support: boolean;
-  marketing: boolean;
-  product_updates: boolean;
-  expiring_services: boolean;
-  updated_at: string;
-}
+import { Tables } from '@/types/supabase';
 
 export const NotificationsTab = () => {
-  const [emailNotifications, setEmailNotifications] = useState<NotificationPreference>({
+  const [emailNotifications, setEmailNotifications] = useState<Tables<'notification_preferences'>>({
     id: '',
     user_id: '',
     invoices: true,
@@ -39,7 +28,10 @@ export const NotificationsTab = () => {
       setLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          toast.error('Usuário não autenticado');
+          return;
+        }
 
         const { data, error } = await supabase
           .from('notification_preferences')
@@ -50,10 +42,11 @@ export const NotificationsTab = () => {
         if (error) throw error;
         
         if (data) {
-          setEmailNotifications(data as NotificationPreference);
+          setEmailNotifications(data);
         }
       } catch (error) {
         console.error('Error fetching notification preferences:', error);
+        toast.error('Erro ao carregar preferências de notificação');
       } finally {
         setLoading(false);
       }
@@ -62,7 +55,7 @@ export const NotificationsTab = () => {
     fetchPreferences();
   }, []);
 
-  const handlePreferenceChange = (key: keyof NotificationPreference, value: boolean) => {
+  const handlePreferenceChange = (key: keyof Tables<'notification_preferences'>, value: boolean) => {
     setEmailNotifications(prev => ({
       ...prev,
       [key]: value
@@ -126,7 +119,7 @@ export const NotificationsTab = () => {
                 } else if (key === 'expiringServices') {
                   handlePreferenceChange('expiring_services', value);
                 } else {
-                  handlePreferenceChange(key as keyof NotificationPreference, value);
+                  handlePreferenceChange(key as keyof Tables<'notification_preferences'>, value);
                 }
               }}
             />
