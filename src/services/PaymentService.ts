@@ -1,4 +1,3 @@
-
 /**
  * Payment Service
  * 
@@ -13,7 +12,7 @@ export interface PaymentRequestData {
   description?: string;
   customerEmail?: string;
   customerName?: string;
-  paymentMethod: 'emis' | 'bank-transfer' | 'credit-card';
+  paymentMethod: 'emis' | 'bank-transfer' | 'credit-card' | 'account_balance';
 }
 
 export interface PaymentResponse {
@@ -120,6 +119,18 @@ export const processPayment = async (data: PaymentRequestData): Promise<PaymentR
           data: {
             sessionId: `stripe_session_${Date.now()}`,
             redirectUrl: '/payment/success?sessionId=123&reference=' + data.reference
+          }
+        };
+      
+      case 'account_balance':
+        // Processamento de pagamento com saldo da conta
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        return {
+          success: true,
+          message: 'Pagamento com saldo da conta processado com sucesso',
+          data: {
+            redirectUrl: '/payment/success?method=account_balance&reference=' + data.reference
           }
         };
         
