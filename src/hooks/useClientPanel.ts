@@ -101,10 +101,66 @@ export const useClientPanel = () => {
 
   const addFunds = async (amount: number) => {
     try {
-      // In a real app, this would create a payment transaction
-      // For demo purposes, we'll just update the state
-      setAccountBalance((prev) => (prev || 0) + amount);
-      toast.success(`${amount}kz adicionado à sua conta`);
+      if (amount <= 0) {
+        toast.error('Por favor, insira um valor válido');
+        return false;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('É necessário estar logado para adicionar fundos');
+        return false;
+      }
+
+      // In a real app, create a payment transaction in the database
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!customerData) {
+        toast.error('Perfil de cliente não encontrado');
+        return false;
+      }
+
+      // Create an order for the funds
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_id: customerData.id,
+          total_amount: amount,
+          status: 'pending',
+          payment_method: 'pending',
+          payment_id: `FUND-${Date.now()}`,
+        })
+        .select()
+        .single();
+
+      if (orderError) {
+        console.error('Erro ao criar ordem:', orderError);
+        toast.error('Erro ao processar solicitação de fundos');
+        return false;
+      }
+
+      // Create invoice
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert({
+          order_id: orderData.id,
+          customer_id: customerData.id,
+          invoice_number: `INV-FUND-${Date.now()}`,
+          amount: amount,
+          status: 'unpaid',
+          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+
+      if (invoiceError) {
+        console.error('Erro ao criar fatura:', invoiceError);
+        toast.error('Erro ao gerar fatura');
+        return false;
+      }
+      
       return true;
     } catch (error) {
       console.error('Erro ao adicionar fundos:', error);
@@ -180,6 +236,61 @@ export const useClientPanel = () => {
     }
   };
 
+  const refreshData = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      
+      // Fetch customer data for the user
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+        
+      if (customerData) {
+        const customerId = customerData.id;
+        
+        // Fetch hosting services
+        const { data: hostingData } = await supabase
+          .from('hosting_services')
+          .select('*, hosting_plans(*)')
+          .eq('customer_id', customerId);
+          
+        setServices(hostingData || []);
+        
+        // Fetch domains
+        const { data: domainsData } = await supabase
+          .from('domains')
+          .select('*')
+          .eq('customer_id', customerId);
+          
+        setDomains(domainsData || []);
+        
+        // Fetch invoices
+        const { data: invoicesData } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('customer_id', customerId)
+          .order('created_at', { ascending: false });
+          
+        setInvoices(invoicesData || []);
+        
+        toast.success('Dados atualizados com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados:', error);
+      toast.error('Erro ao atualizar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     userData,
@@ -190,6 +301,7 @@ export const useClientPanel = () => {
     handleSignOut,
     addFunds,
     requestService,
-    changePassword
+    changePassword,
+    refreshData
   };
 };

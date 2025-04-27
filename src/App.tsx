@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,6 +33,18 @@ import DomainTransferPage from "./pages/DomainTransferPage";
 import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
 import DedicatedServersPage from "./pages/DedicatedServersPage";
+
+// Client panel components
+import { DashboardOverview } from "./components/client-panel/DashboardOverview";
+import { ServicesPanel } from "./components/client-panel/ServicesPanel";
+import { DomainsPanel } from "./components/client-panel/DomainsPanel";
+import { InvoicesPanel } from "./components/client-panel/InvoicesPanel";
+import { TicketsPanel } from "./components/client-panel/TicketsPanel";
+import { ProfilePanel } from "./components/client-panel/ProfilePanel";
+import { DownloadsPanel } from "./components/client-panel/DownloadsPanel";
+import { KnowledgeBasePanel } from "./components/client-panel/KnowledgeBasePanel";
+import { NotificationsPanel } from "./components/client-panel/NotificationsPanel";
+import { AffiliatePanel } from "./components/client-panel/AffiliatePanel";
 
 // Admin Redirect Component
 const AdminRoute = () => {
@@ -110,7 +123,22 @@ const App: React.FC = () => (
                     <Route path="/dominios/configurar" element={<DomainConfig />} />
                     <Route path="/email/profissional" element={<EmailProfessional />} />
                     <Route path="/email/configurar" element={<EmailConfig />} />
-                    <Route path="/painel-cliente/*" element={<ClientPanel />} />
+                    
+                    {/* Client Panel Routes */}
+                    <Route path="/painel-cliente" element={<ClientPanel />}>
+                      <Route path="visao-geral" element={<DashboardOverview />} />
+                      <Route path="servicos" element={<ServicesPanel />} />
+                      <Route path="dominios" element={<DomainsPanel />} />
+                      <Route path="faturas" element={<InvoicesPanel />} />
+                      <Route path="tickets" element={<TicketsPanel />} />
+                      <Route path="perfil" element={<ProfilePanel />} />
+                      <Route path="downloads" element={<DownloadsPanel />} />
+                      <Route path="knowledge" element={<KnowledgeBasePanel />} />
+                      <Route path="notificacoes" element={<NotificationsPanel />} />
+                      <Route path="afiliados" element={<AffiliatePanel />} />
+                      <Route index element={<Navigate to="/painel-cliente/visao-geral" replace />} />
+                    </Route>
+                    
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/admin/*" element={<AdminDashboard />} />
                     <Route path="/dashboard" element={<AdminRoute />} />
