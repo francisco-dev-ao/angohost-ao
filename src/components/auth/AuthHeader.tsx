@@ -1,11 +1,14 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import { useCart } from '@/context/CartContext';
 
 export const AuthHeader = () => {
   const location = useLocation();
+  const { items } = useCart();
   const redirectPath = sessionStorage.getItem('redirect_after_login') || '';
   const isRedirecting = redirectPath && redirectPath !== '/dashboard';
+  const hasItemsInCart = items.length > 0;
   
   return (
     <div className="text-center mb-8">
@@ -20,6 +23,12 @@ export const AuthHeader = () => {
       {isRedirecting && (
         <div className="mt-4 text-sm text-blue-600">
           Após o login, você será redirecionado para finalizar sua compra.
+        </div>
+      )}
+      
+      {!isRedirecting && hasItemsInCart && (
+        <div className="mt-4 text-sm text-blue-600">
+          Você tem itens no carrinho! Após o login, você poderá finalizar sua compra.
         </div>
       )}
     </div>

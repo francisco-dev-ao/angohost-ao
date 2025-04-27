@@ -1,9 +1,11 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface NavbarAuthButtonsProps {
   isAuthenticated: boolean;
@@ -11,8 +13,33 @@ interface NavbarAuthButtonsProps {
 
 export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { getItemCount } = useCart();
   const cartItemCount = getItemCount();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+  
+  useEffect(() => {
+    // Verificar se o usuário está autenticado e tem itens no carrinho
+    const checkCartAndAuth = async () => {
+      if (isAuthenticated && cartItemCount > 0 && location.pathname !== '/carrinho' && location.pathname !== '/checkout') {
+        // Exibir toast para redirecionar ao carrinho
+        toast.info(
+          "Você tem itens no carrinho! Finalize sua compra.",
+          {
+            action: {
+              label: "Ir para carrinho",
+              onClick: () => navigate('/carrinho')
+            },
+            duration: 5000,
+          }
+        );
+        
+        setShouldRedirect(true);
+      }
+    };
+    
+    checkCartAndAuth();
+  }, [isAuthenticated, cartItemCount, location.pathname, navigate]);
   
   const handleAuthClick = () => {
     // Guarda o caminho atual completo, incluindo a rota e query params

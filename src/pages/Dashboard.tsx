@@ -11,6 +11,7 @@ import { InvoicesTab } from '@/components/dashboard/InvoicesTab';
 import { TicketsTab } from '@/components/dashboard/TicketsTab';
 import { ProfileTab } from '@/components/dashboard/ProfileTab';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { DashboardOverview } from '@/components/dashboard/DashboardOverview';
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -86,6 +87,10 @@ const Dashboard = () => {
         </div>
         
         <Separator className="my-6" />
+
+        <section className="mb-8">
+          <DashboardOverview />
+        </section>
         
         <Tabs defaultValue="servicos" className="w-full">
           <TabsList className="mb-8 flex flex-wrap gap-2">
