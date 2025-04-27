@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { AlertCircle, CreditCard, Inbox, PhoneIcon } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 
 interface PaymentErrorStateProps {
   errorMessage: string;
@@ -22,85 +21,39 @@ const PaymentErrorState = ({
   amount,
   reference
 }: PaymentErrorStateProps) => {
-  // Determinar se é um erro de PHP específico
-  const isPhpError = errorMessage.toLowerCase().includes('php') || 
-                     errorMessage.toLowerCase().includes('400');
-  
-  // Formatar a mensagem de erro para ser mais amigável ao usuário
-  const friendlyErrorMessage = isPhpError 
-    ? 'O serviço de pagamento está temporariamente indisponível.' 
-    : errorMessage;
-    
   return (
-    <div className="min-h-[300px] bg-white p-8 rounded-lg shadow-sm">
-      <Alert variant="destructive" className="mb-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Falha na conexão com o serviço Multicaixa Express</AlertTitle>
+    <div className="bg-white p-6 rounded-lg border border-red-200 shadow-sm">
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="bg-red-100 p-3 rounded-full">
+          <AlertCircle className="h-8 w-8 text-red-600" />
+        </div>
+        <h3 className="mt-4 text-lg font-medium">Erro na conexão com o serviço de pagamento</h3>
+        <p className="mt-2 text-sm text-gray-500 max-w-md">{errorMessage}</p>
+      </div>
+      
+      <Alert variant="warning" className="mb-6">
+        <AlertTitle>Alternativa de pagamento</AlertTitle>
         <AlertDescription>
-          {friendlyErrorMessage}
+          <p>Você pode tentar novamente ou prosseguir com um pagamento manual usando a referência abaixo:</p>
+          <div className="mt-2 p-3 bg-gray-50 rounded-md font-mono text-center">
+            {reference}
+          </div>
+          <div className="mt-1 text-center font-medium">
+            {new Intl.NumberFormat('pt-AO', { style: 'currency', currency: 'AOA' }).format(amount)}
+          </div>
         </AlertDescription>
       </Alert>
       
-      <div className="flex flex-col items-center mt-6">
-        <p className="text-gray-600 mb-4">
-          {isPhpError 
-            ? 'Estamos com dificuldades técnicas para conectar ao serviço de pagamentos. Por favor, escolha uma das opções abaixo:' 
-            : 'Detectamos dificuldades na comunicação com o serviço de pagamentos. Escolha uma das opções abaixo:'}
-        </p>
-        
-        <div className="space-y-3 w-full">
-          <Button 
-            onClick={onRetry} 
-            className="w-full flex items-center"
-            variant="default"
-          >
-            <CreditCard className="mr-2 h-4 w-4" />
-            Tentar novamente com Multicaixa Express
-          </Button>
-          
-          <Button 
-            onClick={onDirectPayment} 
-            variant="secondary" 
-            className="w-full"
-          >
-            Confirmar pagamento realizado
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={onCancel} 
-            className="w-full"
-          >
-            Voltar e escolher outro método
-          </Button>
-        </div>
-        
-        <Separator className="my-6" />
-        
-        <div className="mt-2 text-sm space-y-4 bg-gray-50 p-4 rounded-lg w-full">
-          <div className="flex items-start gap-2">
-            <Inbox className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <p className="font-semibold mb-1">Alternativa de pagamento:</p>
-              <ol className="list-decimal pl-5 space-y-1">
-                <li>Envie o valor de {amount.toLocaleString('pt-AO')} Kz para o número 923456789</li>
-                <li>Use a referência: <span className="font-mono bg-gray-100 px-1">{reference}</span></li>
-                <li>Após transferir, clique em "Confirmar pagamento realizado"</li>
-                <li>Aguarde a validação manual (até 24h em dias úteis)</li>
-              </ol>
-            </div>
-          </div>
-          
-          {isPhpError && (
-            <div className="flex items-start gap-2 mt-4">
-              <PhoneIcon className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <p className="font-semibold mb-1">Precisa de ajuda?</p>
-                <p>Entre em contato com nosso suporte pelo WhatsApp: <a href="https://wa.me/244923456789" className="text-blue-600 hover:underline">+244 923 456 789</a></p>
-              </div>
-            </div>
-          )}
-        </div>
+      <div className="space-y-3">
+        <Button variant="default" className="w-full" onClick={onRetry}>
+          Tentar novamente
+        </Button>
+        <Button variant="outline" className="w-full" onClick={onDirectPayment}>
+          Confirmar pagamento manual
+        </Button>
+        <Button variant="ghost" className="w-full" onClick={onCancel}>
+          Cancelar
+        </Button>
       </div>
     </div>
   );

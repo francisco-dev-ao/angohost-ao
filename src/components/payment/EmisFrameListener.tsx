@@ -1,55 +1,76 @@
 
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface EmisFrameListenerProps {
   isOpen: boolean;
-  onSuccess: (transactionId: string) => void;
   frameUrl: string;
   responseId: string;
+  onSuccess: (transactionId: string) => void;
 }
 
-const EmisFrameListener: React.FC<EmisFrameListenerProps> = ({
+const EmisFrameListener = ({
   isOpen,
-  onSuccess,
   frameUrl,
-  responseId
-}) => {
+  responseId,
+  onSuccess
+}: EmisFrameListenerProps) => {
+  const [listenerId, setListenerId] = useState<number | null>(null);
+  
   useEffect(() => {
-    if (!isOpen || !frameUrl) return;
-
+    if (!isOpen || !frameUrl || !responseId) return;
+    
+    // Setup message listener for Emisystem callback
     const handleMessage = (event: MessageEvent) => {
-      const allowedOrigins = [
-        'https://pagamentonline.emis.co.ao',
-        window.location.origin
-      ];
+      console.log('Payment message received:', event.data);
       
-      const isAllowedOrigin = allowedOrigins.some(origin => 
-        event.origin === origin || 
-        event.origin.includes(origin.replace('https://', ''))
-      );
-      
-      if (!isAllowedOrigin) {
-        console.warn('Mensagem rejeitada de origem não confiável:', event.origin);
-        return;
-      }
-
-      console.log('Mensagem recebida do iframe:', event.data);
-      
-      if (event.data?.status === "SUCCESS" || 
-          event.data?.status === "success" || 
-          event.data?.status === "COMPLETED") {
-        onSuccess(event.data.transactionId || responseId || 'unknown');
+      try {
+        // Check if the message is from our payment system
+        if (typeof event.data === 'string' && event.data.includes('payment_status')) {
+          const data = JSON.parse(event.data);
+          
+          if (data.payment_status === 'success' && data.transaction_id) {
+            console.log('Payment successful:', data);
+            onSuccess(data.transaction_id);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing payment message:', error);
       }
     };
     
+    // Add event listener
     window.addEventListener('message', handleMessage);
+    
+    // Also setup polling mechanism as fallback
+    const pollerId = window.setInterval(() => {
+      if (!isOpen) return;
+      
+      const checkStatus = async () => {
+        try {
+          const response = await fetch(`/api/payment/check-status?id=${responseId}`);
+          const data = await response.json();
+          
+          if (data.status === 'completed' && data.transaction_id) {
+            console.log('Payment completed via polling:', data);
+            onSuccess(data.transaction_id);
+          }
+        } catch (error) {
+          console.error('Error checking payment status:', error);
+        }
+      };
+      
+      checkStatus();
+    }, 5000); // Check every 5 seconds
+    
+    setListenerId(pollerId);
     
     return () => {
       window.removeEventListener('message', handleMessage);
+      if (pollerId) clearInterval(pollerId);
     };
-  }, [isOpen, frameUrl, onSuccess, responseId]);
-
-  return null;
+  }, [isOpen, frameUrl, responseId, onSuccess]);
+  
+  return null; // This component doesn't render anything
 };
 
 export default EmisFrameListener;
