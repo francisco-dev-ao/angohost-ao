@@ -248,8 +248,12 @@ export const OverviewTab = () => {
 
       {/* Right Column */}
       <div className="space-y-6">
-        <PaymentInfoCard />
+        {/* Payment Info Card - Now fully integrated */}
+        <PaymentInfoCard 
+          accountBalance={userData?.account_balance || 0} 
+        />
 
+        {/* Support Card remains unchanged */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
