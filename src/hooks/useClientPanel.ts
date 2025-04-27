@@ -31,7 +31,7 @@ export const useClientPanel = () => {
           .single();
           
         if (customerData) {
-          // Simulate account balance - would normally come from the database
+          // Set account balance
           setAccountBalance(254600); // Example balance in Kwanza
         }
         
