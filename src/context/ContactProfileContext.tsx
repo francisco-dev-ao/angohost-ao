@@ -1,10 +1,21 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
-import { ContactProfile } from '@/types/cart';
 import { useCartStorage } from '@/hooks/useCartStorage';
 import { supabase } from '@/integrations/supabase/client';
+
+interface ContactProfile {
+  id: string;
+  profileName: string;
+  name: string;
+  email: string;
+  phone?: string;
+  nif?: string;
+  billingAddress?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+}
 
 interface ContactProfileContextType {
   isNewProfileDialogOpen: boolean;
@@ -29,6 +40,7 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
   const [isNewProfileDialogOpen, setIsNewProfileDialogOpen] = useState(false);
   const [isEditProfileDialogOpen, setIsEditProfileDialogOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<ContactProfile | null>(null);
+
   const [newProfile, setNewProfile] = useState<Omit<ContactProfile, 'id'>>({
     profileName: '',
     name: '',
@@ -37,6 +49,8 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
     nif: '',
     billingAddress: '',
     city: '',
+    postalCode: '',
+    country: 'Angola'
   });
 
   const handleProfileFormChange = (field: keyof Omit<ContactProfile, 'id'>, value: string) => {
@@ -53,7 +67,6 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
     }
 
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -61,45 +74,45 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
         return;
       }
 
-      // Create profile ID
       const profileId = uuidv4();
-      
-      // Save to local storage first
       const profile: ContactProfile = {
         id: profileId,
         ...newProfile
       };
-      
-      const updatedProfiles = [...contactProfiles, profile];
-      setContactProfiles(updatedProfiles);
-      
-      // Also save to database if available
+
       const { data: customerData } = await supabase
         .from('customers')
         .select('id')
         .eq('user_id', user.id)
         .single();
-      
-      if (customerData) {
-        const { error } = await supabase
-          .from('contact_profiles')
-          .insert({
-            id: profileId,
-            customer_id: customerData.id,
-            profile_name: newProfile.profileName,
-            name: newProfile.name, 
-            email: newProfile.email,
-            phone: newProfile.phone,
-            nif: newProfile.nif,
-            billing_address: newProfile.billingAddress,
-            city: newProfile.city
-          });
-          
-        if (error) {
-          console.error('Erro ao salvar perfil no banco de dados:', error);
-        }
+
+      if (!customerData) {
+        toast.error('Erro ao encontrar dados do cliente.');
+        return;
       }
 
+      const { error } = await supabase
+        .from('contact_profiles')
+        .insert({
+          id: profileId,
+          customer_id: customerData.id,
+          profile_name: newProfile.profileName,
+          name: newProfile.name,
+          email: newProfile.email,
+          phone: newProfile.phone,
+          nif: newProfile.nif,
+          billing_address: newProfile.billingAddress,
+          city: newProfile.city,
+          postal_code: newProfile.postalCode,
+          country: newProfile.country || 'Angola'
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      setContactProfiles([...contactProfiles, profile]);
+      
       toast.success('Perfil de contato criado com sucesso!');
       setIsNewProfileDialogOpen(false);
       setNewProfile({
@@ -110,8 +123,9 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
         nif: '',
         billingAddress: '',
         city: '',
+        postalCode: '',
+        country: 'Angola'
       });
-      
     } catch (error) {
       console.error('Erro ao criar perfil:', error);
       toast.error('Erro ao criar perfil de contato.');
@@ -127,7 +141,6 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
     }
 
     try {
-      // Update the profile in the local array first
       const updatedProfiles = contactProfiles.map(profile => 
         profile.id === selectedProfile.id 
           ? { ...profile, ...newProfile }
@@ -136,7 +149,6 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
       
       setContactProfiles(updatedProfiles);
       
-      // Also update in database if available
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
@@ -149,7 +161,9 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
             phone: newProfile.phone,
             nif: newProfile.nif,
             billing_address: newProfile.billingAddress,
-            city: newProfile.city
+            city: newProfile.city,
+            postal_code: newProfile.postalCode,
+            country: newProfile.country || 'Angola'
           })
           .eq('id', selectedProfile.id);
           
@@ -171,11 +185,9 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
   const handleDeleteProfile = async (profileId: string) => {
     if (confirm('Tem certeza que deseja excluir este perfil de contato?')) {
       try {
-        // Remove from local storage first
         const updatedProfiles = contactProfiles.filter(profile => profile.id !== profileId);
         setContactProfiles(updatedProfiles);
         
-        // Also remove from database if available
         const { error } = await supabase
           .from('contact_profiles')
           .delete()
@@ -203,52 +215,50 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
       nif: profile.nif || '',
       billingAddress: profile.billingAddress || '',
       city: profile.city || '',
+      postalCode: profile.postalCode || '',
+      country: profile.country || 'Angola'
     });
     setIsEditProfileDialogOpen(true);
   };
-  
-  // Load profiles from database on initial load
+
   useEffect(() => {
     const loadProfilesFromDb = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) return;
-        
-        // Get customer ID
+
         const { data: customerData } = await supabase
           .from('customers')
           .select('id')
           .eq('user_id', user.id)
           .single();
-          
+
         if (!customerData) return;
-        
-        // Get profiles
-        const { data: profilesData, error } = await supabase
+
+        const { data: profiles, error } = await supabase
           .from('contact_profiles')
           .select('*')
           .eq('customer_id', customerData.id);
-          
+
         if (error) {
-          console.error('Erro ao carregar perfis do banco de dados:', error);
-          return;
+          throw error;
         }
-        
-        if (profilesData && profilesData.length > 0) {
-          // Map to our ContactProfile format
-          const mappedProfiles: ContactProfile[] = profilesData.map(p => ({
+
+        if (profiles && profiles.length > 0) {
+          const mappedProfiles: ContactProfile[] = profiles.map(p => ({
             id: p.id,
-            profileName: p.profile_name,
+            profileName: p.profile_name || p.name,
             name: p.name,
             email: p.email,
             phone: p.phone || '',
             nif: p.nif || '',
             billingAddress: p.billing_address || '',
             city: p.city || '',
+            postalCode: p.postal_code || '',
+            country: p.country || 'Angola'
           }));
-          
-          // Only update if we don't have these profiles already
+
           if (contactProfiles.length === 0) {
             setContactProfiles(mappedProfiles);
           }
@@ -257,7 +267,7 @@ export const ContactProfileProvider = ({ children }: { children: React.ReactNode
         console.error('Erro ao carregar perfis:', error);
       }
     };
-    
+
     loadProfilesFromDb();
   }, []);
 

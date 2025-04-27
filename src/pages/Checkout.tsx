@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from 'sonner';
-import { Loader2, CreditCard, BuildingBank, AlertCircle } from 'lucide-react';
+import { Loader2, CreditCard, Building, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PageHeader } from '@/components/common/PageHeader';
@@ -22,10 +21,8 @@ const Checkout = () => {
   const [isAuth, setIsAuth] = useState(false);
   const [showPaymentFrame, setShowPaymentFrame] = useState(false);
   
-  // Get payment details from state
   const paymentDetails = location.state;
   
-  // If no payment details, redirect to home
   useEffect(() => {
     if (!paymentDetails) {
       toast.error('Informações de pagamento não encontradas');
@@ -33,7 +30,6 @@ const Checkout = () => {
       return;
     }
     
-    // Check authentication
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
@@ -67,15 +63,12 @@ const Checkout = () => {
     
     try {
       if (paymentMethod === 'emis') {
-        // In a real app, this would connect to EMIS payment gateway
         setShowPaymentFrame(true);
         
-        // Simulate payment process
         setTimeout(() => {
           handlePaymentSuccess();
         }, 2000);
       } else {
-        // Bank transfer - generate payment instructions
         await updatePaymentMethod('bank-transfer');
         navigate('/payment/instructions', { 
           state: { 
@@ -95,7 +88,6 @@ const Checkout = () => {
   
   const updatePaymentMethod = async (method: string) => {
     try {
-      // Update order with payment method
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return false;
@@ -108,7 +100,6 @@ const Checkout = () => {
         
       if (!customerData) return false;
       
-      // Find the order by reference
       const { data: orderData } = await supabase
         .from('orders')
         .select('id')
@@ -117,7 +108,6 @@ const Checkout = () => {
         .single();
         
       if (orderData) {
-        // Update the payment method
         await supabase
           .from('orders')
           .update({
@@ -135,10 +125,8 @@ const Checkout = () => {
   
   const handlePaymentSuccess = async () => {
     try {
-      // Update payment status
       await updatePaymentMethod('emis');
       
-      // Find the order by reference
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) return;
@@ -151,7 +139,6 @@ const Checkout = () => {
         
       if (!customerData) return;
       
-      // Find order
       const { data: orderData } = await supabase
         .from('orders')
         .select('id')
@@ -160,7 +147,6 @@ const Checkout = () => {
         .single();
         
       if (orderData) {
-        // Update order status
         await supabase
           .from('orders')
           .update({
@@ -168,7 +154,6 @@ const Checkout = () => {
           })
           .eq('id', orderData.id);
           
-        // Update invoice status
         await supabase
           .from('invoices')
           .update({
@@ -178,7 +163,6 @@ const Checkout = () => {
           .eq('order_id', orderData.id);
       }
       
-      // Navigate to success page
       navigate('/payment/success', { state: { amount, reference, description } });
       
     } catch (error) {
@@ -237,7 +221,7 @@ const Checkout = () => {
                   <div className="flex items-center space-x-2 border rounded-md p-4 cursor-pointer hover:bg-gray-50">
                     <RadioGroupItem value="bank-transfer" id="bank-transfer" />
                     <Label htmlFor="bank-transfer" className="flex items-center cursor-pointer flex-1">
-                      <BuildingBank className="h-5 w-5 mr-3 text-primary" />
+                      <Building className="h-5 w-5 mr-3 text-primary" />
                       <div>
                         <p className="font-medium">Transferência Bancária</p>
                         <p className="text-sm text-gray-500">Pagamento manual por transferência bancária</p>
