@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthOtpResponse } from '@supabase/supabase-js';
 
 export const useRegisterValidation = () => {
   const [loading, setLoading] = useState(false);
@@ -8,12 +9,14 @@ export const useRegisterValidation = () => {
   const checkExistingAccount = async (field: string, value: string): Promise<boolean> => {
     try {
       if (field === 'email') {
-        // Check if email exists using a different approach to avoid the infinite type issue
-        const { data, error } = await supabase.auth.signInWithOtp({
+        // Use explicit type casting to avoid TypeScript infinite type instantiation
+        const response = await supabase.auth.signInWithOtp({
           email: value,
           options: { shouldCreateUser: false }
         });
-        return !!data.session;
+        
+        // Access session property safely
+        return !!response?.data?.session;
       } else {
         // For non-email fields, query the customers table
         const { data, error } = await supabase
