@@ -8,7 +8,7 @@ export const useClientPanel = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
-  const [accountBalance, setAccountBalance] = useState<number | null>(null);
+  const [accountBalance, setAccountBalance] = useState<number | null>(254600);
   const [services, setServices] = useState<any[]>([]);
   const [domains, setDomains] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);

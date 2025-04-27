@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Loader2 } from 'lucide-react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { ContactProfileProvider } from '@/context/ContactProfileContext';
 import { useClientPanel } from '@/hooks/useClientPanel';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 // Import panel components
 import { PanelHeader } from '@/components/client-panel/PanelHeader';
@@ -25,8 +26,22 @@ import { ContactProfileDialogs } from '@/components/client-panel/ContactProfileD
 
 const ClientPanel = () => {
   const { loading, userData, handleSignOut, accountBalance, services, domains, invoices } = useClientPanel();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabFromUrl || 'overview');
   const [notificationsCount] = useState(3);
+
+  useEffect(() => {
+    if (tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl || 'overview');
+    }
+  }, [tabFromUrl, activeTab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
 
   if (loading) {
     return (
@@ -45,16 +60,16 @@ const ClientPanel = () => {
             userData={userData}
             notificationsCount={notificationsCount}
             handleSignOut={handleSignOut}
-            setActiveTab={setActiveTab}
+            setActiveTab={handleTabChange}
           />
 
           <StatsOverview accountBalance={accountBalance} />
           <DomainSearchPanel />
 
           <div className="container max-w-7xl mx-auto px-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={handleTabChange}>
               <div className="bg-white border rounded-lg shadow-sm mb-6">
-                <PanelNavigation />
+                <PanelNavigation activeTab={activeTab} onTabChange={handleTabChange} />
               </div>
 
               <TabsContent value="overview">

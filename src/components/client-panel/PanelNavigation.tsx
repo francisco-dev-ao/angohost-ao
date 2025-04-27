@@ -2,7 +2,12 @@
 import React from 'react';
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const PanelNavigation = () => {
+interface PanelNavigationProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export const PanelNavigation = ({ activeTab, onTabChange }: PanelNavigationProps) => {
   return (
     <TabsList className="flex flex-wrap border-b overflow-x-auto">
       <TabsTrigger value="overview" className="py-3 px-4">Visão Geral</TabsTrigger>
