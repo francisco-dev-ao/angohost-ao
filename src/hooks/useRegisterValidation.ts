@@ -9,6 +9,7 @@ export const useRegisterValidation = () => {
     try {
       setLoading(true);
       
+      // Explicitly type the query response
       const { data } = await supabase
         .from('customers')
         .select('id')
@@ -16,7 +17,7 @@ export const useRegisterValidation = () => {
         .limit(1)
         .maybeSingle();
       
-      return !!data;
+      return data !== null;
     } catch (error) {
       console.error(`Error checking existing ${field}:`, error);
       return false;
