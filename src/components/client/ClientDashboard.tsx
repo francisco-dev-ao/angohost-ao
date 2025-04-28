@@ -8,7 +8,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { 
-  AlertCircle, Globe, Server, FileText, LifeBuoy, ArrowRight, Info 
+  AlertCircle, Globe, Server, FileText, LifeBuoy, ArrowRight, Info, Mail
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -81,6 +81,13 @@ export const ClientDashboard = () => {
     fetchDashboardData();
   }, [user]);
   
+  // Function to handle tab switching
+  const handleTabClick = (tabName: string) => {
+    // Find the parent component and call its setActiveTab function
+    const event = new CustomEvent('client-dashboard-tab-change', { detail: { tab: tabName } });
+    document.dispatchEvent(event);
+  };
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -99,10 +106,8 @@ export const ClientDashboard = () => {
           <AlertTitle>Atenção!</AlertTitle>
           <AlertDescription>
             Você possui {services.unpaidInvoices} fatura(s) pendente(s). 
-            <Button variant="link" asChild className="p-0 h-auto font-normal">
-              <Link to="#" onClick={() => document.querySelector('[data-tab="invoices"]')?.click()}>
-                Clique aqui para visualizar
-              </Link>
+            <Button variant="link" className="p-0 h-auto font-normal" onClick={() => handleTabClick('invoices')}>
+              Clique aqui para visualizar
             </Button>
           </AlertDescription>
         </Alert>
@@ -119,7 +124,7 @@ export const ClientDashboard = () => {
             <p className="text-xs text-muted-foreground">Domínios registrados</p>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => document.querySelector('[data-tab="domains"]')?.click()}>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => handleTabClick('domains')}>
               Ver domínios <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
@@ -135,7 +140,7 @@ export const ClientDashboard = () => {
             <p className="text-xs text-muted-foreground">Hospedagens ativas</p>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => document.querySelector('[data-tab="hosting"]')?.click()}>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => handleTabClick('hosting')}>
               Ver serviços <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
@@ -151,7 +156,7 @@ export const ClientDashboard = () => {
             <p className="text-xs text-muted-foreground">Faturas pendentes</p>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => document.querySelector('[data-tab="invoices"]')?.click()}>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => handleTabClick('invoices')}>
               Ver faturas <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
@@ -167,7 +172,7 @@ export const ClientDashboard = () => {
             <p className="text-xs text-muted-foreground">Tickets abertos</p>
           </CardContent>
           <CardFooter>
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => document.querySelector('[data-tab="support"]')?.click()}>
+            <Button variant="ghost" size="sm" className="w-full" onClick={() => handleTabClick('support')}>
               Ver suporte <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>

@@ -1,14 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/hooks/useUser';
 import { supabase } from '@/integrations/supabase/client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, FileText, Globe, Server, 
-  LifeBuoy, Bell, Settings, LogOut, CreditCard  
+  LifeBuoy, Bell, Settings, LogOut  
 } from 'lucide-react';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { ClientDashboard } from '@/components/client/ClientDashboard';
@@ -26,6 +24,22 @@ const ClientPanel = () => {
   const { user, loading } = useUser();
   const [activeTab, setActiveTab] = useState('dashboard');
   const { notifications } = useNotifications(user?.id);
+  
+  useEffect(() => {
+    // Listen for tab change events from child components
+    const handleTabChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail && customEvent.detail.tab) {
+        setActiveTab(customEvent.detail.tab);
+      }
+    };
+    
+    document.addEventListener('client-dashboard-tab-change', handleTabChange);
+    
+    return () => {
+      document.removeEventListener('client-dashboard-tab-change', handleTabChange);
+    };
+  }, []);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -58,6 +72,7 @@ const ClientPanel = () => {
               variant={activeTab === 'dashboard' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('dashboard')}
+              data-tab="dashboard"
             >
               <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
@@ -67,6 +82,7 @@ const ClientPanel = () => {
               variant={activeTab === 'invoices' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('invoices')}
+              data-tab="invoices"
             >
               <FileText className="mr-2 h-4 w-4" />
               Faturas
@@ -76,6 +92,7 @@ const ClientPanel = () => {
               variant={activeTab === 'domains' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('domains')}
+              data-tab="domains"
             >
               <Globe className="mr-2 h-4 w-4" />
               Meus Domínios
@@ -85,6 +102,7 @@ const ClientPanel = () => {
               variant={activeTab === 'hosting' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('hosting')}
+              data-tab="hosting"
             >
               <Server className="mr-2 h-4 w-4" />
               Meus Serviços
@@ -94,6 +112,7 @@ const ClientPanel = () => {
               variant={activeTab === 'support' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('support')}
+              data-tab="support"
             >
               <LifeBuoy className="mr-2 h-4 w-4" />
               Suporte
@@ -103,6 +122,7 @@ const ClientPanel = () => {
               variant={activeTab === 'notifications' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('notifications')}
+              data-tab="notifications"
             >
               <Bell className="mr-2 h-4 w-4" />
               Notificações
@@ -117,6 +137,7 @@ const ClientPanel = () => {
               variant={activeTab === 'settings' ? 'default' : 'ghost'} 
               className="w-full justify-start" 
               onClick={() => setActiveTab('settings')}
+              data-tab="settings"
             >
               <Settings className="mr-2 h-4 w-4" />
               Meu Perfil

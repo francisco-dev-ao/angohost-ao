@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Users, Plus, Search, Eye, Edit, Mail, Trash, FileText, LifeBuoy
+  Users, Plus, Search, Eye, Edit, Mail, Trash, FileText, LifeBuoy, Globe, Server
 } from "lucide-react";
 import { toast } from 'sonner';
 import { format } from 'date-fns';
