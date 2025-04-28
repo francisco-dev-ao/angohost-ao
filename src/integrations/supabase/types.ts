@@ -9,13 +9,403 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      customers: {
+        Row: {
+          account_balance: number | null
+          billing_address: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          nif: string | null
+          phone: string | null
+          postal_code: string | null
+          user_id: string | null
+        }
+        Insert: {
+          account_balance?: number | null
+          billing_address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          nif?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          account_balance?: number | null
+          billing_address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          nif?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      domains: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          customer_id: string | null
+          expiry_date: string | null
+          id: string
+          name: string
+          registration_date: string | null
+          status: string | null
+          tld: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          customer_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          name: string
+          registration_date?: string | null
+          status?: string | null
+          tld: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          customer_id?: string | null
+          expiry_date?: string | null
+          id?: string
+          name?: string
+          registration_date?: string | null
+          status?: string | null
+          tld?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domains_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_accounts: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          domain_id: string | null
+          email_address: string
+          expires_at: string | null
+          id: string
+          plan_name: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          domain_id?: string | null
+          email_address: string
+          expires_at?: string | null
+          id?: string
+          plan_name: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          domain_id?: string | null
+          email_address?: string
+          expires_at?: string | null
+          id?: string
+          plan_name?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_accounts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_accounts_domain_id_fkey"
+            columns: ["domain_id"]
+            isOneToOne: false
+            referencedRelation: "domains"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hosting_services: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string | null
+          customer_id: string | null
+          expires_at: string | null
+          id: string
+          period: string | null
+          plan_name: string
+          plan_type: string | null
+          status: string | null
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          id?: string
+          period?: string | null
+          plan_name: string
+          plan_type?: string | null
+          status?: string | null
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          id?: string
+          period?: string | null
+          plan_name?: string
+          plan_type?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hosting_services_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          notes: string | null
+          number: string | null
+          order_id: string | null
+          paid_date: string | null
+          payment_method: string | null
+          reference_id: string | null
+          status: string | null
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          number?: string | null
+          order_id?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          reference_id?: string | null
+          status?: string | null
+          total_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          notes?: string | null
+          number?: string | null
+          order_id?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          reference_id?: string | null
+          status?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string | null
+          details: Json | null
+          id: string
+          order_id: string | null
+          period: string | null
+          price: number
+          product_id: string | null
+          product_name: string
+          product_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          order_id?: string | null
+          period?: string | null
+          price: number
+          product_id?: string | null
+          product_name: string
+          product_type: string
+        }
+        Update: {
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          order_id?: string | null
+          period?: string | null
+          price?: number
+          product_id?: string | null
+          product_name?: string
+          product_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          payment_id: string | null
+          payment_method: string | null
+          reference: string | null
+          status: string | null
+          total_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string | null
+          total_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          payment_id?: string | null
+          payment_method?: string | null
+          reference?: string | null
+          status?: string | null
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_admin: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          is_admin?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean | null
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          closed_at: string | null
+          created_at: string | null
+          customer_id: string | null
+          description: string
+          id: string
+          priority: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          description: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string | null
+          customer_id?: string | null
+          description?: string
+          id?: string
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      set_admin_status: {
+        Args: { user_id: string; is_admin_status: boolean }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
