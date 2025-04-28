@@ -22,10 +22,7 @@ import EmailConfig from "./pages/EmailConfig";
 import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
-import ClientPanel from "./pages/ClientPanel";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 
 // New Pages
 import HostingPage from "./pages/HostingPage";
@@ -35,17 +32,14 @@ import ProfessionalEmailPage from "./pages/ProfessionalEmailPage";
 import Office365Page from "./pages/Office365Page";
 import DedicatedServersPage from "./pages/DedicatedServersPage";
 
-// Criando o queryClient fora do componente App
 const queryClient = new QueryClient();
 
-// Layout component that decides whether to show or not the navbar/footer
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const path = location.pathname;
   const [session, setSession] = useState<Session | null>(null);
   
   useEffect(() => {
-    // Fetch the session when component mounts
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
@@ -53,27 +47,18 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     
     getSession();
     
-    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_, currentSession) => {
         setSession(currentSession);
       }
     );
     
-    // Cleanup subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, []);
   
-  // Hide navbar and footer on authentication pages, dashboard and client panel
-  // Also hide footer when user is authenticated
-  const hideNavbarFooter = 
-    path === "/auth" || 
-    path.startsWith("/dashboard") ||
-    path === "/admin" ||
-    path.startsWith("/admin/");
-  
+  const hideNavbarFooter = path === "/auth";
   const hideFooter = hideNavbarFooter || session;
   
   return (
@@ -85,7 +70,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-// Componente App definido como função React
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
@@ -107,10 +91,7 @@ const App: React.FC = () => (
                     <Route path="/dominios/configurar" element={<DomainConfig />} />
                     <Route path="/email/profissional" element={<EmailProfessional />} />
                     <Route path="/email/configurar" element={<EmailConfig />} />
-                    <Route path="/painel-cliente" element={<ClientPanel />} />
                     <Route path="/auth" element={<Auth />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
                     
                     <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                     <Route path="/hospedagem/cpanel" element={<HostingPage />} />
