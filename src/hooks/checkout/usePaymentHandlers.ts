@@ -24,7 +24,7 @@ export const usePaymentHandlers = () => {
     
     try {
       const orderId = crypto.randomUUID();
-      await saveOrderToDatabase(orderId, user.id);
+      await saveOrderToDatabase(orderId);
       
       setPaymentInfo({
         method: 'emis',
@@ -98,7 +98,7 @@ export const usePaymentHandlers = () => {
     const ref = orderReference;
     
     try {
-      await saveOrderToDatabase(orderId, user.id);
+      await saveOrderToDatabase(orderId);
       
       setPaymentInfo({
         method: 'emis',
