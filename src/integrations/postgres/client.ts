@@ -1,4 +1,3 @@
-
 // PostgreSQL client para conexão direta com o banco de dados
 // Importante: Em produção, operações de banco de dados devem ser realizadas através de uma API segura
 
@@ -23,7 +22,7 @@ export const pgConfig = {
   port: 5432,
   database: 'angohost_bd',
   user: 'angohost_admin',
-  password: process.env.DB_PASSWORD || '' // A senha deve ser configurada através de variáveis de ambiente
+  password: import.meta.env.VITE_DB_PASSWORD || 'senha_temporaria' // Usando variável de ambiente do Vite
 };
 
 // Interface para resultados de operações no banco de dados

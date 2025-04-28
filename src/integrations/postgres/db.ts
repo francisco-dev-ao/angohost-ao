@@ -1,4 +1,3 @@
-
 import { Pool, PoolClient } from 'pg';
 import { pgConfig } from './client';
 
