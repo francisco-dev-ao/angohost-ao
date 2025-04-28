@@ -1,52 +1,48 @@
 
-import { simulateDbOperation } from '@/integrations/postgres/client';
+import { AuthService } from '@/services/AuthService';
+import { customerService } from '@/integrations/postgres/client';
 import { Customer } from '@/types/cart';
 
-export const ensureCustomerExists = async (userId: string, customerData: Partial<Customer>) => {
+export const ensureCustomerExists = async (customerData: Partial<Customer>) => {
   try {
-    // Check if customer exists
-    const { success: checkSuccess, data: existingCustomer } = await simulateDbOperation(
-      'check_customer_exists',
-      { userId }
-    );
-
-    // If checking failed, throw an error
-    if (!checkSuccess) {
-      throw new Error('Failed to check customer existence');
+    // Verificar se o usuário está autenticado
+    const session = AuthService.getSession();
+    if (!session || !session.user) {
+      throw new Error('Usuário não autenticado');
     }
-
-    // If customer exists (in a real implementation this would be checked),
-    // return their ID
-    if (existingCustomer && existingCustomer.id) {
+    
+    const userId = session.user.id;
+    
+    // Verificar se o cliente já existe
+    const { success: getSuccess, data: existingCustomer } = await customerService.getById(userId);
+    
+    // Se o cliente existe, retornar seu ID
+    if (getSuccess && existingCustomer) {
       return { id: existingCustomer.id, error: null };
     }
-
-    // If customer doesn't exist, create them
+    
+    // Se o cliente não existe, criar um novo
     const customerToCreate = {
-      user_id: userId,
-      name: customerData.name,
-      email: customerData.email,
-      phone: customerData.phone,
-      nif: customerData.nif,
-      billing_address: customerData.billingAddress,
-      city: customerData.city,
-      postal_code: customerData.postalCode,
-      country: customerData.country || 'Angola'
+      name: customerData.name || session.user.name,
+      email: customerData.email || session.user.email,
+      phone: customerData.phone || '',
+      nif: customerData.nif || '',
+      billing_address: customerData.billingAddress || '',
+      city: customerData.city || '',
+      postal_code: customerData.postalCode || '',
+      country: customerData.country || 'Angola',
+      account_balance: 0
     };
-
-    const { success: createSuccess, data: newCustomer } = await simulateDbOperation(
-      'create_customer',
-      customerToCreate
-    );
-
-    if (!createSuccess) {
-      throw new Error('Failed to create customer');
+    
+    const { success: createSuccess, data: newCustomer, error: createError } = await customerService.create(customerToCreate);
+    
+    if (!createSuccess || !newCustomer) {
+      throw new Error(createError?.message || 'Falha ao criar cliente');
     }
-
+    
     return { id: newCustomer.id, error: null };
-  } catch (error) {
-    console.error('Error ensuring customer exists:', error);
+  } catch (error: any) {
+    console.error('Erro ao garantir que o cliente existe:', error);
     return { id: null, error };
   }
 };
-

@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
-import { toast } from 'sonner';
-import { simulateDbOperation } from '@/integrations/postgres/client';
+import { toast } from '@/hooks/use-toast';
+import { orderService, invoiceService } from '@/integrations/postgres/client';
+import AuthService from '@/services/AuthService';
 
 export const usePaymentProcessing = () => {
   const navigate = useNavigate();
@@ -23,110 +24,68 @@ export const usePaymentProcessing = () => {
   const [orderReference, setOrderReference] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
 
-  // Utility function to generate a valid UUID
-  const generateValidUUID = () => {
-    return crypto.randomUUID();
-  };
-
-  const saveOrderToDatabase = async (orderId: string, userId: string) => {
+  const saveOrderToDatabase = async (orderId: string) => {
     try {
-      console.log('Saving order to database:', { orderId, userId });
+      console.log('Salvando pedido no banco de dados:', { orderId });
       
       if (!customer) {
-        throw new Error('Customer information is missing');
+        throw new Error('Informações do cliente ausentes');
       }
       
-      // Create customer record
-      const customerData = {
-        id: userId,
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        nif: customer.nif,
-        billing_address: customer.billingAddress,
-        city: customer.city,
-        postal_code: customer.postalCode,
-        country: customer.country || 'Angola'
-      };
-      
-      const { success: customerSuccess, error: customerError } = await simulateDbOperation(
-        'create_customer', 
-        customerData
-      );
-      
-      if (!customerSuccess) {
-        throw new Error('Failed to create customer record');
+      // Verificar se o usuário está autenticado
+      const session = AuthService.getSession();
+      if (!session || !session.user) {
+        throw new Error('Usuário não está autenticado');
       }
       
-      // Create order record
-      const orderData = {
+      // Criar registro de pedido
+      const { success: orderSuccess, data: newOrder, error: orderError } = await orderService.create({
         id: orderId,
-        customer_id: userId,
-        total_amount: getTotalPrice(),
+        customer_id: session.user.id,
         status: paymentMethod === 'emis' ? 'processing' : 'pending',
-        payment_method: paymentMethod || 'unknown',
-        payment_id: orderReference,
-        reference: orderReference
-      };
+        total_amount: getTotalPrice(),
+      });
       
-      const { success: orderSuccess, error: orderError } = await simulateDbOperation(
-        'create_order', 
-        orderData
-      );
-      
-      if (!orderSuccess) {
-        throw new Error('Failed to create order');
+      if (!orderSuccess || !newOrder) {
+        throw new Error(orderError?.message || 'Falha ao criar pedido');
       }
       
-      // Create order items
+      // Criar itens do pedido
       const orderItems = items.map(item => {
-        // Generate a valid UUID for product_id
-        const productId = generateValidUUID();
-          
         return {
           order_id: orderId,
-          product_name: item.name,
-          product_type: item.type,
-          product_id: productId,
+          description: item.name,
+          type: item.type,
           price: item.price,
-          period: item.period,
-          details: JSON.stringify(item.details)
+          quantity: item.details.quantity || 1,
+          total: item.price * (item.details.quantity || 1)
         };
       });
       
-      const { success: itemsSuccess, error: itemsError } = await simulateDbOperation(
-        'create_order_items', 
-        orderItems
-      );
+      const { success: itemsSuccess, error: itemsError } = await orderService.createItems(orderItems);
       
       if (!itemsSuccess) {
-        throw new Error('Failed to create order items');
+        throw new Error(itemsError?.message || 'Falha ao criar itens do pedido');
       }
       
-      // Create invoice
-      const invoiceNumber = `INV-${orderReference}`;
-      const invoiceData = {
-        order_id: orderId,
-        customer_id: userId,
-        invoice_number: invoiceNumber,
-        amount: getTotalPrice(),
-        status: 'unpaid',
-        payment_method: paymentMethod,
-        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      };
+      // Criar fatura
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      const { success: invoiceSuccess, error: invoiceError } = await simulateDbOperation(
-        'create_invoice', 
-        invoiceData
-      );
+      const { success: invoiceSuccess, error: invoiceError } = await invoiceService.create({
+        customer_id: session.user.id,
+        number: invoiceNumber,
+        total_amount: getTotalPrice(),
+        status: 'unpaid',
+        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Vencimento em 7 dias
+      });
       
       if (!invoiceSuccess) {
-        throw new Error('Failed to create invoice');
+        throw new Error(invoiceError?.message || 'Falha ao criar fatura');
       }
       
-      console.log('Order saved successfully:', orderId);
-    } catch (error) {
-      console.error('Error saving order:', error);
+      console.log('Pedido salvo com sucesso:', orderId);
+    } catch (error: any) {
+      console.error('Erro ao salvar pedido:', error);
       throw error;
     }
   };
