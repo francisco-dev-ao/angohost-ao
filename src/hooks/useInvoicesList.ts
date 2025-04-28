@@ -4,6 +4,7 @@ import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
 import { invoiceService } from '@/integrations/postgres/client';
 
+// Define the DatabaseInvoice interface that matches the structure from the database
 interface DatabaseInvoice {
   id: string;
   invoice_number: string;
@@ -55,7 +56,8 @@ export const useInvoicesList = () => {
         );
       }
       
-      const transformedInvoices: Invoice[] = invoicesData.map((invoice: DatabaseInvoice) => ({
+      // Fix: Explicitly cast invoicesData to DatabaseInvoice[] before mapping
+      const transformedInvoices: Invoice[] = (invoicesData as DatabaseInvoice[]).map((invoice: DatabaseInvoice) => ({
         id: invoice.id,
         customer_id: invoice.customer_id,
         number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
