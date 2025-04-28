@@ -1,7 +1,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import AuthService, { AuthUser } from '@/services/AuthService';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string | null;
+};
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -10,31 +17,62 @@ export function useAuth() {
 
   // Verificar autenticação ao carregar o componente
   useEffect(() => {
-    const session = AuthService.getSession();
-    setUser(session?.user || null);
-    setLoading(false);
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        setUser({
+          id: data.session.user.id,
+          email: data.session.user.email || '',
+          name: data.session.user.user_metadata?.full_name || '',
+          avatar_url: data.session.user.user_metadata?.avatar_url
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+    
+    checkAuth();
+
+    // Listener para mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || '',
+          avatar_url: session.user.user_metadata?.avatar_url
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Login
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { user, error } = await AuthService.login(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (error || !user) {
+      if (error || !data.user) {
         toast({
           title: "Erro no login",
-          description: error || "Credenciais inválidas",
+          description: error?.message || "Credenciais inválidas",
           variant: "destructive"
         });
-        setUser(null);
         return false;
       }
       
-      setUser(user);
       toast({
         title: "Login bem-sucedido",
-        description: `Bem-vindo, ${user.name}!`
+        description: `Bem-vindo!`
       });
       return true;
     } catch (err: any) {
@@ -53,21 +91,28 @@ export function useAuth() {
   const register = useCallback(async (name: string, email: string, password: string) => {
     setLoading(true);
     try {
-      const { user, error } = await AuthService.register(name, email, password);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
       
-      if (error || !user) {
+      if (error || !data.user) {
         toast({
           title: "Erro no registro",
-          description: error || "Não foi possível criar sua conta",
+          description: error?.message || "Não foi possível criar sua conta",
           variant: "destructive"
         });
         return false;
       }
       
-      setUser(user);
       toast({
         title: "Registro bem-sucedido",
-        description: `Bem-vindo, ${user.name}!`
+        description: `Conta criada! Por favor, verifique seu email.`
       });
       return true;
     } catch (err: any) {
@@ -83,9 +128,8 @@ export function useAuth() {
   }, [toast]);
 
   // Logout
-  const logout = useCallback(() => {
-    AuthService.logout();
-    setUser(null);
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     toast({
       title: "Logout realizado",
       description: "Você saiu da sua conta"
@@ -97,12 +141,16 @@ export function useAuth() {
     if (!user) return false;
     
     try {
-      const { success, error } = await AuthService.updateUser(user.id, data);
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: data.name || user.name
+        }
+      });
       
-      if (!success) {
+      if (error) {
         toast({
           title: "Erro na atualização",
-          description: error || "Não foi possível atualizar os dados",
+          description: error.message || "Não foi possível atualizar os dados",
           variant: "destructive"
         });
         return false;

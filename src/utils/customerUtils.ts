@@ -1,30 +1,34 @@
 
-import { AuthService } from '@/services/AuthService';
-import { customerService } from '@/integrations/postgres/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/types/cart';
 
 export const ensureCustomerExists = async (customerData: Partial<Customer>) => {
   try {
     // Verificar se o usuário está autenticado
-    const session = AuthService.getSession();
-    if (!session || !session.user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.user) {
       throw new Error('Usuário não autenticado');
     }
     
-    const userId = session.user.id;
+    const userId = sessionData.session.user.id;
     
     // Verificar se o cliente já existe
-    const { success: getSuccess, data: existingCustomer } = await customerService.getById(userId);
+    const { data: existingCustomer, error: getError } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
     
     // Se o cliente existe, retornar seu ID
-    if (getSuccess && existingCustomer) {
+    if (existingCustomer) {
       return { id: existingCustomer.id, error: null };
     }
     
     // Se o cliente não existe, criar um novo
     const customerToCreate = {
-      name: customerData.name || session.user.name,
-      email: customerData.email || session.user.email,
+      user_id: userId,
+      name: customerData.name || sessionData.session.user.user_metadata?.full_name || '',
+      email: customerData.email || sessionData.session.user.email || '',
       phone: customerData.phone || '',
       nif: customerData.nif || '',
       billing_address: customerData.billingAddress || '',
@@ -34,9 +38,13 @@ export const ensureCustomerExists = async (customerData: Partial<Customer>) => {
       account_balance: 0
     };
     
-    const { success: createSuccess, data: newCustomer, error: createError } = await customerService.create(customerToCreate);
+    const { data: newCustomer, error: createError } = await supabase
+      .from('customers')
+      .insert([customerToCreate])
+      .select('id')
+      .single();
     
-    if (!createSuccess || !newCustomer) {
+    if (createError || !newCustomer) {
       throw new Error(createError?.message || 'Falha ao criar cliente');
     }
     

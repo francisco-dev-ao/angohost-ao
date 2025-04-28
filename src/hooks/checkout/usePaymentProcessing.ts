@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { PaymentMethod } from '@/types/payment';
 import { toast } from '@/hooks/use-toast';
-import { orderService, invoiceService } from '@/integrations/postgres/client';
-import AuthService from '@/services/AuthService';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePaymentProcessing = () => {
   const navigate = useNavigate();
@@ -26,28 +25,45 @@ export const usePaymentProcessing = () => {
 
   const saveOrderToDatabase = async (orderId: string) => {
     try {
-      console.log('Salvando pedido no banco de dados:', { orderId });
+      console.log('Salvando pedido no Supabase:', { orderId });
       
       if (!customer) {
         throw new Error('Informações do cliente ausentes');
       }
       
       // Verificar se o usuário está autenticado
-      const session = AuthService.getSession();
-      if (!session || !session.user) {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user) {
         throw new Error('Usuário não está autenticado');
       }
       
-      // Criar registro de pedido
-      const { success: orderSuccess, data: newOrder, error: orderError } = await orderService.create({
-        id: orderId,
-        customer_id: session.user.id,
-        status: paymentMethod === 'emis' ? 'processing' : 'pending',
-        total_amount: getTotalPrice(),
-      });
+      const userId = data.session.user.id;
       
-      if (!orderSuccess || !newOrder) {
-        throw new Error(orderError?.message || 'Falha ao criar pedido');
+      // Obter ID do cliente a partir do userId
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+        
+      if (customerError || !customerData) {
+        throw new Error('Cliente não encontrado');
+      }
+      
+      const customerId = customerData.id;
+      
+      // Criar registro de pedido
+      const { error: orderError } = await supabase
+        .from('orders')
+        .insert([{
+          id: orderId,
+          customer_id: customerId,
+          status: paymentMethod === 'emis' ? 'processing' : 'pending',
+          total_amount: getTotalPrice(),
+        }]);
+      
+      if (orderError) {
+        throw new Error(orderError.message);
       }
       
       // Criar itens do pedido
@@ -62,25 +78,29 @@ export const usePaymentProcessing = () => {
         };
       });
       
-      const { success: itemsSuccess, error: itemsError } = await orderService.createItems(orderItems);
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
       
-      if (!itemsSuccess) {
-        throw new Error(itemsError?.message || 'Falha ao criar itens do pedido');
+      if (itemsError) {
+        throw new Error(itemsError.message);
       }
       
       // Criar fatura
       const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      const { success: invoiceSuccess, error: invoiceError } = await invoiceService.create({
-        customer_id: session.user.id,
-        number: invoiceNumber,
-        total_amount: getTotalPrice(),
-        status: 'unpaid',
-        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Vencimento em 7 dias
-      });
+      const { error: invoiceError } = await supabase
+        .from('invoices')
+        .insert([{
+          customer_id: customerId,
+          number: invoiceNumber,
+          total_amount: getTotalPrice(),
+          status: 'unpaid',
+          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Vencimento em 7 dias
+        }]);
       
-      if (!invoiceSuccess) {
-        throw new Error(invoiceError?.message || 'Falha ao criar fatura');
+      if (invoiceError) {
+        throw new Error(invoiceError.message);
       }
       
       console.log('Pedido salvo com sucesso:', orderId);

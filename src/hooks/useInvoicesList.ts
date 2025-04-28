@@ -2,24 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
-import { invoiceService } from '@/integrations/postgres/client';
-
-// Define the DatabaseInvoice interface that matches the structure from the database
-interface DatabaseInvoice {
-  id: string;
-  invoice_number: string;
-  amount: number;
-  created_at: string;
-  customer_id: string;
-  due_date: string | null;
-  status: string | null;
-  paid_date: string | null;
-  payment_method: string | null;
-  order_id: string;
-  notification_sent: boolean | null;
-  payment_deadline: string | null;
-  updated_at: string;
-}
+import { supabase } from '@/integrations/supabase/client';
 
 export const useInvoicesList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -32,34 +15,36 @@ export const useInvoicesList = () => {
       setLoading(true);
       setError(null);
       
-      // Obter dados do usuário logado via serviço de autenticação local
-      const userId = localStorage.getItem('userId');
+      // Obter dados do usuário logado via Supabase
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      if (!userId) {
+      if (!sessionData.session?.user) {
         setError("Você precisa estar logado para ver suas faturas");
+        setInvoices([]);
         return;
       }
       
-      const { data, success } = await invoiceService.getByCustomerId(userId);
+      const userId = sessionData.session.user.id;
       
-      if (!success || !data) {
-        setError('Não foi possível carregar suas faturas');
-        return;
+      // Buscar dados das faturas no Supabase
+      let query = supabase
+        .from('invoices')
+        .select('*')
+        .eq('customer_id', userId);
+      
+      // Aplicar filtro de status se existir
+      if (filterStatus) {
+        query = query.eq('status', filterStatus.toLowerCase());
       }
       
-      // Ensure data is treated as an array
-      const rawInvoicesData: any[] = Array.isArray(data) ? data : [];
+      const { data, error: supabaseError } = await query;
       
-      // Aplicar filtro se houver
-      let filteredData = rawInvoicesData;
-      if (filterStatus && filteredData.length > 0) {
-        filteredData = filteredData.filter(invoice => 
-          invoice.status?.toLowerCase() === filterStatus.toLowerCase()
-        );
+      if (supabaseError) {
+        throw supabaseError;
       }
       
       // Transform data from database format to application format
-      const transformedInvoices: Invoice[] = filteredData.map((invoice: any) => ({
+      const transformedInvoices: Invoice[] = (data || []).map((invoice: any) => ({
         id: invoice.id,
         customer_id: invoice.customer_id,
         number: invoice.number || invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
@@ -77,6 +62,7 @@ export const useInvoicesList = () => {
     } catch (err: any) {
       console.error('Erro ao buscar faturas:', err);
       setError('Não foi possível carregar suas faturas. Tente novamente mais tarde.');
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
