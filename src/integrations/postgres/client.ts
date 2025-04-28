@@ -1,4 +1,3 @@
-
 // PostgreSQL client para conexão direta com o banco de dados
 // Importante: Em produção, operações de banco de dados devem ser realizadas através de uma API segura
 
@@ -15,7 +14,7 @@ import {
   HostingService,
   EmailAccount,
   Notification
-} from '@/types/database';
+} from '@/types/database-types';
 
 // Configuração de conexão com o PostgreSQL
 export const pgConfig = {

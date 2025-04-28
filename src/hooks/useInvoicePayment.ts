@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Invoice } from '@/types/billing-types';
+import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
+import { invoiceService, transactionService, customerService, orderService } from '@/integrations/postgres/client';
 
 interface CustomerData {
   id: string;
@@ -18,6 +17,26 @@ export const useInvoicePayment = (onSuccess?: () => void) => {
   const handlePayInvoice = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsPaymentDialogOpen(true);
+    
+    // Carregar os dados do cliente quando uma fatura for selecionada
+    loadCustomerData(invoice.customer_id);
+  };
+  
+  const loadCustomerData = async (customerId: string) => {
+    try {
+      const { data: customer, success } = await customerService.getById(customerId);
+      
+      if (success && customer) {
+        setCustomerData({
+          id: customer.id,
+          account_balance: customer.account_balance || 0
+        });
+      } else {
+        toast.error('Não foi possível carregar os dados do cliente');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados do cliente:', err);
+    }
   };
 
   const handlePayWithBalance = async () => {
@@ -33,41 +52,40 @@ export const useInvoicePayment = (onSuccess?: () => void) => {
       
       const newBalance = customerData.account_balance - (selectedInvoice.total_amount || 0);
       
-      const { error: updateBalanceError } = await supabase
-        .from('customers')
-        .update({ account_balance: newBalance })
-        .eq('id', customerData.id);
-        
-      if (updateBalanceError) throw updateBalanceError;
+      // Atualizar saldo do cliente
+      const { success: updateBalanceSuccess } = await customerService.update(customerData.id, { 
+        account_balance: newBalance 
+      });
       
-      const { error: updateInvoiceError } = await supabase
-        .from('invoices')
-        .update({ 
-          status: 'paid', 
-          paid_date: new Date().toISOString(),
-          payment_method: 'account_balance'
-        })
-        .eq('id', selectedInvoice.id);
-        
-      if (updateInvoiceError) throw updateInvoiceError;
+      if (!updateBalanceSuccess) {
+        throw new Error('Falha ao atualizar saldo');
+      }
       
-      await supabase
-        .from('account_transactions')
-        .insert({
-          customer_id: customerData.id,
-          amount: selectedInvoice.total_amount,
-          previous_balance: customerData.account_balance,
-          current_balance: newBalance,
-          transaction_type: 'payment',
-          description: `Pagamento da fatura #${selectedInvoice.number}`,
-          reference_id: selectedInvoice.reference_id
-        });
+      // Atualizar status da fatura
+      const { success: updateInvoiceSuccess } = await invoiceService.updateStatus(
+        selectedInvoice.id, 
+        'paid',
+        new Date().toISOString()
+      );
       
+      if (!updateInvoiceSuccess) {
+        throw new Error('Falha ao atualizar fatura');
+      }
+      
+      // Registrar a transação
+      await transactionService.create({
+        customer_id: customerData.id,
+        amount: selectedInvoice.total_amount,
+        previous_balance: customerData.account_balance,
+        current_balance: newBalance,
+        transaction_type: 'payment',
+        description: `Pagamento da fatura #${selectedInvoice.number}`,
+        reference_id: selectedInvoice.reference_id
+      });
+      
+      // Atualizar o pedido relacionado, se existir
       if (selectedInvoice.reference_id) {
-        await supabase
-          .from('orders')
-          .update({ status: 'paid' })
-          .eq('id', selectedInvoice.reference_id);
+        await orderService.updateStatus(selectedInvoice.reference_id, 'paid');
       }
       
       toast.success('Pagamento realizado com sucesso!');

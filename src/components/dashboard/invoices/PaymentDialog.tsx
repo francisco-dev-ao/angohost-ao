@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Invoice } from '@/types/database';
+import { Invoice } from '@/types/database-types';
 import { formatCurrency } from '@/utils/formatters';
 
 interface PaymentDialogProps {

@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Invoice } from '@/types/billing-types';
+import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
+import { invoiceService } from '@/integrations/postgres/client';
 
 interface DatabaseInvoice {
   id: string;
@@ -31,39 +31,31 @@ export const useInvoicesList = () => {
       setLoading(true);
       setError(null);
       
-      const { data: session } = await supabase.auth.getSession();
+      // Obter dados do usuário logado via serviço de autenticação local
+      const userId = localStorage.getItem('userId');
       
-      if (!session?.session?.user) {
+      if (!userId) {
         setError("Você precisa estar logado para ver suas faturas");
         return;
       }
       
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('user_id', session.session.user.id)
-        .single();
-        
-      if (!customer) {
-        setError('Não foi possível carregar seus dados de cliente');
+      const { data: customer, success } = await invoiceService.getByCustomerId(userId);
+      
+      if (!success || !customer) {
+        setError('Não foi possível carregar suas faturas');
         return;
       }
       
-      let query = supabase
-        .from('invoices')
-        .select('*')
-        .eq('customer_id', customer.id)
-        .order('created_at', { ascending: false });
-        
-      if (filterStatus) {
-        query = query.eq('status', filterStatus);
+      let invoicesData = Array.isArray(customer) ? customer : [];
+      
+      // Aplicar filtro se houver
+      if (filterStatus && invoicesData.length > 0) {
+        invoicesData = invoicesData.filter(invoice => 
+          invoice.status?.toLowerCase() === filterStatus.toLowerCase()
+        );
       }
-        
-      const { data, error } = await query;
       
-      if (error) throw error;
-      
-      const transformedInvoices: Invoice[] = (data || []).map((invoice: DatabaseInvoice) => ({
+      const transformedInvoices: Invoice[] = invoicesData.map((invoice: DatabaseInvoice) => ({
         id: invoice.id,
         customer_id: invoice.customer_id,
         number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,

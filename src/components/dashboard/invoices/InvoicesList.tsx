@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, AlertCircle } from "lucide-react";
 import { formatDate, formatCurrency } from '@/utils/formatters';
-import { Invoice } from '@/types/database';
+import { Invoice } from '@/types/database-types';
 
 interface InvoicesListProps {
   loading: boolean;

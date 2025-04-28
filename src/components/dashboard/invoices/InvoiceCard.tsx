@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 import { formatDate, formatCurrency } from '@/utils/formatters';
-import { Invoice } from '@/types/database';
+import { Invoice } from '@/types/database-types';
 import { getStatusBadge } from './InvoicesList';
 
 interface InvoiceCardProps {
