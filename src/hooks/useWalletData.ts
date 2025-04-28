@@ -2,7 +2,16 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Transaction } from '@/types/database';
+
+interface Transaction {
+  id: string;
+  created_at: string;
+  amount: number;
+  previous_balance: number;
+  current_balance: number;
+  transaction_type: string;
+  description: string;
+}
 
 export type WalletChartData = {
   name: string;

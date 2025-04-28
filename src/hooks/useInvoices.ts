@@ -2,7 +2,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Invoice, CustomerData } from '@/types/database';
+import { Invoice } from '@/types/database';
+
+interface CustomerData {
+  id: string;
+  account_balance: number;
+}
 
 export const useInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -56,7 +61,21 @@ export const useInvoices = () => {
       
       if (error) throw error;
       
-      setInvoices(data || []);
+      // Transform the data to match the Invoice type
+      const transformedInvoices = (data || []).map(invoice => ({
+        id: invoice.id,
+        number: invoice.invoice_number || invoice.number || `INV-${invoice.id.slice(0, 8)}`,
+        total_amount: invoice.amount || invoice.total_amount || 0,
+        created_at: invoice.created_at,
+        due_date: invoice.due_date || invoice.payment_deadline,
+        status: invoice.status,
+        paid_date: invoice.paid_date,
+        payment_method: invoice.payment_method,
+        notes: invoice.notes || "",
+        reference_id: invoice.reference_id || invoice.order_id
+      }));
+      
+      setInvoices(transformedInvoices);
     } catch (err: any) {
       console.error('Erro ao buscar faturas:', err);
       setError('Não foi possível carregar suas faturas. Tente novamente mais tarde.');
@@ -110,14 +129,14 @@ export const useInvoices = () => {
           current_balance: newBalance,
           transaction_type: 'payment',
           description: `Pagamento da fatura #${selectedInvoice.number}`,
-          reference_id: selectedInvoice.id
+          reference_id: selectedInvoice.reference_id
         });
       
-      if (selectedInvoice.order_id) {
+      if (selectedInvoice.reference_id) {
         await supabase
           .from('orders')
           .update({ status: 'paid' })
-          .eq('id', selectedInvoice.order_id);
+          .eq('id', selectedInvoice.reference_id);
       }
       
       toast.success('Pagamento realizado com sucesso!');
