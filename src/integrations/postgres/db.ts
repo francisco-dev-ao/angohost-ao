@@ -1,19 +1,89 @@
+
 import { Pool, PoolClient } from 'pg';
 import { pgConfig } from './client';
 
 let pool: Pool;
+let isConnecting = false;
+let connectionRetries = 0;
+const MAX_RETRIES = 5;
+const RETRY_INTERVAL = 3000; // 3 segundos
 
 /**
  * Inicializa a conexão com o PostgreSQL
  */
 export const initDatabase = () => {
   try {
-    pool = new Pool(pgConfig);
-    console.log('Conexão com o banco de dados PostgreSQL inicializada');
+    if (!pool) {
+      pool = new Pool(pgConfig);
+      
+      // Monitorar eventos de conexão
+      pool.on('error', (err) => {
+        console.error('Erro inesperado no pool de conexões:', err);
+        
+        // Tentativa de reconexão se o erro for de conexão
+        if (err.message.includes('connection') && !isConnecting) {
+          reconnectDatabase();
+        }
+      });
+      
+      console.log('Conexão com o banco de dados PostgreSQL inicializada');
+    }
     return pool;
   } catch (error) {
     console.error('Erro ao conectar ao banco de dados:', error);
     throw error;
+  }
+};
+
+/**
+ * Tenta reconectar ao banco de dados em caso de falha
+ */
+const reconnectDatabase = async () => {
+  if (isConnecting || connectionRetries >= MAX_RETRIES) return;
+  
+  isConnecting = true;
+  connectionRetries++;
+  
+  console.log(`Tentando reconectar ao banco de dados (tentativa ${connectionRetries}/${MAX_RETRIES})...`);
+  
+  try {
+    // Fechar o pool existente
+    if (pool) {
+      await pool.end();
+    }
+    
+    // Aguardar intervalo antes de tentar novamente
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+    
+    // Criar novo pool
+    pool = new Pool(pgConfig);
+    console.log('Reconexão com o banco de dados PostgreSQL bem-sucedida');
+    isConnecting = false;
+  } catch (error) {
+    console.error('Erro na tentativa de reconexão:', error);
+    isConnecting = false;
+    
+    // Tentar novamente se não excedeu o limite
+    if (connectionRetries < MAX_RETRIES) {
+      reconnectDatabase();
+    } else {
+      console.error(`Máximo de ${MAX_RETRIES} tentativas de reconexão atingido`);
+    }
+  }
+};
+
+/**
+ * Verifica o status da conexão com o banco de dados
+ */
+export const checkDatabaseConnection = async (): Promise<boolean> => {
+  try {
+    const client = await pool.connect();
+    const result = await client.query('SELECT 1');
+    client.release();
+    return result.rowCount === 1;
+  } catch (error) {
+    console.error('Erro ao verificar conexão com o banco de dados:', error);
+    return false;
   }
 };
 
@@ -24,7 +94,20 @@ export const getClient = async (): Promise<PoolClient> => {
   if (!pool) {
     initDatabase();
   }
-  return await pool.connect();
+  
+  try {
+    return await pool.connect();
+  } catch (error) {
+    console.error('Erro ao obter conexão do pool:', error);
+    
+    // Verificar se é um erro de conexão e tentar reconectar
+    if (error instanceof Error && error.message.includes('connection')) {
+      await reconnectDatabase();
+      return await pool.connect();
+    }
+    
+    throw error;
+  }
 };
 
 /**
@@ -69,5 +152,6 @@ export default {
   query,
   getClient,
   transaction,
-  initDatabase
+  initDatabase,
+  checkDatabaseConnection
 };
