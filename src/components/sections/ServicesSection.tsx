@@ -4,6 +4,28 @@ import { motion } from 'framer-motion';
 import PlanCategories from '@/components/PlanCategories';
 
 const ServicesSection = () => {
+  // Define the service categories that will be passed to the PlanCategories component
+  const serviceCategories = [
+    {
+      title: "Hospedagem Web",
+      description: "Soluções de hospedagem de alto desempenho com garantia de uptime",
+      features: ["cPanel incluído", "Certificados SSL grátis", "Backup diário", "Suporte 24/7"],
+      icon: "server"
+    },
+    {
+      title: "Domínios",
+      description: "Registre seu domínio com os melhores preços do mercado",
+      features: ["Proteção de privacidade", "DNS gerenciável", "Renovação automática", "Transferência facilitada"],
+      icon: "database"
+    },
+    {
+      title: "Email Profissional",
+      description: "Soluções de email seguras e confiáveis para sua empresa",
+      features: ["Proteção anti-spam", "Armazenamento amplo", "Acesso em qualquer dispositivo", "Integração com Office 365"],
+      icon: "rocket"
+    }
+  ];
+
   return (
     <section className="py-20 px-4 bg-gray-50">
       <div className="container max-w-6xl mx-auto">
@@ -20,7 +42,7 @@ const ServicesSection = () => {
             </p>
           </motion.div>
         </div>
-        <PlanCategories />
+        <PlanCategories categories={serviceCategories} />
       </div>
     </section>
   );

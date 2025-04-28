@@ -19,7 +19,12 @@ const Index = () => {
       <PricingSection />
       <TestimonialsSection />
       <SupportSection />
-      <CallToActionSection />
+      <CallToActionSection 
+        title="Pronto para começar?"
+        description="Registre seu domínio e obtenha hospedagem de alta qualidade com suporte técnico especializado."
+        buttonText="Comece Agora"
+        buttonLink="/auth" 
+      />
     </div>
   );
 };
