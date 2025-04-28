@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
