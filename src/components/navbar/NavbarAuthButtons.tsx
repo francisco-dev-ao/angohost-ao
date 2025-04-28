@@ -21,16 +21,18 @@ export const NavbarAuthButtons = ({ isAuthenticated }: NavbarAuthButtonsProps) =
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const { data } = await supabase.rpc('is_admin');
-        setIsAdmin(data === true);
+        if (isAuthenticated) {
+          const { data } = await supabase.rpc('is_admin_with_permission', {
+            requested_permission: null
+          });
+          setIsAdmin(!!data);
+        }
       } catch (error) {
         console.error('Error checking admin status:', error);
       }
     };
     
-    if (isAuthenticated) {
-      checkAdminStatus();
-    }
+    checkAdminStatus();
   }, [isAuthenticated]);
 
   const handleAuthClick = () => {

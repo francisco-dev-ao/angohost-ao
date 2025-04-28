@@ -23,6 +23,8 @@ import Checkout from "./pages/Checkout";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
 import Auth from "./pages/Auth";
+import ClientPanel from "./pages/ClientPanel";
+import AdminPanel from "./pages/AdminPanel";
 
 // New Pages
 import HostingPage from "./pages/HostingPage";
@@ -58,7 +60,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
   
-  const hideNavbarFooter = path === "/auth";
+  // Hide navbar and footer on auth page, and admin/client panels
+  const hideNavbarFooter = 
+    path === "/auth" || 
+    path === "/admin" || 
+    path.startsWith("/admin/") ||
+    path === "/painel-cliente" ||
+    path.startsWith("/painel-cliente/");
+  
   const hideFooter = hideNavbarFooter || session;
   
   return (
@@ -92,6 +101,8 @@ const App: React.FC = () => (
                     <Route path="/email/profissional" element={<EmailProfessional />} />
                     <Route path="/email/configurar" element={<EmailConfig />} />
                     <Route path="/auth" element={<Auth />} />
+                    <Route path="/painel-cliente/*" element={<ClientPanel />} />
+                    <Route path="/admin/*" element={<AdminPanel />} />
                     
                     <Route path="/hospedagem-de-sites" element={<HostingPage />} />
                     <Route path="/hospedagem/cpanel" element={<HostingPage />} />

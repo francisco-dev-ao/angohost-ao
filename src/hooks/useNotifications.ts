@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 export const useNotifications = (userId: string | undefined) => {
   const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (userId) {
@@ -14,41 +15,41 @@ export const useNotifications = (userId: string | undefined) => {
 
   const fetchNotifications = async () => {
     try {
-      const { data: customer } = await supabase
-        .from('customers')
-        .select('id')
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
         .eq('user_id', userId)
-        .maybeSingle();
-
-      if (customer) {
-        const { data } = await supabase
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      
+      setNotifications(data || []);
+      
+      // Show new unread notifications as toasts
+      const unreadNotifications = data?.filter(notification => !notification.is_read) || [];
+      unreadNotifications.forEach(notification => {
+        toast.info(notification.title, {
+          description: notification.message,
+          duration: 5000,
+        });
+      });
+      
+      // Mark notifications as read if needed
+      if (unreadNotifications.length > 0) {
+        const notificationIds = unreadNotifications.map(n => n.id);
+        await supabase
           .from('notifications')
-          .select('*')
-          .eq('customer_id', customer.id)
-          .eq('status', 'pending')
-          .order('scheduled_for', { ascending: true });
-
-        if (data) {
-          setNotifications(data);
-          data.forEach(notification => {
-            toast.info(notification.message, {
-              description: notification.title,
-              duration: 5000,
-            });
-          });
-
-          // Mark notifications as read
-          const notificationIds = data.map(n => n.id);
-          await supabase
-            .from('notifications')
-            .update({ status: 'read' })
-            .in('id', notificationIds);
-        }
+          .update({ is_read: true })
+          .in('id', notificationIds);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { notifications };
+  return { notifications, loading, fetchNotifications };
 };
