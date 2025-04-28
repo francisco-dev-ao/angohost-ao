@@ -14,7 +14,7 @@ const HeroBackground = () => {
       <img 
         src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
         alt="Equipe ANGOHOST" 
-        className="w-full h-auto object-contain max-h-[600px]"
+        className="w-full h-auto object-contain max-h-[800px]"
       />
     </motion.div>
   );
