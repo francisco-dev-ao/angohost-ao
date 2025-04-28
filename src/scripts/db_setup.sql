@@ -2,134 +2,217 @@
 -- This SQL script creates all necessary tables for the application
 -- Note: This is for reference. You should execute it directly on your PostgreSQL server
 
--- Customers table
-CREATE TABLE IF NOT EXISTS customers (
-  id TEXT PRIMARY KEY,
-  user_id TEXT,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
+-- 1. Criar extensão para gerar UUIDs
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 2. Criar tabelas
+
+CREATE TABLE customers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID,
+  name TEXT,
+  email TEXT UNIQUE,
   phone TEXT,
   nif TEXT,
+  id_number TEXT,
   billing_address TEXT,
   city TEXT,
+  country TEXT,
   postal_code TEXT,
-  country TEXT DEFAULT 'Angola',
-  account_balance NUMERIC DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ,
+  account_balance INTEGER
 );
 
--- Contact profiles table
-CREATE TABLE IF NOT EXISTS contact_profiles (
-  id TEXT PRIMARY KEY,
-  customer_id TEXT REFERENCES customers(id),
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT,
-  nif TEXT,
+CREATE TABLE contact_profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
   profile_name TEXT,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  nif TEXT,
   billing_address TEXT,
   city TEXT,
   postal_code TEXT,
-  country TEXT DEFAULT 'Angola',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  country TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
--- Orders table
-CREATE TABLE IF NOT EXISTS orders (
-  id TEXT PRIMARY KEY,
-  customer_id TEXT NOT NULL,
-  total_amount NUMERIC NOT NULL,
-  status TEXT DEFAULT 'pending',
-  payment_method TEXT,
-  payment_id TEXT,
-  reference TEXT,
-  invoice_number TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE account_transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  amount INTEGER,
+  description TEXT,
+  previous_balance INTEGER,
+  current_balance INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  reference_id TEXT,
+  transaction_type TEXT
 );
 
--- Order items table
-CREATE TABLE IF NOT EXISTS order_items (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  order_id TEXT REFERENCES orders(id),
-  product_name TEXT NOT NULL,
-  product_type TEXT NOT NULL,
-  product_id TEXT,
-  price NUMERIC NOT NULL,
-  period TEXT,
-  quantity INTEGER DEFAULT 1,
-  details TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE dedicated_servers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  plan_id UUID,
+  server_name TEXT,
+  ip_address TEXT,
+  cpu TEXT,
+  ram INTEGER,
+  storage INTEGER,
+  bandwidth INTEGER,
+  os TEXT,
+  status TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
--- Invoices table
-CREATE TABLE IF NOT EXISTS invoices (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  order_id TEXT REFERENCES orders(id),
-  customer_id TEXT REFERENCES customers(id),
-  invoice_number TEXT NOT NULL,
-  amount NUMERIC NOT NULL,
-  status TEXT DEFAULT 'unpaid',
-  payment_method TEXT,
-  due_date TIMESTAMP WITH TIME ZONE,
-  paid_date TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Domains table
-CREATE TABLE IF NOT EXISTS domains (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  name TEXT NOT NULL,
-  tld TEXT NOT NULL,
-  customer_id TEXT REFERENCES customers(id),
-  registration_date TIMESTAMP WITH TIME ZONE,
-  expiry_date TIMESTAMP WITH TIME ZONE,
+CREATE TABLE domains (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  name TEXT,
+  tld TEXT,
+  status TEXT,
+  registration_date TIMESTAMPTZ,
+  expiry_date TIMESTAMPTZ,
   auto_renew BOOLEAN DEFAULT FALSE,
-  status TEXT DEFAULT 'pending',
   ns1 TEXT,
   ns2 TEXT,
   ns3 TEXT,
   ns4 TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
--- Hosting plans table
-CREATE TABLE IF NOT EXISTS hosting_plans (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  name TEXT NOT NULL,
-  type TEXT NOT NULL,
-  price NUMERIC NOT NULL,
+CREATE TABLE email_accounts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  domain_id UUID REFERENCES domains(id) ON DELETE CASCADE,
+  email_address TEXT,
+  plan_id UUID,
+  status TEXT,
+  quota INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE hosting_plans (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT,
+  type TEXT,
+  price INTEGER,
+  renewal_price INTEGER,
   period TEXT,
-  renewal_price NUMERIC,
-  features TEXT,
+  features JSONB,
   is_active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
--- Support tickets table
-CREATE TABLE IF NOT EXISTS support_tickets (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  customer_id TEXT REFERENCES customers(id),
-  subject TEXT NOT NULL,
-  description TEXT NOT NULL,
-  status TEXT DEFAULT 'open',
-  priority TEXT DEFAULT 'medium',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE hosting_services (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  plan_id UUID REFERENCES hosting_plans(id),
+  domain_id UUID REFERENCES domains(id),
+  status TEXT,
+  server_name TEXT,
+  ip_address TEXT,
+  username TEXT,
+  password TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
 );
 
--- Ticket messages table
-CREATE TABLE IF NOT EXISTS ticket_messages (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
-  ticket_id TEXT REFERENCES support_tickets(id),
-  user_id TEXT,
-  message TEXT NOT NULL,
-  is_staff BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE invoices (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  number TEXT UNIQUE,
+  total_amount INTEGER,
+  status TEXT,
+  due_date TIMESTAMPTZ,
+  paid_date TIMESTAMPTZ,
+  payment_method TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE notification_preferences (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  email BOOLEAN DEFAULT TRUE,
+  sms BOOLEAN DEFAULT FALSE,
+  whatsapp BOOLEAN DEFAULT FALSE,
+  push_notifications BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  title TEXT,
+  message TEXT,
+  type TEXT,
+  is_read BOOLEAN DEFAULT FALSE,
+  sent_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE orders (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  status TEXT,
+  total_amount INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE order_items (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  description TEXT,
+  type TEXT,
+  reference_id UUID,
+  price INTEGER,
+  quantity INTEGER DEFAULT 1,
+  total INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE profiles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  profile_type TEXT,
+  name TEXT,
+  email TEXT,
+  phone TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE support_tickets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  subject TEXT,
+  department TEXT,
+  priority TEXT,
+  status TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE ticket_messages (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ticket_id UUID REFERENCES support_tickets(id) ON DELETE CASCADE,
+  sender_type TEXT,
+  message TEXT,
+  attachments TEXT,
+  sent_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Criar índices principais para melhorar desempenho
+
+CREATE INDEX idx_customer_email ON customers(email);
+CREATE INDEX idx_domain_name ON domains(name);
+CREATE INDEX idx_invoice_number ON invoices(number);
+CREATE INDEX idx_notification_customer ON notifications(customer_id);
+CREATE INDEX idx_order_customer ON orders(customer_id);
+CREATE INDEX idx_ticket_customer ON support_tickets(customer_id);

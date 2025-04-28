@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Invoice } from '@/types/database-types';
 import { toast } from 'sonner';
@@ -47,7 +48,6 @@ export const useInvoicesList = () => {
       }
       
       // Ensure data is treated as an array
-      // It's important to use 'any' here since we don't know the exact structure yet
       const rawInvoicesData: any[] = Array.isArray(data) ? data : [];
       
       // Aplicar filtro se houver
@@ -62,15 +62,15 @@ export const useInvoicesList = () => {
       const transformedInvoices: Invoice[] = filteredData.map((invoice: any) => ({
         id: invoice.id,
         customer_id: invoice.customer_id,
-        number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
-        total_amount: invoice.amount || 0,
+        number: invoice.number || invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
+        total_amount: invoice.total_amount || invoice.amount || 0,
         created_at: invoice.created_at,
         due_date: invoice.due_date || invoice.payment_deadline,
         status: invoice.status,
         paid_date: invoice.paid_date,
         payment_method: invoice.payment_method,
-        notes: "",
-        reference_id: invoice.order_id
+        notes: invoice.notes || "",
+        reference_id: invoice.reference_id || invoice.order_id
       }));
       
       setInvoices(transformedInvoices);

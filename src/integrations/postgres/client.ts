@@ -1,3 +1,4 @@
+
 // PostgreSQL client para conexão direta com o banco de dados
 // Importante: Em produção, operações de banco de dados devem ser realizadas através de uma API segura
 
@@ -18,11 +19,11 @@ import {
 
 // Configuração de conexão com o PostgreSQL
 export const pgConfig = {
-  host: 'emhtcellotyoasg.clouds2africa.com',
-  port: 1870,
-  database: 'appdb',
-  user: 'postgres',
-  password: 'Bayathu50@@'
+  host: '167.86.79.46',
+  port: 5432,
+  database: 'angohost_bd',
+  user: 'angohost_admin',
+  password: process.env.DB_PASSWORD || '' // A senha deve ser configurada através de variáveis de ambiente
 };
 
 // Interface para resultados de operações no banco de dados
