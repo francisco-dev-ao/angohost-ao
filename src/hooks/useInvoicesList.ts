@@ -40,28 +40,27 @@ export const useInvoicesList = () => {
         return;
       }
       
-      const { data: customer, success } = await invoiceService.getByCustomerId(userId);
+      const { data, success } = await invoiceService.getByCustomerId(userId);
       
-      if (!success || !customer) {
+      if (!success || !data) {
         setError('Não foi possível carregar suas faturas');
         return;
       }
       
-      // Ensure customer data is treated as an array
-      let invoicesData = Array.isArray(customer) ? customer : [];
+      // Ensure data is treated as an array
+      // It's important to use 'any' here since we don't know the exact structure yet
+      const rawInvoicesData: any[] = Array.isArray(data) ? data : [];
       
       // Aplicar filtro se houver
-      if (filterStatus && invoicesData.length > 0) {
-        invoicesData = invoicesData.filter(invoice => 
+      let filteredData = rawInvoicesData;
+      if (filterStatus && filteredData.length > 0) {
+        filteredData = filteredData.filter(invoice => 
           invoice.status?.toLowerCase() === filterStatus.toLowerCase()
         );
       }
       
-      // Type safety: We need to treat the raw data as unknown first, then as DatabaseInvoice[]
-      // This tells TypeScript we are intentionally doing this conversion
-      const databaseInvoices = invoicesData as unknown as DatabaseInvoice[];
-      
-      const transformedInvoices: Invoice[] = databaseInvoices.map((invoice: DatabaseInvoice) => ({
+      // Transform data from database format to application format
+      const transformedInvoices: Invoice[] = filteredData.map((invoice: any) => ({
         id: invoice.id,
         customer_id: invoice.customer_id,
         number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
