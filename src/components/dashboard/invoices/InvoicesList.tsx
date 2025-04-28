@@ -1,11 +1,11 @@
 
 import React from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CreditCard, AlertCircle } from "lucide-react";
 import { formatDate, formatCurrency } from '@/utils/formatters';
 import { Invoice } from '@/types/database';
-import { CreditCard } from 'lucide-react';
 
 interface InvoicesListProps {
   loading: boolean;
@@ -15,30 +15,35 @@ interface InvoicesListProps {
 }
 
 export const getStatusBadge = (status: string) => {
-  switch (status.toLowerCase()) {
+  const lowercaseStatus = status.toLowerCase();
+  
+  switch (lowercaseStatus) {
     case 'paid':
     case 'pago':
-      return <Badge className="bg-green-500">Pago</Badge>;
-    case 'pending':
-    case 'pendente':
-      return <Badge variant="outline" className="text-yellow-600 border-yellow-300">Pendente</Badge>;
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900">Pago</Badge>;
+      
     case 'unpaid':
     case 'não pago':
-      return <Badge variant="outline" className="text-red-600 border-red-300">Não Pago</Badge>;
+      return <Badge variant="destructive">Não Pago</Badge>;
+      
+    case 'pending':
+    case 'pendente':
+      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 hover:text-yellow-900">Pendente</Badge>;
+      
     case 'overdue':
     case 'vencido':
-      return <Badge className="bg-red-500">Vencido</Badge>;
-    case 'cancelled':
+      return <Badge variant="destructive">Vencido</Badge>;
+      
+    case 'canceled':
     case 'cancelado':
       return <Badge variant="secondary">Cancelado</Badge>;
-    case 'processing':
-      return <Badge className="bg-blue-500">Processando</Badge>;
+      
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
 };
 
-export const InvoicesList = ({ loading, error, invoices, onPayInvoice }: InvoicesListProps) => {
+export const InvoicesList: React.FC<InvoicesListProps> = ({ loading, error, invoices, onPayInvoice }) => {
   if (loading) {
     return (
       <div className="p-8 text-center text-muted-foreground">
@@ -47,56 +52,57 @@ export const InvoicesList = ({ loading, error, invoices, onPayInvoice }: Invoice
       </div>
     );
   }
-
+  
   if (error) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        <FileText className="h-6 w-6 mx-auto mb-3 text-red-500" />
+        <AlertCircle className="h-6 w-6 mx-auto mb-3 text-red-500" />
         <p>{error}</p>
       </div>
     );
   }
-
+  
   if (invoices.length === 0) {
     return (
       <div className="p-8 text-center text-muted-foreground">
-        <FileText className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
-        <p>Nenhuma fatura encontrada</p>
+        <p>Nenhuma fatura encontrada.</p>
       </div>
     );
   }
-
+  
   return (
-    <div className="rounded-md border">
-      <div className="grid grid-cols-6 p-4 font-medium border-b bg-muted/50">
-        <div>Nº Fatura</div>
-        <div>Data</div>
-        <div>Vencimento</div>
-        <div>Valor</div>
-        <div>Status</div>
-        <div className="text-right">Ações</div>
-      </div>
-      
-      {invoices.map((invoice) => (
-        <div key={invoice.id} className="grid grid-cols-6 p-4 items-center border-b hover:bg-muted/50">
-          <div>{invoice.number}</div>
-          <div>{formatDate(invoice.created_at)}</div>
-          <div>{formatDate(invoice.due_date)}</div>
-          <div>{formatCurrency(invoice.total_amount || 0)}</div>
-          <div>{getStatusBadge(invoice.status || '')}</div>
-          <div className="text-right">
-            {['unpaid', 'pending', 'overdue', 'não pago', 'pendente', 'vencido'].includes(invoice.status?.toLowerCase() || '')} && (
-              <Button 
-                size="sm"
-                onClick={() => onPayInvoice(invoice)}
-              >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Pagar
-              </Button>
-            )}
-          </div>
-        </div>
-      ))}
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Número</TableHead>
+            <TableHead>Data</TableHead>
+            <TableHead>Vencimento</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Ação</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {invoices.map((invoice) => (
+            <TableRow key={invoice.id}>
+              <TableCell>{invoice.number}</TableCell>
+              <TableCell>{formatDate(invoice.created_at)}</TableCell>
+              <TableCell>{formatDate(invoice.due_date)}</TableCell>
+              <TableCell>{formatCurrency(invoice.total_amount || 0)}</TableCell>
+              <TableCell>{getStatusBadge(invoice.status || '')}</TableCell>
+              <TableCell className="text-right">
+                {['unpaid', 'pending', 'overdue', 'não pago', 'pendente', 'vencido'].includes(invoice.status?.toLowerCase() || '') && (
+                  <Button variant="outline" size="sm" onClick={() => onPayInvoice(invoice)}>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Pagar
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };
