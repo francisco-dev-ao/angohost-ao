@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, FileText, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { WalletChart } from './wallet/WalletChart';
+import { ActivityChart } from './wallet/ActivityChart';
 import { WalletTransactions } from './wallet/WalletTransactions';
 import { BalanceCard } from './wallet/BalanceCard';
 import { useWalletData } from '@/hooks/useWalletData';
@@ -29,26 +28,11 @@ export const WalletTab = () => {
           onRefresh={fetchWalletData}
           formatCurrency={formatCurrency}
         />
-        
-        <Card className="flex-1">
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-            <CardDescription>Histórico dos últimos 6 meses</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full"></div>
-              </div>
-            ) : error ? (
-              <div className="flex justify-center items-center h-full">
-                <p className="text-red-500">{error}</p>
-              </div>
-            ) : (
-              <WalletChart data={chartData} />
-            )}
-          </CardContent>
-        </Card>
+        <ActivityChart 
+          isLoading={isLoading}
+          error={error}
+          chartData={chartData}
+        />
       </div>
       
       <Card>
