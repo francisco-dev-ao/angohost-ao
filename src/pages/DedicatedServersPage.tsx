@@ -3,10 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PricingCard } from '@/components/PricingCard';
-import { PlanCategories } from '@/components/PlanCategories';
-import { FeatureCard } from '@/components/FeatureCard';
-import { CallToActionSection } from '@/components/sections/CallToActionSection';
+import PricingCard from '@/components/PricingCard';
+import PlanCategories from '@/components/PlanCategories';
+import FeatureCard from '@/components/FeatureCard';
+import CallToActionSection from '@/components/sections/CallToActionSection';
 import { useShoppingCart } from '@/hooks/useShoppingCart';
 
 // Definição dos planos de servidores dedicados
@@ -103,10 +103,10 @@ const serverFeatures = [
 ];
 
 const DedicatedServersPage = () => {
-  const { addItem } = useShoppingCart();
+  const { addToCart } = useShoppingCart();
 
   const handleAddToCart = (plan: any) => {
-    addItem({
+    addToCart({
       id: plan.id,
       type: 'vps',
       name: `Servidor Dedicado ${plan.name}`,
