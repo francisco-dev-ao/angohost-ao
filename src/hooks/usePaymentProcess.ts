@@ -35,13 +35,23 @@ export const usePaymentProcess = (onPaymentComplete?: () => void) => {
         .eq('id', user.id)
         .single();
         
+      // Get customer data to get email
+      const { data: customerData } = await supabase
+        .from('customers')
+        .select('email, name')
+        .eq('user_id', user.id)
+        .single();
+      
+      const customerEmail = customerData?.email || user.email || '';
+      const customerName = customerData?.name || userData?.full_name || '';
+      
       const { success, data, message } = await processPayment({
         reference,
         amount,
         paymentMethod: method,
         callbackUrl: `${window.location.origin}/payment/callback`,
-        customerEmail: userData?.email || user.email || '',
-        customerName: userData ? `${userData.first_name || ''} ${userData.last_name || ''}` : '',
+        customerEmail,
+        customerName,
         description: description || `Pagamento de ${amount} AOA`
       });
       

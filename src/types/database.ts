@@ -129,6 +129,7 @@ export interface Invoice {
   payment_method: string | null;
   notes: string | null;
   created_at: string;
+  reference_id?: string | null; // Added reference_id field
 }
 
 export interface NotificationPreference {
@@ -180,6 +181,8 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   created_at: string;
+  first_name?: string | null; // Added first_name for usePaymentProcess.ts
+  last_name?: string | null; // Added last_name for usePaymentProcess.ts
 }
 
 export interface SupportTicket {

@@ -9,6 +9,23 @@ interface CustomerData {
   account_balance: number;
 }
 
+// Define a more specific type for database invoices
+interface DatabaseInvoice {
+  id: string;
+  invoice_number: string;
+  amount: number;
+  created_at: string;
+  customer_id: string;
+  due_date: string | null;
+  status: string | null;
+  paid_date: string | null;
+  payment_method: string | null;
+  order_id: string;
+  notification_sent: boolean | null;
+  payment_deadline: string | null;
+  updated_at: string;
+}
+
 export const useInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,17 +79,18 @@ export const useInvoices = () => {
       if (error) throw error;
       
       // Transform the data to match the Invoice type
-      const transformedInvoices = (data || []).map(invoice => ({
+      const transformedInvoices: Invoice[] = (data || []).map((invoice: DatabaseInvoice) => ({
         id: invoice.id,
-        number: invoice.invoice_number || invoice.number || `INV-${invoice.id.slice(0, 8)}`,
-        total_amount: invoice.amount || invoice.total_amount || 0,
+        customer_id: invoice.customer_id,
+        number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
+        total_amount: invoice.amount || 0,
         created_at: invoice.created_at,
         due_date: invoice.due_date || invoice.payment_deadline,
         status: invoice.status,
         paid_date: invoice.paid_date,
         payment_method: invoice.payment_method,
-        notes: invoice.notes || "",
-        reference_id: invoice.reference_id || invoice.order_id
+        notes: "", // Default empty notes since it's not in the database
+        reference_id: invoice.order_id // Use order_id as reference_id
       }));
       
       setInvoices(transformedInvoices);

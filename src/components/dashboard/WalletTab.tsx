@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, CreditCard, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ActivityChart } from './wallet/ActivityChart';
 import { WalletTransactions } from './wallet/WalletTransactions';
