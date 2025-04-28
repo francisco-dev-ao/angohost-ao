@@ -6,7 +6,7 @@ import { imageRevealVariants } from '@/lib/animations';
 const HeroBackground = () => {
   return (
     <motion.div 
-      className="absolute inset-0 w-full h-full overflow-hidden"
+      className="relative w-full min-h-[80vh] flex items-center justify-center overflow-hidden"
       variants={imageRevealVariants}
       initial="hidden"
       animate="visible"
@@ -14,7 +14,7 @@ const HeroBackground = () => {
       <img 
         src="/lovable-uploads/198cbc98-86c6-4598-8d0a-bed3b41b6d9f.png" 
         alt="Equipe ANGOHOST" 
-        className="w-full h-full object-cover"
+        className="w-[95%] h-[95%] object-contain scale-110"
       />
     </motion.div>
   );
