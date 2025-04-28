@@ -1,12 +1,66 @@
+
 import { useState } from 'react';
-import { Invoice } from '@/types/database-types';
+import { Invoice } from '@/types/supabase';
 import { toast } from 'sonner';
-import { invoiceService, transactionService, customerService, orderService } from '@/integrations/postgres/client';
 
 interface CustomerData {
   id: string;
   account_balance: number;
 }
+
+interface DbOperationResult<T> {
+  data: T | null;
+  success: boolean;
+  error?: Error;
+}
+
+// Interfaces para os serviços que precisamos usar
+interface InvoiceService {
+  getById: (id: string) => Promise<DbOperationResult<Invoice>>;
+  getByUserId: (userId: string) => Promise<DbOperationResult<Invoice[]>>;
+  create: (invoice: any) => Promise<DbOperationResult<Invoice>>;
+  update: (id: string, data: any) => Promise<DbOperationResult<Invoice>>;
+  updateStatus: (id: string, status: string, paidDate?: string) => Promise<DbOperationResult<Invoice>>;
+  getUnpaid: () => Promise<DbOperationResult<Invoice[]>>;
+  delete: (id: string) => Promise<DbOperationResult<boolean>>;
+}
+
+interface TransactionService {
+  create: (transaction: any) => Promise<DbOperationResult<any>>;
+}
+
+interface CustomerService {
+  getById: (id: string) => Promise<DbOperationResult<CustomerData>>;
+  update: (id: string, data: any) => Promise<DbOperationResult<any>>;
+}
+
+interface OrderService {
+  updateStatus: (id: string, status: string) => Promise<DbOperationResult<any>>;
+}
+
+// Simulação de serviços que serão injetados
+const invoiceService: InvoiceService = {
+  getById: () => Promise.resolve({ data: null, success: false }),
+  getByUserId: () => Promise.resolve({ data: [], success: true }),
+  create: () => Promise.resolve({ data: null, success: false }),
+  update: () => Promise.resolve({ data: null, success: false }),
+  updateStatus: () => Promise.resolve({ data: null, success: false }),
+  getUnpaid: () => Promise.resolve({ data: [], success: true }),
+  delete: () => Promise.resolve({ data: true, success: true })
+};
+
+const transactionService: TransactionService = {
+  create: () => Promise.resolve({ data: null, success: false })
+};
+
+const customerService: CustomerService = {
+  getById: () => Promise.resolve({ data: null, success: false }),
+  update: () => Promise.resolve({ data: null, success: false })
+};
+
+const orderService: OrderService = {
+  updateStatus: () => Promise.resolve({ data: null, success: false })
+};
 
 export const useInvoicePayment = (onSuccess?: () => void) => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);

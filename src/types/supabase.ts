@@ -348,3 +348,42 @@ export interface Database {
   }
 }
 
+// Exportando tipos comuns para uso em toda a aplicação
+export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
+export type TablesRow<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+
+// Exportando tipos de tabelas específicas para facilitar o uso
+export type Customer = TablesRow<'customers'>
+export type Domain = TablesRow<'domains'>
+export type EmailAccount = TablesRow<'email_accounts'>
+export type HostingService = TablesRow<'hosting_services'>
+export type Invoice = TablesRow<'invoices'>
+export type OrderItem = TablesRow<'order_items'>
+export type Order = TablesRow<'orders'>
+export type Profile = TablesRow<'profiles'>
+export type SupportTicket = TablesRow<'support_tickets'>
+
+// Tipos de inserção
+export type CustomerInsert = TablesInsert<'customers'>
+export type DomainInsert = TablesInsert<'domains'>
+export type EmailAccountInsert = TablesInsert<'email_accounts'>
+export type HostingServiceInsert = TablesInsert<'hosting_services'>
+export type InvoiceInsert = TablesInsert<'invoices'>
+export type OrderItemInsert = TablesInsert<'order_items'>
+export type OrderInsert = TablesInsert<'orders'>
+export type ProfileInsert = TablesInsert<'profiles'>
+export type SupportTicketInsert = TablesInsert<'support_tickets'>
+
+// Tipos de atualização
+export type CustomerUpdate = TablesUpdate<'customers'>
+export type DomainUpdate = TablesUpdate<'domains'>
+export type EmailAccountUpdate = TablesUpdate<'email_accounts'>
+export type HostingServiceUpdate = TablesUpdate<'hosting_services'>
+export type InvoiceUpdate = TablesUpdate<'invoices'>
+export type OrderItemUpdate = TablesUpdate<'order_items'>
+export type OrderUpdate = TablesUpdate<'orders'>
+export type ProfileUpdate = TablesUpdate<'profiles'>
+export type SupportTicketUpdate = TablesUpdate<'support_tickets'>
+
+export type Tables = Database['public']['Tables']

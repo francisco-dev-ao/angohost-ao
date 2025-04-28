@@ -1,164 +1,218 @@
 
-import { customerService } from '@/integrations/postgres/client';
+import { createClient } from '@supabase/supabase-js';
 
-// Tipos para autenticação
-export type AuthUser = {
-  id: string;
-  email: string;
-  name: string;
-};
+const SUPABASE_URL = "https://jyqekseqbbpgupuotuin.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5cWVrc2VxYmJwZ3VwdW90dWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU4NDI0NTksImV4cCI6MjA2MTQxODQ1OX0.NTaNilqKyq2xjNXh0P6VdMJgGfvwtWzP0CgQEE1moYY";
 
-export type Session = {
-  user: AuthUser;
-  token: string;
-  expires: Date;
-};
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Serviço de autenticação simulando integração com seu banco
-export const AuthService = {
-  // Login do usuário
-  login: async (email: string, password: string): Promise<{ user: AuthUser | null; error: string | null }> => {
+interface AuthError {
+  message: string;
+  status?: number;
+}
+
+interface AuthResponse<T = any> {
+  data: T | null;
+  error: AuthError | null;
+}
+
+class AuthService {
+  /**
+   * Login com email e senha
+   */
+  async loginWithEmail(email: string, password: string): Promise<AuthResponse> {
     try {
-      // Simular validação de senha (em produção isso seria feito no servidor)
-      if (!email || !password) {
-        return { user: null, error: 'Email e senha são obrigatórios' };
-      }
-      
-      // Verificar se o cliente existe com esse email
-      const { success, data: customer, error } = await customerService.getByEmail(email);
-      
-      if (!success || !customer) {
-        return { user: null, error: 'Usuário não encontrado' };
-      }
-      
-      // Simular autenticação bem sucedida
-      // Em produção, a verificação de senha seria feita no backend
-      const user: AuthUser = {
-        id: customer.id,
-        email: customer.email,
-        name: customer.name
-      };
-      
-      // Salvar sessão no localStorage
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      localStorage.setItem('auth_token', `simulated_token_${Date.now()}`);
-      localStorage.setItem('auth_expires', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
-      
-      return { user, error: null };
-    } catch (err: any) {
-      console.error('Erro na autenticação:', err);
-      return { user: null, error: err.message || 'Erro ao autenticar usuário' };
-    }
-  },
-  
-  // Registro de novo usuário
-  register: async (name: string, email: string, password: string): Promise<{ user: AuthUser | null; error: string | null }> => {
-    try {
-      // Verificar se já existe um usuário com esse email
-      const { success, data: existingCustomer } = await customerService.getByEmail(email);
-      
-      if (success && existingCustomer) {
-        return { user: null, error: 'Email já está em uso' };
-      }
-      
-      // Criar um novo cliente
-      const { success: createSuccess, data: newCustomer, error: createError } = await customerService.create({
-        name,
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        account_balance: 0
+        password
       });
-      
-      if (!createSuccess || !newCustomer) {
-        return { user: null, error: createError?.message || 'Erro ao criar usuário' };
-      }
-      
-      // Criar usuário autenticado
-      const user: AuthUser = {
-        id: newCustomer.id,
-        email: newCustomer.email,
-        name: newCustomer.name
-      };
-      
-      // Salvar sessão no localStorage
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      localStorage.setItem('auth_token', `simulated_token_${Date.now()}`);
-      localStorage.setItem('auth_expires', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
-      
-      return { user, error: null };
-    } catch (err: any) {
-      console.error('Erro no registro:', err);
-      return { user: null, error: err.message || 'Erro ao registrar usuário' };
-    }
-  },
-  
-  // Logout
-  logout: () => {
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_expires');
-  },
-  
-  // Verificar se o usuário está autenticado
-  getSession: (): Session | null => {
-    const userStr = localStorage.getItem('auth_user');
-    const token = localStorage.getItem('auth_token');
-    const expiresStr = localStorage.getItem('auth_expires');
-    
-    if (!userStr || !token || !expiresStr) {
-      return null;
-    }
-    
-    try {
-      const user = JSON.parse(userStr);
-      const expires = new Date(expiresStr);
-      
-      // Verificar se a sessão expirou
-      if (expires < new Date()) {
-        AuthService.logout();
-        return null;
-      }
-      
-      return {
-        user,
-        token,
-        expires
-      };
-    } catch (err) {
-      console.error('Erro ao recuperar sessão:', err);
-      return null;
-    }
-  },
-  
-  // Verificar se o usuário está autenticado
-  isAuthenticated: (): boolean => {
-    return !!AuthService.getSession();
-  },
-  
-  // Atualizar dados do usuário
-  updateUser: async (userId: string, data: Partial<AuthUser>): Promise<{ success: boolean; error: string | null }> => {
-    try {
-      const { success } = await customerService.update(userId, data);
-      
-      if (!success) {
-        return { success: false, error: 'Erro ao atualizar usuário' };
-      }
-      
-      // Atualizar dados no localStorage se necessário
-      const session = AuthService.getSession();
-      if (session) {
-        const updatedUser = {
-          ...session.user,
-          ...data
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
         };
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
       }
-      
-      return { success: true, error: null };
+
+      return {
+        data,
+        error: null
+      };
     } catch (err: any) {
-      console.error('Erro ao atualizar usuário:', err);
-      return { success: false, error: err.message || 'Erro ao atualizar usuário' };
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao realizar login'
+        }
+      };
     }
   }
-};
 
-export default AuthService;
+  /**
+   * Registro de novo usuário
+   */
+  async register(email: string, password: string, userData?: any): Promise<AuthResponse> {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      });
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
+        };
+      }
+
+      return {
+        data,
+        error: null
+      };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao registrar usuário'
+        }
+      };
+    }
+  }
+
+  /**
+   * Logout do usuário atual
+   */
+  async logout(): Promise<AuthResponse> {
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
+        };
+      }
+
+      return {
+        data: { success: true },
+        error: null
+      };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao realizar logout'
+        }
+      };
+    }
+  }
+
+  /**
+   * Obter o usuário atual
+   */
+  async getCurrentUser(): Promise<AuthResponse> {
+    try {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
+        };
+      }
+
+      return {
+        data: data.user,
+        error: null
+      };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao obter usuário atual'
+        }
+      };
+    }
+  }
+
+  /**
+   * Atualizar dados do usuário
+   */
+  async updateUserData(userData: any): Promise<AuthResponse> {
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: userData
+      });
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
+        };
+      }
+
+      return {
+        data: data.user,
+        error: null
+      };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao atualizar dados do usuário'
+        }
+      };
+    }
+  }
+
+  /**
+   * Resetar senha
+   */
+  async resetPassword(email: string): Promise<AuthResponse> {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        return {
+          data: null,
+          error: {
+            message: error.message,
+            status: error.status
+          }
+        };
+      }
+
+      return {
+        data,
+        error: null
+      };
+    } catch (err: any) {
+      return {
+        data: null,
+        error: {
+          message: err.message || 'Erro ao enviar email de recuperação de senha'
+        }
+      };
+    }
+  }
+}
+
+export default new AuthService();

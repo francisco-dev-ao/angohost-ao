@@ -1,232 +1,343 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Server, Wifi, Clock, Database, HardDrive, Loader2 } from 'lucide-react';
-import PricingCard from '@/components/PricingCard';
-import FeatureCard from '@/components/FeatureCard';
-import { supabase } from "@/integrations/supabase/client";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tables } from '@/types/supabase';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PricingCard } from '@/components/PricingCard';
+import { PlanCategories } from '@/components/PlanCategories';
+import { FeatureCard } from '@/components/FeatureCard';
+import { CallToActionSection } from '@/components/sections/CallToActionSection';
+import { useShoppingCart } from '@/hooks/useShoppingCart';
 
-type HostingPlan = Tables<'hosting_plans'>;
+// Definição dos planos de servidores dedicados
+const dedicatedPlans = [
+  {
+    id: 'dedicated-starter',
+    name: 'Starter',
+    price: 99900,
+    period: 'monthly',
+    popular: false,
+    description: 'Servidor dedicado básico para projetos menores',
+    features: [
+      'Intel Xeon E3-1230v6',
+      '16GB RAM DDR4',
+      '2 x SSD 480GB',
+      'Tráfego ilimitado',
+      'Proteção anti-DDoS',
+      'IP Dedicado',
+      'Suporte 24/7'
+    ]
+  },
+  {
+    id: 'dedicated-business',
+    name: 'Business',
+    price: 149900,
+    period: 'monthly',
+    popular: true,
+    description: 'Servidor dedicado ideal para aplicações empresariais',
+    features: [
+      'Intel Xeon E5-2660v4',
+      '32GB RAM DDR4',
+      '2 x SSD NVMe 1TB',
+      'Tráfego ilimitado',
+      'Proteção anti-DDoS avançada',
+      '2 IPs Dedicados',
+      'Suporte 24/7 prioritário',
+      'Backups diários'
+    ]
+  },
+  {
+    id: 'dedicated-premium',
+    name: 'Premium',
+    price: 249900,
+    period: 'monthly',
+    popular: false,
+    description: 'Servidor dedicado de alta performance para grandes projetos',
+    features: [
+      'Intel Xeon Gold 6248R',
+      '64GB RAM DDR4 ECC',
+      '4 x SSD NVMe 1TB em RAID',
+      'Tráfego ilimitado',
+      'Proteção anti-DDoS máxima',
+      '4 IPs Dedicados',
+      'Suporte 24/7 VIP',
+      'Backups diários',
+      'Monitoramento avançado',
+      'Garantia de hardware 4 horas'
+    ]
+  }
+];
+
+// Características dos servidores dedicados
+const serverFeatures = [
+  {
+    title: 'Hardware Exclusivo',
+    description: 'Recursos de hardware exclusivos sem compartilhamento com outros clientes',
+    icon: 'server'
+  },
+  {
+    title: 'Performance Máxima',
+    description: 'Desempenho consistente sem flutuações causadas por outros usuários',
+    icon: 'settings'
+  },
+  {
+    title: 'Segurança Reforçada',
+    description: 'Isolamento físico completo para seus dados e aplicações',
+    icon: 'shield'
+  },
+  {
+    title: 'Estabilidade Garantida',
+    description: 'SLA de uptime de 99.9% com garantia de disponibilidade',
+    icon: 'info-circle'
+  },
+  {
+    title: 'Suporte Dedicado',
+    description: 'Equipe de suporte técnico especializada disponível 24/7',
+    icon: 'headset'
+  },
+  {
+    title: 'Personalização Total',
+    description: 'Liberdade para configurar e personalizar seu servidor conforme necessidade',
+    icon: 'gear'
+  }
+];
 
 const DedicatedServersPage = () => {
-  const [plans, setPlans] = useState<HostingPlan[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('hosting_plans')
-          .select('*')
-          .eq('type', 'dedicated')
-          .order('price', { ascending: true });
-        
-        if (error) {
-          throw new Error(error.message);
-        }
-        
-        setPlans(data || []);
-      } catch (err) {
-        console.error('Error fetching dedicated server plans:', err);
-        setError('Não foi possível carregar os planos de servidores dedicados.');
-      } finally {
-        setLoading(false);
+  const { addItem } = useShoppingCart();
+
+  const handleAddToCart = (plan: any) => {
+    addItem({
+      id: plan.id,
+      type: 'vps',
+      name: `Servidor Dedicado ${plan.name}`,
+      price: plan.price,
+      period: plan.period,
+      details: {
+        plan: plan.name,
+        resources: plan.features.slice(0, 4).join(', '),
+        renewalPrice: plan.price
       }
-    };
-
-    fetchPlans();
-  }, []);
-
-  const features = [
-    {
-      title: 'Hardware Dedicado',
-      description: 'Acesso exclusivo a recursos de hardware de alta performance para as suas aplicações mais exigentes.',
-      icon: <Server className="w-6 h-6" />
-    },
-    {
-      title: 'Largura de Banda Ilimitada',
-      description: 'Tráfego ilimitado para garantir que o seu site ou aplicação esteja sempre disponível para os seus utilizadores.',
-      icon: <Wifi className="w-6 h-6" />
-    },
-    {
-      title: 'Suporte 24/7',
-      description: 'Equipa técnica disponível 24 horas por dia, 7 dias por semana para assistência imediata.',
-      icon: <Clock className="w-6 h-6" />
-    },
-    {
-      title: 'Backup Diário',
-      description: 'Cópias de segurança automáticas diárias para proteger os seus dados contra perdas acidentais.',
-      icon: <Database className="w-6 h-6" />
-    },
-    {
-      title: 'Painel de Controle',
-      description: 'Interface intuitiva para gestão completa do seu servidor, com todas as ferramentas necessárias.',
-      icon: <HardDrive className="w-6 h-6" />
-    },
-    {
-      title: 'Segurança Avançada',
-      description: 'Proteção robusta contra ameaças cibernéticas, incluindo firewall dedicado e monitorização contínua.',
-      icon: <Shield className="w-6 h-6" />
-    }
-  ];
+    });
+  };
 
   return (
-    <div className="container py-12">
-      <div className="text-center max-w-4xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold mb-4">Servidores Dedicados</h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Desempenho máximo e controle total com nossos servidores dedicados. Ideal para aplicações de alto tráfego, 
-          sites corporativos e projetos que exigem recursos exclusivos.
-        </p>
-        
-      
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">Carregando planos...</span>
-        </div>
-      ) : error ? (
-        <div className="text-center p-8 bg-red-50 rounded-lg">
-          <p className="text-red-600">{error}</p>
-          <Button onClick={() => window.location.reload()} className="mt-4">Tentar novamente</Button>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan) => {
-            const features = [];
-            const planFeatures = plan.features as Record<string, string> || {};
-            
-            if (planFeatures.cpu) features.push(planFeatures.cpu + ' CPU');
-            if (planFeatures.ram) features.push(planFeatures.ram + ' RAM');
-            if (planFeatures.storage) features.push(planFeatures.storage);
-            if (planFeatures.bandwidth) features.push('Tráfego ' + planFeatures.bandwidth);
-            if (planFeatures.ips) features.push(planFeatures.ips);
-            features.push('24/7 Suporte');
-            
-            const isPopular = plan.name.includes('Pro');
-            const planId = plan.id.replace(/-/g, '_');
-            
-            return (
-              <PricingCard
-                key={plan.id}
-                title={plan.name}
-                price={plan.price}
-                period="/mês"
-                features={features}
-                type="hosting"
-                id={`dedicated-${planId}`}
-                isPopular={isPopular}
+    <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-b from-blue-900 to-blue-700 py-16 px-4 text-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="md:w-1/2 mb-8 md:mb-0">
+              <h1 className="text-4xl lg:text-5xl font-bold mb-4">
+                Servidores Dedicados
+              </h1>
+              <p className="text-xl mb-6">
+                Hardware exclusivo e de alto desempenho para suas aplicações críticas. 
+                Performance máxima, segurança reforçada e controle total.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
+                  Ver Planos
+                </Button>
+                <Button variant="outline" size="lg" className="text-white border-white hover:bg-white/10">
+                  Falar com Consultor
+                </Button>
+              </div>
+            </div>
+            <div className="md:w-1/2">
+              <img 
+                src="/ChatGPT Image 26_04_2025, 06_25_35.png" 
+                alt="Servidores Dedicados Ilustração" 
+                className="rounded-lg shadow-2xl max-w-full"
               />
-            );
-          })}
-        </div>
-      )}
-
-      <div className="bg-gray-50 rounded-xl p-8 mb-16">
-        <h2 className="text-2xl font-bold mb-8 text-center">Características dos Nossos Servidores Dedicados</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <FeatureCard 
-              key={index}
-              title={feature.title}
-              description={feature.description}
-              icon={feature.icon}
-            />
-          ))}
-        </div>
-      </div>
-      
-      {plans.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-2xl font-bold mb-8 text-center">Compare Nossos Servidores</h2>
-          <div className="overflow-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[180px]">Especificação</TableHead>
-                  {plans.map(plan => (
-                    <TableHead key={plan.id} className="text-center">
-                      {plan.name.replace('Servidor Dedicado ', '')}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Processador</TableCell>
-                  {plans.map(plan => {
-                    const features = plan.features as Record<string, string> || {};
-                    return (
-                      <TableCell key={plan.id} className="text-center">{features.cpu || '-'}</TableCell>
-                    );
-                  })}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Memória RAM</TableCell>
-                  {plans.map(plan => {
-                    const features = plan.features as Record<string, string> || {};
-                    return (
-                      <TableCell key={plan.id} className="text-center">{features.ram || '-'}</TableCell>
-                    );
-                  })}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Armazenamento</TableCell>
-                  {plans.map(plan => {
-                    const features = plan.features as Record<string, string> || {};
-                    return (
-                      <TableCell key={plan.id} className="text-center">{features.storage || '-'}</TableCell>
-                    );
-                  })}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Largura de Banda</TableCell>
-                  {plans.map(plan => {
-                    const features = plan.features as Record<string, string> || {};
-                    return (
-                      <TableCell key={plan.id} className="text-center">{features.bandwidth || 'Ilimitado'}</TableCell>
-                    );
-                  })}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Endereços IP</TableCell>
-                  {plans.map(plan => {
-                    const features = plan.features as Record<string, string> || {};
-                    return (
-                      <TableCell key={plan.id} className="text-center">{features.ips || '1 IP'}</TableCell>
-                    );
-                  })}
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Preço Mensal</TableCell>
-                  {plans.map(plan => (
-                    <TableCell key={plan.id} className="text-center font-bold">{plan.price.toLocaleString('pt-AO')} Kz</TableCell>
-                  ))}
-                </TableRow>
-              </TableBody>
-            </Table>
+            </div>
           </div>
         </div>
-      )}
-      
-      <div className="bg-primary/5 rounded-xl p-8 mb-16">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">Precisa de uma Solução Personalizada?</h2>
-          <p className="text-gray-600 mb-6">
-            Nossa equipe técnica está disponível para criar uma configuração de servidor que atenda 
-            exatamente às necessidades do seu negócio, com hardware personalizado e configurações específicas.
-          </p>
-          <Button size="lg" className="bg-primary hover:bg-primary/90">
-            Contacte-nos Agora
-          </Button>
+      </section>
+
+      {/* Planos Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Nossos Planos de Servidores Dedicados</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Escolha o plano perfeito para suas necessidades. Do básico ao avançado, 
+              todos os nossos servidores oferecem performance, segurança e suporte de primeira classe.
+            </p>
+          </div>
+
+          <Tabs defaultValue="monthly" className="w-full">
+            <TabsList className="grid w-full max-w-xs mx-auto grid-cols-2 mb-8">
+              <TabsTrigger value="monthly">Mensal</TabsTrigger>
+              <TabsTrigger value="yearly">Anual (20% desc.)</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="monthly" className="w-full">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {dedicatedPlans.map(plan => (
+                  <PricingCard 
+                    key={plan.id}
+                    title={plan.name}
+                    description={plan.description}
+                    price={plan.price}
+                    period="mensal"
+                    features={plan.features}
+                    popular={plan.popular}
+                    onSubscribe={() => handleAddToCart(plan)}
+                    buttonText="Adicionar ao Carrinho"
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="yearly" className="w-full">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {dedicatedPlans.map(plan => {
+                  const yearlyPrice = Math.floor(plan.price * 12 * 0.8);
+                  return (
+                    <PricingCard 
+                      key={`${plan.id}-yearly`}
+                      title={plan.name}
+                      description={plan.description}
+                      price={yearlyPrice}
+                      period="anual"
+                      features={plan.features}
+                      popular={plan.popular}
+                      onSubscribe={() => handleAddToCart({...plan, price: yearlyPrice, period: 'yearly'})}
+                      buttonText="Adicionar ao Carrinho"
+                      savings={`Economize ${Math.floor(plan.price * 12 * 0.2 / 100).toLocaleString('pt-AO')} AOA`}
+                    />
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
-      </div>
+      </section>
+
+      {/* Características Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Por que Escolher Servidores Dedicados</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Servidores dedicados fornecem o máximo em performance, segurança e confiabilidade 
+              para suas aplicações críticas de negócio.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {serverFeatures.map((feature, index) => (
+              <FeatureCard 
+                key={index}
+                title={feature.title}
+                description={feature.description}
+                icon={feature.icon}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categorias Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Escolha o Servidor Ideal para Seu Projeto</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Servidores dedicados otimizados para diferentes tipos de aplicações e necessidades.
+            </p>
+          </div>
+          
+          <PlanCategories 
+            categories={[
+              {
+                title: 'Alta Performance',
+                description: 'Para aplicações que exigem o máximo de desempenho',
+                features: ['Processadores de alta frequência', 'Discos NVMe ultra-rápidos', 'Rede de baixa latência'],
+                icon: 'rocket'
+              },
+              {
+                title: 'Grandes Volumes',
+                description: 'Para aplicações com grandes volumes de dados',
+                features: ['Armazenamento em RAID', 'Backups automatizados', 'Alta capacidade de memória'],
+                icon: 'database'
+              },
+              {
+                title: 'Missão Crítica',
+                description: 'Para aplicações que não podem parar',
+                features: ['Hardware redundante', 'SLA avançado', 'Monitoramento 24/7'],
+                icon: 'shield'
+              }
+            ]}
+          />
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto max-w-7xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Perguntas Frequentes</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Dúvidas comuns sobre nossos serviços de servidores dedicados
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>O que é um servidor dedicado?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Um servidor dedicado é um computador físico em um data center que é exclusivamente 
+                   dedicado para uso de um único cliente. Diferentemente da hospedagem compartilhada ou 
+                   VPS, todos os recursos do servidor são dedicados exclusivamente às suas aplicações.</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Como escolher entre VPS ou Servidor Dedicado?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Escolha um VPS se você precisa de mais recursos do que hospedagem compartilhada oferece, 
+                  mas com custo menor. Opte por um servidor dedicado quando precisar do máximo em performance, 
+                  segurança, personalização e recursos para aplicações críticas.</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Posso personalizar a configuração do meu servidor?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Sim! Oferecemos personalização completa dos nossos servidores dedicados. Se precisar 
+                  de configurações específicas de hardware ou software, fale com nossa equipe para criar 
+                  uma solução sob medida para sua necessidade.</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>O suporte técnico está incluído em todos os planos?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>Sim, todos os planos de servidores dedicados incluem suporte técnico 24/7. Os planos 
+                  superiores contam com suporte prioritário e tempos de resposta ainda mais rápidos para 
+                  suas solicitações.</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Call-to-Action Section */}
+      <CallToActionSection
+        title="Pronto para obter o máximo em performance?"
+        description="Entre em contato com nossos consultores para uma recomendação personalizada sobre o servidor dedicado ideal para o seu negócio."
+        buttonText="Falar com um Especialista"
+        buttonLink="/contato"
+      />
     </div>
   );
 };
